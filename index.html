@@ -309,7 +309,7 @@
     <span class="tag">Formación digital</span>
     <h2>Aprende con nuestros cursos</h2>
     <p class="sub">Acceso inmediato tras la compra. Contenido descargable y actualizado, con certificado.</p>
-    <div class="cgrid">
+    <div class="cgrid" id="cgrid">
       <div class="ccard">
         <div class="top">&#128200;</div>
         <div class="b"><h4>Marketing Digital 360°</h4><p>De cero a experto en campañas y ventas online.</p>
@@ -482,7 +482,7 @@
     mostrar.forEach(function(p,i){
       var card=document.createElement('div'); card.className='card reveal';
       card.style.transitionDelay=((i%4)*80)+'ms';
-      var img = p.imagen_url ? '<img src="'+p.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:16px 16px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : '✨';
+      var img = p.imagen_url ? '<img src="'+p.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:16px 16px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : '✨';
       var badge = p.precio_anterior && p.precio_anterior>p.precio ? '<span class="badge">-'+Math.round((1-p.precio/p.precio_anterior)*100)+'%</span>' : '';
       var old = p.precio_anterior ? '<span class="old">'+eur(p.precio_anterior)+'</span>' : '';
       var href = p.tipo==='producto' ? ('producto.html?id='+encodeURIComponent(p.id)) : 'seguidores.html';
@@ -497,6 +497,25 @@
   }).catch(function(){
     document.getElementById('masVendidosGrid').innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">No se pudieron cargar los productos.</div>';
   });
+
+  // ---- Cursos: añade tus productos reales de categoría "Cursos" junto a los de ejemplo ----
+  fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
+    var lista = Array.isArray(d) ? d : [];
+    var cursos = lista.filter(function(p){ return (p.categoria||'')==='Cursos'; });
+    if(!cursos.length) return;
+    var cgrid=document.getElementById('cgrid');
+    cursos.forEach(function(p){
+      var card=document.createElement('div'); card.className='ccard reveal in';
+      var top = p.imagen_url
+        ? '<img src="'+p.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:18px 18px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'🎓\'}))">'
+        : '🎓';
+      card.innerHTML='<div class="top" style="overflow:hidden;padding:0">'+top+'</div>'+
+        '<div class="b"><h4>'+p.nombre+'</h4><p>'+(p.descripcion||'')+'</p>'+
+        '<div class="row"><span class="cp">'+eur(p.precio)+'</span><button class="cbuy">Comprar</button></div></div>';
+      cgrid.insertBefore(card, cgrid.firstChild);
+      wireBuy(card.querySelector('.cbuy'), function(){return p.nombre;}, function(){return p.precio;});
+    });
+  }).catch(function(){});
 </script>
 
 </body>
