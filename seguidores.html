@@ -42,10 +42,10 @@
     opacity:0;transition:opacity .35s;animation:spin 3.2s linear infinite;pointer-events:none}
   .svc:hover::after{opacity:1}
   .svc .top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-  .svc .ic{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#1c1430,#241a3d);display:flex;align-items:center;justify-content:center;font-size:20px}
-  .svc h3{font-size:15px;font-weight:700;line-height:1.25}
-  .svc .rate{font-size:12px;color:var(--cyan)}
-  .svc .fast{font-size:11px;color:var(--ok);background:rgba(61,230,160,.1);border:1px solid rgba(61,230,160,.25);padding:2px 8px;border-radius:20px;margin-left:auto;white-space:nowrap}
+  .svc .ic{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#1c1430,#241a3d);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .svc h3{font-size:14px;font-weight:700;line-height:1.3}
+  .svc .rate{font-size:12px;color:var(--cyan);margin-top:2px}
+  .svc .fast{font-size:11px;color:var(--ok);background:rgba(61,230,160,.1);border:1px solid rgba(61,230,160,.25);padding:2px 8px;border-radius:20px;margin-left:auto;white-space:nowrap;align-self:flex-start}
   .svc label{display:block;font-size:12px;color:var(--txt-mut);margin:12px 0 6px}
   .svc input[type=range]{width:100%;accent-color:var(--cyan)}
   .qrow{display:flex;justify-content:space-between;font-size:12px;color:var(--txt-mut);margin-top:4px}
@@ -55,8 +55,31 @@
   .tot .v{font-size:26px;font-weight:800;color:#fff}
   .order{width:100%;padding:12px;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;
     background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));color:#fff;box-shadow:0 0 16px rgba(168,85,247,.4)}
-  .fab{position:fixed;right:22px;bottom:22px;background:#25D366;color:#0b3d1e;font-weight:800;padding:14px 20px;border-radius:40px;box-shadow:0 8px 30px rgba(37,211,102,.45)}
+  .fab{position:fixed;right:22px;bottom:22px;background:#25D366;color:#0b3d1e;font-weight:800;padding:14px 20px;border-radius:40px;box-shadow:0 8px 30px rgba(37,211,102,.45);z-index:30}
   footer{border-top:1px solid var(--line);padding:24px 0;color:var(--txt-mut);font-size:13px;text-align:center;background:var(--bg2)}
+
+  /* MODAL CHECKOUT */
+  .overlay{position:fixed;inset:0;background:rgba(5,5,9,.72);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
+  .overlay.on{display:flex}
+  .modal{background:var(--card);border:1px solid var(--neon);border-radius:20px;max-width:440px;width:100%;padding:26px;box-shadow:0 0 40px rgba(139,47,255,.35)}
+  .modal h2{font-size:20px;font-weight:800;margin-bottom:4px}
+  .modal .msub{color:var(--txt-mut);font-size:13px;margin-bottom:16px}
+  .rec{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px}
+  .rec .r{display:flex;justify-content:space-between;padding:3px 0}
+  .rec .r .k{color:var(--txt-mut)}
+  .rec .r.tt{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:800;font-size:16px}
+  .modal label{display:block;font-size:12px;color:var(--txt-mut);margin:8px 0 6px}
+  .modal input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:11px 12px;border-radius:10px;font-size:14px;outline:none}
+  .modal input:focus{border-color:var(--cyan)}
+  .pays{display:grid;gap:10px;margin-top:16px}
+  .pay{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);cursor:pointer;transition:.2s;text-align:left;width:100%;color:var(--txt)}
+  .pay:hover{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,225,214,.25)}
+  .pay .pic{font-size:22px}
+  .pay .pt b{display:block;font-size:15px}
+  .pay .pt span{font-size:12px;color:var(--txt-mut)}
+  .pay.card{background:linear-gradient(90deg,rgba(255,61,174,.15),rgba(34,225,214,.12));border-color:var(--neon)}
+  .close{background:transparent;border:none;color:var(--txt-mut);font-size:22px;cursor:pointer;float:right;line-height:1}
+  .close:hover{color:#fff}
   @media(max-width:760px){.bar nav{display:none}.hero h1{font-size:30px}}
 </style>
 </head>
@@ -73,7 +96,7 @@
   <div class="hero">
     <span class="kick">Entrega automática · API en tiempo real</span>
     <h1>Compra <em>seguidores, likes y vistas</em></h1>
-    <p>Elige la plataforma, ajusta la cantidad y confirma. Pedidos con entrega rápida y reposición garantizada.</p>
+    <p>Elige la plataforma, ajusta la cantidad y paga con Bizum o tarjeta. Entrega rápida y reposición garantizada.</p>
     <div class="search"><input id="q" placeholder="Buscar servicio (ej. seguidores, likes...)"></div>
   </div>
 
@@ -83,47 +106,74 @@
 </div>
 
 <a class="fab" href="#">&#9993; WhatsApp</a>
-<footer>© 2026 LUHA · Pagos con Stripe · Soporte +34 641 564 952 · Catálogo sincronizado por API</footer>
+<footer>© 2026 LUHA · Pago con Bizum o tarjeta (Stripe) · Soporte +34 641 564 952</footer>
+
+<!-- MODAL DE CHECKOUT -->
+<div class="overlay" id="ov">
+  <div class="modal">
+    <button class="close" id="mClose">&times;</button>
+    <h2>Completa tu pedido</h2>
+    <div class="msub">Revisa y elige cómo pagar.</div>
+    <div class="rec">
+      <div class="r"><span class="k">Servicio</span><span id="mSvc">—</span></div>
+      <div class="r"><span class="k">Cantidad</span><span id="mQty">—</span></div>
+      <div class="r tt"><span>Total</span><span id="mTot">—</span></div>
+    </div>
+    <label>Tu enlace o usuario (a dónde va el pedido)</label>
+    <input id="mLink" placeholder="instagram.com/tuusuario">
+    <div class="pays">
+      <button class="pay" id="payBizum">
+        <span class="pic">🟢</span>
+        <span class="pt"><b>Pagar con Bizum</b><span>Haz el Bizum y envía el comprobante por WhatsApp</span></span>
+      </button>
+      <button class="pay card" id="payCard">
+        <span class="pic">💳</span>
+        <span class="pt"><b>Pagar con tarjeta</b><span>Pago seguro con Stripe, al instante</span></span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
   var WA='34641564952';
+  var BIZUM='641 564 952'; // número/teléfono para Bizum (edítalo si es otro)
   function wa(t){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(t)}
   document.querySelectorAll('.wa,.fab').forEach(function(a){a.setAttribute('href',wa('Hola LUHA 👋 quiero información sobre seguidores.'))});
 
-  var ICON={Instagram:'📸',TikTok:'🎵',YouTube:'▶️',Facebook:'👍',X:'🐦',Spotify:'🎧',Telegram:'✈️',Otros:'✨'};
-  var ORDER=['Instagram','TikTok','YouTube','Facebook','X','Spotify','Telegram','Otros'];
+  var ICON={Instagram:'📸',TikTok:'🎵',YouTube:'▶️',Facebook:'👍',X:'🐦',Spotify:'🎧',Telegram:'✈️',WhatsApp:'💬',Twitch:'🎮','Tráfico web':'🌐',Otros:'✨'};
+  var ORDER=['Instagram','TikTok','YouTube','Facebook','X','Spotify','Telegram','WhatsApp','Twitch','Tráfico web','Otros'];
 
   // Margen sobre el precio del proveedor (editable). 1.6 = +60%.
   var MARGIN=1.6;
 
-  // Catálogo de ejemplo (se usa solo si la API todavía no está conectada).
   var DEMO=[
-    {p:'Instagram',n:'Instagram · Seguidores reales',rate:2.50,min:100,max:20000},
+    {p:'Instagram',n:'Instagram · Seguidores',rate:2.50,min:100,max:20000},
     {p:'Instagram',n:'Instagram · Likes',rate:1.20,min:50,max:20000},
-    {p:'Instagram',n:'Instagram · Vistas de reel',rate:0.60,min:100,max:100000},
     {p:'TikTok',n:'TikTok · Seguidores',rate:3.00,min:100,max:20000},
-    {p:'TikTok',n:'TikTok · Likes',rate:1.00,min:50,max:50000},
-    {p:'TikTok',n:'TikTok · Vistas de video',rate:0.40,min:500,max:500000},
     {p:'YouTube',n:'YouTube · Vistas',rate:2.00,min:500,max:100000},
-    {p:'YouTube',n:'YouTube · Suscriptores',rate:4.00,min:50,max:10000},
-    {p:'Facebook',n:'Facebook · Seguidores de página',rate:2.80,min:100,max:20000},
-    {p:'Facebook',n:'Facebook · Likes de publicación',rate:1.50,min:50,max:20000},
-    {p:'X',n:'Twitter/X · Seguidores',rate:3.50,min:100,max:15000},
-    {p:'X',n:'Twitter/X · Likes',rate:1.80,min:50,max:20000},
-    {p:'Spotify',n:'Spotify · Reproducciones',rate:1.20,min:1000,max:500000},
-    {p:'Spotify',n:'Spotify · Seguidores de perfil',rate:2.20,min:100,max:50000}
+    {p:'Spotify',n:'Spotify · Reproducciones',rate:1.20,min:1000,max:500000}
   ];
 
   function mapPlat(s){
     var t=((s.category||'')+' '+(s.name||'')).toLowerCase();
-    if(t.indexOf('insta')>-1)return 'Instagram';
-    if(t.indexOf('tiktok')>-1||t.indexOf('tik tok')>-1)return 'TikTok';
-    if(t.indexOf('youtube')>-1||t.indexOf('you tube')>-1)return 'YouTube';
-    if(t.indexOf('facebook')>-1||t.indexOf('fb ')>-1)return 'Facebook';
-    if(t.indexOf('twitter')>-1||t.indexOf(' x ')>-1||t.indexOf('/x')>-1)return 'X';
-    if(t.indexOf('spotify')>-1)return 'Spotify';
-    if(t.indexOf('telegram')>-1)return 'Telegram';
+    if(/insta|reel/.test(t))return 'Instagram';
+    if(/tiktok|tik tok/.test(t))return 'TikTok';
+    if(/youtube|you tube/.test(t))return 'YouTube';
+    if(/facebook|fb /.test(t))return 'Facebook';
+    if(/twitter|(^| )x( |$)/.test(t))return 'X';
+    if(/spotify/.test(t))return 'Spotify';
+    if(/telegram/.test(t))return 'Telegram';
+    if(/whatsapp/.test(t))return 'WhatsApp';
+    if(/twitch/.test(t))return 'Twitch';
+    if(/tr[aá]fico|traffic/.test(t))return 'Tráfico web';
     return 'Otros';
+  }
+  function esBasura(s){
+    var n=(s.name||'').toLowerCase();
+    if(!n) return true;
+    if(/seleccione|selecciona|elige un/.test(n)) return true;
+    if(!(parseFloat(s.rate)>0)) return true;
+    return false;
   }
   function eur(v){return (Math.round(v*100)/100).toFixed(2).replace('.',',')+' €'}
 
@@ -152,8 +202,8 @@
     var grid=document.getElementById('grid');grid.innerHTML='';
     var q=(document.getElementById('q').value||'').toLowerCase();
     var list=DATA.filter(function(s){return s.p===CURRENT && (!q || s.n.toLowerCase().indexOf(q)>-1)});
-    document.getElementById('info').textContent=list.length+' servicios de '+CURRENT;
-    list.forEach(function(s,i){
+    document.getElementById('info').textContent=list.length+' servicios de '+(CURRENT==='X'?'Twitter / X':CURRENT);
+    list.slice(0,60).forEach(function(s){
       var start=Math.min(1000,s.max); if(start<s.min)start=s.min;
       var el=document.createElement('div');el.className='svc';
       el.innerHTML='<div class="top"><div class="ic">'+(ICON[s.p]||'✨')+'</div><div><h3>'+s.n+'</h3>'+
@@ -162,26 +212,62 @@
         '<input type="range" min="'+s.min+'" max="'+s.max+'" step="'+(s.min<100?100:s.min)+'" value="'+start+'">'+
         '<div class="qrow"><span>'+s.min.toLocaleString("es-ES")+'</span><span>'+s.max.toLocaleString("es-ES")+'</span></div>'+
         '<div class="tot"><span class="l">Total</span><span class="v">'+eur(start/1000*s.rate)+'</span></div>'+
-        '<button class="order">Pedir por WhatsApp</button>';
+        '<button class="order">Comprar ahora</button>';
       grid.appendChild(el);
       var rng=el.querySelector('input'),lab=el.querySelector('.qval'),tt=el.querySelector('.v');
       rng.addEventListener('input',function(){var q2=parseInt(rng.value);lab.textContent=q2.toLocaleString("es-ES");tt.textContent=eur(q2/1000*s.rate)});
       el.querySelector('.order').addEventListener('click',function(){
-        location.href=wa('Hola LUHA 👋 quiero pedir '+lab.textContent+' de '+s.n+' ('+tt.textContent+'). Mi enlace/usuario es: ');
+        abrirCheckout(s.n, parseInt(rng.value), rng.value/1000*s.rate);
       });
     });
   }
 
   document.getElementById('q').addEventListener('input',render);
 
-  // 1) Intentar traer el catálogo REAL desde /api/servicios (Vercel + tu API key).
-  // 2) Si falla (local o sin key), usar el catálogo de ejemplo DEMO.
+  // ---- CHECKOUT (Bizum / Tarjeta) ----
+  var ov=document.getElementById('ov');
+  var cur={svc:'',qty:0,total:0};
+  function abrirCheckout(svc,qty,total){
+    cur={svc:svc,qty:qty,total:total};
+    document.getElementById('mSvc').textContent=svc;
+    document.getElementById('mQty').textContent=qty.toLocaleString('es-ES');
+    document.getElementById('mTot').textContent=eur(total);
+    document.getElementById('mLink').value='';
+    ov.classList.add('on');
+  }
+  document.getElementById('mClose').addEventListener('click',function(){ov.classList.remove('on')});
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('on')});
+
+  document.getElementById('payBizum').addEventListener('click',function(){
+    var link=document.getElementById('mLink').value||'(pendiente)';
+    var msg='Hola LUHA 👋 quiero PAGAR CON BIZUM:%0A'+
+      '• Servicio: '+cur.svc+'%0A'+
+      '• Cantidad: '+cur.qty.toLocaleString('es-ES')+'%0A'+
+      '• Total: '+eur(cur.total)+'%0A'+
+      '• Mi enlace/usuario: '+link+'%0A%0A'+
+      'Haré el Bizum al '+BIZUM+' y te envío el comprobante por aquí. 📎';
+    location.href='https://wa.me/'+WA+'?text='+encodeURIComponent(decodeURIComponent(msg));
+  });
+
+  document.getElementById('payCard').addEventListener('click',function(){
+    var btn=this; btn.style.opacity=.6; btn.querySelector('.pt b').textContent='Redirigiendo…';
+    var link=document.getElementById('mLink').value||'';
+    fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nombre:cur.svc+' x'+cur.qty, total:cur.total, detalle:cur.svc+' | '+cur.qty+' | '+link})
+    }).then(function(r){return r.json()}).then(function(d){
+      if(d && d.ok && d.url){ location.href=d.url; }
+      else { alert('El pago con tarjeta aún no está activo. Usa Bizum o inténtalo más tarde.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; }
+    }).catch(function(){ alert('No se pudo iniciar el pago con tarjeta. Usa Bizum por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; });
+  });
+
+  // Cargar catálogo real (o DEMO de respaldo)
   fetch('/api/servicios').then(function(r){return r.json()}).then(function(d){
     if(!Array.isArray(d)||!d.length) throw 0;
-    var list=d.map(function(s){return {
+    var list=d.filter(function(s){return !esBasura(s)}).map(function(s){return {
       p:mapPlat(s), n:s.name, rate:parseFloat(s.rate)*MARGIN,
       min:parseInt(s.min)||100, max:parseInt(s.max)||10000, id:s.service
     }});
+    if(!list.length) throw 0;
     build(list);
   }).catch(function(){ build(DEMO); });
 </script>
