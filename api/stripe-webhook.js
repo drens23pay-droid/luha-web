@@ -26,13 +26,44 @@ module.exports = async (req, res) => {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       const SUPABASE_URL = process.env.SUPABASE_URL, SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+      const SH = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
+      const cd = session.customer_details || {};
+      const cliente = [cd.name, cd.email, cd.phone].filter(Boolean).join(' · ');
+      let estadoFinal = 'pagado';
+
+      // Entrega automática: si el producto tiene contenido de entrega y el cliente dejó email, se lo enviamos.
+      try {
+        const nombreProducto = (session.metadata && session.metadata.producto) || '';
+        const GMAIL_USER = process.env.GMAIL_USER, GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
+        if (SUPABASE_URL && SUPABASE_KEY && nombreProducto && cd.email && GMAIL_USER && GMAIL_PASS) {
+          const rp = await fetch(SUPABASE_URL + '/rest/v1/productos?nombre=eq.' + encodeURIComponent(nombreProducto) + '&select=entrega', { headers: SH });
+          const rows = await rp.json();
+          const entrega = Array.isArray(rows) && rows[0] && rows[0].entrega;
+          if (entrega) {
+            const nodemailer = require('nodemailer');
+            const t = nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: GMAIL_PASS } });
+            const htmlEntrega = String(entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+            await t.sendMail({
+              from: 'LUHA <' + GMAIL_USER + '>',
+              to: cd.email,
+              subject: '🎉 Tu compra en LUHA — ' + nombreProducto,
+              html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
+                '<h2 style="color:#8B2FFF">¡Gracias por tu compra!</h2>' +
+                '<p>Tu pago de <b>' + nombreProducto + '</b> se ha confirmado. Aquí tienes tu acceso:</p>' +
+                '<div style="background:#f4f2fb;border-radius:12px;padding:16px;font-size:15px">' + htmlEntrega + '</div>' +
+                '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
+                '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
+            });
+            estadoFinal = 'entregado';
+          }
+        }
+      } catch (e) { /* si el email falla, el pedido queda en "pagado" y lo entregas a mano */ }
+
       if (SUPABASE_URL && SUPABASE_KEY) {
-        const cd = session.customer_details || {};
-        const cliente = [cd.name, cd.email, cd.phone].filter(Boolean).join(' · ');
         await fetch(SUPABASE_URL + '/rest/v1/pedidos?stripe_session_id=eq.' + encodeURIComponent(session.id), {
           method: 'PATCH',
-          headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado: 'pagado', cliente: cliente || null })
+          headers: SH,
+          body: JSON.stringify({ estado: estadoFinal, cliente: cliente || null })
         });
       }
     }
