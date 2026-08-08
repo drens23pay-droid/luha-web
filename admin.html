@@ -127,7 +127,8 @@
       <div class="sub">Crea combos (ej. 10.000 seguidores + 2.000 likes) con calculador para que los números cuadren.</div>
 
       <div class="panel">
-        <h2>Nuevo paquete</h2>
+        <h2 id="pkg_titulo">Nuevo paquete</h2>
+        <input type="hidden" id="p_id">
         <div class="two">
           <div><label>Nombre</label><input id="p_nombre" placeholder="Combo Viral 10K + 2K likes"></div>
           <div><label>Plataforma</label>
@@ -153,10 +154,24 @@
         <label style="margin-top:12px">Servicios en el paquete</label>
         <div id="p_items"><div class="muted">Aún no has añadido servicios.</div></div>
 
+        <label style="margin-top:16px">Foto del paquete (opcional)</label>
+        <div class="drop" id="pkgDropZone">
+          <i>📷</i>
+          <p>Arrastra una imagen aquí o haz clic para elegirla</p>
+          <input type="file" id="pkg_file" accept="image/*" style="display:none">
+        </div>
+        <div class="uploading" id="pkgUploadingMsg">Subiendo imagen…</div>
+        <div class="preview" id="pkg_preview">
+          <img id="pkg_preview_img" alt="preview">
+          <button class="rm" id="pkg_preview_rm" type="button">✕</button>
+        </div>
+        <input type="hidden" id="p_img">
+
         <div class="two" style="margin-top:12px">
           <div><label>Precio de venta (€)</label><input id="p_precio" type="number" step="0.01" placeholder="40.00" oninput="calcPaquete()"></div>
           <div><label>&nbsp;</label>
-            <label style="margin:0"><input type="checkbox" id="p_dest" style="width:auto;margin-right:8px">Destacado</label>
+            <label style="margin:0 0 6px"><input type="checkbox" id="p_dest" style="width:auto;margin-right:8px">Destacado (aparece en "Nuestros combos")</label>
+            <label style="margin:0"><input type="checkbox" id="p_home" style="width:auto;margin-right:8px">Mostrar también en "Más vendidos" del home</label>
           </div>
         </div>
 
@@ -472,30 +487,92 @@
     if(!nombre || !itemsPaquete.length || precio<=0){ toast('Completa nombre, servicios y precio'); return; }
     var data={ nombre:nombre, descripcion:document.getElementById('p_desc').value,
       plataforma:document.getElementById('p_plat').value, precio:precio,
-      items:itemsPaquete, destacado:document.getElementById('p_dest').checked, activo:true };
-    fetch('/api/paquetes',{method:'POST',headers:H(),body:JSON.stringify({action:'crear',data:data})}).then(function(r){return r.json()}).then(function(d){
+      items:itemsPaquete, destacado:document.getElementById('p_dest').checked,
+      en_home:document.getElementById('p_home').checked,
+      imagen_url:document.getElementById('p_img').value, activo:true };
+    var id=document.getElementById('p_id').value;
+    var payload = id ? {action:'editar',id:id,data:data} : {action:'crear',data:data};
+    fetch('/api/paquetes',{method:'POST',headers:H(),body:JSON.stringify(payload)}).then(function(r){return r.json()}).then(function(d){
       if(d.ok){ toast('✅ Paquete guardado'); resetPaquete(); cargarPaquetes(); } else { toast('❌ '+(d.motivo||'error')); }
     });
   }
   function resetPaquete(){
+    document.getElementById('pkg_titulo').textContent='Nuevo paquete';
+    document.getElementById('p_id').value='';
     document.getElementById('p_nombre').value=''; document.getElementById('p_desc').value='';
     document.getElementById('p_precio').value=''; document.getElementById('p_dest').checked=false;
+    document.getElementById('p_home').checked=false;
     itemsPaquete=[]; renderItems(); calcPaquete(); document.getElementById('p_result').innerHTML='';
+    mostrarPreviewPkg(''); document.getElementById('pkg_file').value='';
+  }
+  function editarPaquete(p){
+    document.getElementById('pkg_titulo').textContent='Editar paquete';
+    document.getElementById('p_id').value=p.id;
+    document.getElementById('p_nombre').value=p.nombre||'';
+    document.getElementById('p_desc').value=p.descripcion||'';
+    document.getElementById('p_plat').value=p.plataforma||'Instagram';
+    document.getElementById('p_precio').value=p.precio||'';
+    document.getElementById('p_dest').checked=!!p.destacado;
+    document.getElementById('p_home').checked=!!p.en_home;
+    itemsPaquete = Array.isArray(p.items) ? p.items.slice() : [];
+    renderItems(); calcPaquete();
+    mostrarPreviewPkg(p.imagen_url||'');
+    window.scrollTo(0,0);
   }
   function cargarPaquetes(){
+    var box=document.getElementById('listaPaquetes');
+    box.innerHTML='<div class="muted">Cargando…</div>';
     fetch('/api/paquetes',{headers:H()}).then(function(r){return r.json()}).then(function(d){
-      var box=document.getElementById('listaPaquetes');
-      if(!Array.isArray(d)||!d.length){ box.innerHTML='<div class="muted">Aún no hay paquetes.</div>'; return; }
+      if(!Array.isArray(d)){ box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo leer la lista.</div>'; return; }
+      if(!d.length){ box.innerHTML='<div class="muted">Aún no hay paquetes.</div>'; return; }
       box.innerHTML='';
       d.forEach(function(p){
         var el=document.createElement('div'); el.className='item';
-        el.innerHTML='<span><b>'+p.nombre+'</b> — '+eur(p.precio)+' '+(p.destacado?'⭐':'')+(p.activo?'':' <span class="tag off">oculto</span>')+'<br><span class="muted">'+(p.descripcion||'')+'</span></span>';
-        var del=document.createElement('button'); del.className='btn btn-danger'; del.style.marginLeft='auto'; del.style.padding='4px 10px'; del.textContent='Borrar';
+        el.innerHTML='<span><b>'+p.nombre+'</b> — '+eur(p.precio)+' '+(p.destacado?'⭐':'')+(p.en_home?' 🏠':'')+(p.activo?'':' <span class="tag off">oculto</span>')+'<br><span class="muted">'+(p.descripcion||'')+'</span></span>';
+        var ed=document.createElement('button'); ed.className='btn btn-ghost'; ed.style.marginLeft='auto'; ed.style.padding='4px 10px'; ed.textContent='Editar';
+        ed.onclick=function(){ editarPaquete(p); };
+        var del=document.createElement('button'); del.className='btn btn-danger'; del.style.padding='4px 10px'; del.textContent='Borrar';
         del.onclick=function(){ if(confirm('¿Borrar paquete?')){ fetch('/api/paquetes',{method:'POST',headers:H(),body:JSON.stringify({action:'borrar',id:p.id})}).then(function(){cargarPaquetes()}); } };
-        el.appendChild(del); box.appendChild(el);
+        el.appendChild(ed); el.appendChild(del); box.appendChild(el);
       });
-    });
+    }).catch(function(){ box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo conectar con el servidor.</div>'; });
   }
+
+  // ---------- SUBIDA DE FOTO DEL PAQUETE ----------
+  function mostrarPreviewPkg(url){
+    document.getElementById('p_img').value=url||'';
+    var box=document.getElementById('pkg_preview'), img=document.getElementById('pkg_preview_img');
+    if(url){ img.src=url; box.style.display='block'; } else { img.src=''; box.style.display='none'; }
+  }
+  function subirArchivoPkg(file){
+    if(!file) return;
+    if(!/^image\//.test(file.type)){ toast('Solo se admiten imágenes'); return; }
+    if(file.size > 5*1024*1024){ toast('Máximo 5MB'); return; }
+    var reader=new FileReader();
+    document.getElementById('pkgUploadingMsg').style.display='block';
+    reader.onload=function(){
+      var base64=reader.result.split(',')[1];
+      fetch('/api/upload',{method:'POST',headers:H(),body:JSON.stringify({filename:file.name,contentType:file.type,dataBase64:base64})})
+        .then(function(r){return r.json()}).then(function(d){
+          document.getElementById('pkgUploadingMsg').style.display='none';
+          if(d.ok){ mostrarPreviewPkg(d.url); toast('✅ Imagen subida'); }
+          else { toast('❌ '+(d.motivo||'error al subir')); }
+        }).catch(function(){ document.getElementById('pkgUploadingMsg').style.display='none'; toast('❌ Error al subir'); });
+    };
+    reader.readAsDataURL(file);
+  }
+  (function(){
+    var zone=document.getElementById('pkgDropZone'), input=document.getElementById('pkg_file');
+    zone.addEventListener('click',function(){ input.click(); });
+    input.addEventListener('change',function(){ if(input.files[0]) subirArchivoPkg(input.files[0]); });
+    ['dragenter','dragover'].forEach(function(ev){ zone.addEventListener(ev,function(e){ e.preventDefault(); zone.classList.add('over'); }); });
+    ['dragleave','drop'].forEach(function(ev){ zone.addEventListener(ev,function(e){ e.preventDefault(); zone.classList.remove('over'); }); });
+    zone.addEventListener('drop',function(e){
+      var f=e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) subirArchivoPkg(f);
+    });
+    document.getElementById('pkg_preview_rm').addEventListener('click',function(e){ e.stopPropagation(); mostrarPreviewPkg(''); input.value=''; });
+  })();
 
   // ---------- SERVICIOS ----------
   function renderServicios(){
@@ -551,79 +628,4 @@
     document.getElementById('prod_nombre').value=p.nombre||'';
     document.getElementById('prod_cat').value=p.categoria||'Streaming';
     document.getElementById('prod_precio').value=p.precio||'';
-    document.getElementById('prod_old').value=p.precio_anterior||'';
-    document.getElementById('prod_stock').value=p.stock||'En stock';
-    document.getElementById('prod_desc').value=p.descripcion||'';
-    mostrarPreview(p.imagen_url||'');
-    document.getElementById('prod_stripe').value=p.stripe_link||'';
-    document.getElementById('prod_dest').checked=!!p.destacado;
-    window.scrollTo(0,0);
-  }
-  function resetProducto(){
-    document.getElementById('prod_titulo').textContent='Nuevo producto';
-    ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_stripe'].forEach(function(id){document.getElementById(id).value='';});
-    document.getElementById('prod_dest').checked=false;
-    mostrarPreview('');
-    document.getElementById('prod_file').value='';
-  }
-
-  // ---------- SUBIDA DE FOTO (drag & drop) ----------
-  function mostrarPreview(url){
-    document.getElementById('prod_img').value=url||'';
-    var box=document.getElementById('prod_preview'), img=document.getElementById('prod_preview_img');
-    if(url){ img.src=url; box.style.display='block'; } else { img.src=''; box.style.display='none'; }
-  }
-  function subirArchivo(file){
-    if(!file) return;
-    if(!/^image\//.test(file.type)){ toast('Solo se admiten imágenes'); return; }
-    if(file.size > 5*1024*1024){ toast('Máximo 5MB'); return; }
-    var reader=new FileReader();
-    document.getElementById('uploadingMsg').style.display='block';
-    reader.onload=function(){
-      var dataUrl=reader.result;
-      var base64=dataUrl.split(',')[1];
-      fetch('/api/upload',{method:'POST',headers:H(),body:JSON.stringify({filename:file.name,contentType:file.type,dataBase64:base64})})
-        .then(function(r){return r.json()}).then(function(d){
-          document.getElementById('uploadingMsg').style.display='none';
-          if(d.ok){ mostrarPreview(d.url); toast('✅ Imagen subida'); }
-          else { toast('❌ '+(d.motivo||'error al subir')); }
-        }).catch(function(){ document.getElementById('uploadingMsg').style.display='none'; toast('❌ Error al subir'); });
-    };
-    reader.readAsDataURL(file);
-  }
-  (function(){
-    var zone=document.getElementById('dropZone'), input=document.getElementById('prod_file');
-    zone.addEventListener('click',function(){ input.click(); });
-    input.addEventListener('change',function(){ if(input.files[0]) subirArchivo(input.files[0]); });
-    ['dragenter','dragover'].forEach(function(ev){ zone.addEventListener(ev,function(e){ e.preventDefault(); zone.classList.add('over'); }); });
-    ['dragleave','drop'].forEach(function(ev){ zone.addEventListener(ev,function(e){ e.preventDefault(); zone.classList.remove('over'); }); });
-    zone.addEventListener('drop',function(e){
-      var f=e.dataTransfer.files && e.dataTransfer.files[0];
-      if(f) subirArchivo(f);
-    });
-    document.getElementById('prod_preview_rm').addEventListener('click',function(e){ e.stopPropagation(); mostrarPreview(''); input.value=''; });
-  })();
-  function guardarProducto(){
-    var errBox=document.getElementById('prod_err'); errBox.style.display='none';
-    var nombre=document.getElementById('prod_nombre').value.trim();
-    var precio=parseFloat(document.getElementById('prod_precio').value)||0;
-    if(!nombre || precio<=0){ toast('Completa nombre y precio'); return; }
-    if(!TOKEN){ errBox.textContent='⚠️ No has iniciado sesión correctamente. Sal y vuelve a entrar con tu ADMIN_TOKEN.'; errBox.style.display='block'; return; }
-    var data={ nombre:nombre, categoria:document.getElementById('prod_cat').value,
-      precio:precio, precio_anterior:parseFloat(document.getElementById('prod_old').value)||null,
-      stock:document.getElementById('prod_stock').value, descripcion:document.getElementById('prod_desc').value,
-      imagen_url:document.getElementById('prod_img').value, stripe_link:document.getElementById('prod_stripe').value,
-      destacado:document.getElementById('prod_dest').checked, activo:true };
-    var id=document.getElementById('prod_id').value;
-    var payload = id ? {action:'editar',id:id,data:data} : {action:'crear',data:data};
-    fetch('/api/productos',{method:'POST',headers:H(),body:JSON.stringify(payload)}).then(function(r){return r.json()}).then(function(d){
-      if(d.ok){ toast('✅ Producto guardado'); resetProducto(); cargarProductos(); }
-      else { var m='❌ No se pudo guardar: '+(d.motivo||'error desconocido'); errBox.textContent=m; errBox.style.display='block'; toast(m); }
-    }).catch(function(){ var m='❌ No se pudo conectar con el servidor.'; errBox.textContent=m; errBox.style.display='block'; toast(m); });
-  }
-
-  // auto-login si ya hay token
-  if(TOKEN){ document.getElementById('login').style.display='none'; document.getElementById('app').style.display='grid'; iniciar(); }
-</script>
-</body>
-</html>
+    document.getElementById('prod_old').va
