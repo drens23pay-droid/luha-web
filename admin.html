@@ -62,6 +62,15 @@
   .item .x{margin-left:auto;color:var(--danger);cursor:pointer;font-weight:800}
   .switch{cursor:pointer;font-size:20px}
   .toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--cyan);color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.4);display:none;z-index:99}
+  .drop{border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;cursor:pointer;transition:.2s;background:var(--bg2);position:relative}
+  .drop.over,.drop:hover{border-color:var(--cyan);background:rgba(34,225,214,.06)}
+  .drop i{font-size:28px;color:var(--lila);display:block;margin-bottom:6px}
+  .drop p{font-size:13px;color:var(--txt-mut)}
+  .drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .preview{margin-top:10px;display:none;position:relative}
+  .preview img{width:100%;max-height:160px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+  .preview .rm{position:absolute;top:8px;right:8px;background:rgba(11,11,15,.8);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:14px}
+  .uploading{font-size:12px;color:var(--cyan);margin-top:6px;display:none}
   @media(max-width:820px){#app{grid-template-columns:1fr}aside{display:none}.two,.three{grid-template-columns:1fr}}
 </style>
 </head>
@@ -196,7 +205,20 @@
         <label>Descripción</label>
         <textarea id="prod_desc" rows="2"></textarea>
         <div class="two">
-          <div><label>URL de imagen</label><input id="prod_img" placeholder="https://..."></div>
+          <div>
+            <label>Foto del producto</label>
+            <div class="drop" id="dropZone">
+              <i>📷</i>
+              <p>Arrastra una imagen aquí o haz clic para elegirla</p>
+              <input type="file" id="prod_file" accept="image/*">
+            </div>
+            <div class="uploading" id="uploadingMsg">Subiendo imagen…</div>
+            <div class="preview" id="prod_preview">
+              <img id="prod_preview_img" alt="preview">
+              <button class="rm" id="prod_preview_rm" type="button">✕</button>
+            </div>
+            <input type="hidden" id="prod_img">
+          </div>
           <div><label>Link de pago Stripe (opcional)</label><input id="prod_stripe" placeholder="https://buy.stripe.com/..."></div>
         </div>
         <label style="margin-top:10px"><input type="checkbox" id="prod_dest" style="width:auto;margin-right:8px">Destacado en el home</label>
@@ -395,6 +417,40 @@
     });
   }
 
+  // ---------- SUBIDA DE FOTOS (arrastrar y soltar) ----------
+  function mostrarPreview(url){
+    document.getElementById('prod_img').value = url || '';
+    var box=document.getElementById('prod_preview'), img=document.getElementById('prod_preview_img');
+    if(url){ img.src=url; box.style.display='block'; document.getElementById('dropZone').style.display='none'; }
+    else { box.style.display='none'; document.getElementById('dropZone').style.display='block'; }
+  }
+  function subirArchivo(file){
+    if(!file || !file.type.startsWith('image/')){ toast('Elige una imagen válida'); return; }
+    if(file.size > 5*1024*1024){ toast('La imagen pesa más de 5MB'); return; }
+    document.getElementById('uploadingMsg').style.display='block';
+    var reader = new FileReader();
+    reader.onload = function(){
+      var base64 = reader.result.split(',')[1];
+      fetch('/api/upload',{method:'POST',headers:H(),body:JSON.stringify({
+        filename:file.name, contentType:file.type, dataBase64:base64
+      })}).then(function(r){return r.json()}).then(function(d){
+        document.getElementById('uploadingMsg').style.display='none';
+        if(d.ok){ mostrarPreview(d.url); toast('✅ Foto subida'); }
+        else { toast('❌ '+(d.motivo||'error al subir')); }
+      }).catch(function(){ document.getElementById('uploadingMsg').style.display='none'; toast('❌ Error al subir la foto'); });
+    };
+    reader.readAsDataURL(file);
+  }
+  var dropZone=document.getElementById('dropZone'), fileInput=document.getElementById('prod_file');
+  fileInput.addEventListener('change', function(){ if(fileInput.files[0]) subirArchivo(fileInput.files[0]); });
+  ['dragenter','dragover'].forEach(function(ev){ dropZone.addEventListener(ev, function(e){ e.preventDefault(); dropZone.classList.add('over'); }); });
+  ['dragleave','drop'].forEach(function(ev){ dropZone.addEventListener(ev, function(e){ e.preventDefault(); dropZone.classList.remove('over'); }); });
+  dropZone.addEventListener('drop', function(e){
+    var f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if(f) subirArchivo(f);
+  });
+  document.getElementById('prod_preview_rm').addEventListener('click', function(){ mostrarPreview(''); fileInput.value=''; });
+
   // ---------- PRODUCTOS ----------
   function cargarProductos(){
     fetch('/api/productos',{headers:H()}).then(function(r){return r.json()}).then(function(d){
@@ -421,15 +477,16 @@
     document.getElementById('prod_old').value=p.precio_anterior||'';
     document.getElementById('prod_stock').value=p.stock||'En stock';
     document.getElementById('prod_desc').value=p.descripcion||'';
-    document.getElementById('prod_img').value=p.imagen_url||'';
+    mostrarPreview(p.imagen_url||'');
     document.getElementById('prod_stripe').value=p.stripe_link||'';
     document.getElementById('prod_dest').checked=!!p.destacado;
     window.scrollTo(0,0);
   }
   function resetProducto(){
     document.getElementById('prod_titulo').textContent='Nuevo producto';
-    ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_img','prod_stripe'].forEach(function(id){document.getElementById(id).value='';});
+    ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_stripe'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('prod_dest').checked=false;
+    mostrarPreview(''); fileInput.value='';
   }
   function guardarProducto(){
     var nombre=document.getElementById('prod_nombre').value.trim();
