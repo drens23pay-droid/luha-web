@@ -107,24 +107,24 @@
 </header>
 
 <div class="wrap">
-  <div class="crumb"><a href="index.html">Inicio</a> / Streaming</div>
+  <div class="crumb"><a href="index.html">Inicio</a> / <span id="catCrumb">Streaming</span></div>
   <div class="layout">
     <aside>
       <h3>Categorías</h3>
       <div id="catList">
-        <a class="on" href="#">Streaming <b>12</b></a>
-        <a href="#">Software <b>8</b></a>
-        <a href="#">IA <b>6</b></a>
+        <a href="categoria.html?cat=Streaming">Streaming</a>
+        <a href="categoria.html?cat=Software">Software</a>
+        <a href="categoria.html?cat=IA">IA</a>
         <a href="seguidores.html">Seguidores <b>200+</b></a>
-        <a href="#">Música <b>4</b></a>
-        <a href="index.html#cursos">Cursos <b>5</b></a>
-        <a href="#">VPN <b>3</b></a>
-        <a href="#">Juegos <b>7</b></a>
+        <a href="categoria.html?cat=Música">Música</a>
+        <a href="index.html#cursos">Cursos</a>
+        <a href="categoria.html?cat=VPN">VPN</a>
+        <a href="categoria.html?cat=Juegos">Juegos</a>
       </div>
     </aside>
     <main>
       <div class="head">
-        <div><h1>Streaming</h1><div class="sub">Netflix, HBO, Disney y más · entrega rápida</div></div>
+        <div><h1 id="catTitulo">Streaming</h1><div class="sub" id="catSub">Netflix, HBO, Disney y más · entrega rápida</div></div>
       </div>
       <div class="toolbar">
         <span class="chip on" data-f="destacados">Destacados</span>
@@ -176,8 +176,23 @@
   document.querySelectorAll('.wa,.fab').forEach(function(a){a.setAttribute('href',wa('Hola LUHA 👋 quiero información, por favor.'))});
   function eur(v){return (Math.round(v*100)/100).toFixed(2).replace('.',',')+' €'}
 
-  // ---- Catálogo (demo + productos reales del admin) ----
-  var DEMO=[
+  // ---- Categoría actual (por ?cat=) ----
+  var CAT = new URLSearchParams(location.search).get('cat') || 'Streaming';
+  var DESCR = {
+    'Streaming':'Netflix, HBO, Disney y más · entrega rápida',
+    'Software':'Licencias y suscripciones de software premium',
+    'IA':'Herramientas de inteligencia artificial premium',
+    'Música':'Streaming de música y audio · entrega rápida',
+    'VPN':'Seguridad y privacidad online',
+    'Juegos':'Videojuegos y suscripciones gaming'
+  };
+  document.title = CAT + ' — LUHA';
+  document.getElementById('catTitulo').textContent = CAT;
+  document.getElementById('catCrumb').textContent = CAT;
+  document.getElementById('catSub').textContent = DESCR[CAT] || 'Todo lo que necesitas, al mejor precio · entrega rápida';
+
+  // ---- Catálogo (demo + productos reales del admin), filtrado por categoría ----
+  var DEMO_ALL=[
     {nombre:'Netflix Premium · 1 mes',categoria:'Streaming',precio:4.99,precio_anterior:7.99,stock:'En stock',icono:'🎬',destacado:true},
     {nombre:'HBO Max · 1 mes',categoria:'Streaming',precio:3.99,precio_anterior:5.99,stock:'En stock',icono:'🎭',destacado:false},
     {nombre:'Disney+ · 1 mes',categoria:'Streaming',precio:3.49,precio_anterior:5.99,stock:'En stock',icono:'📺',destacado:false},
@@ -185,18 +200,22 @@
     {nombre:'Crunchyroll · 1 mes',categoria:'Streaming',precio:2.99,precio_anterior:3.99,stock:'En stock',icono:'🌀',destacado:false},
     {nombre:'DAZN · 1 mes',categoria:'Streaming',precio:9.99,precio_anterior:12.99,stock:'Agotado',icono:'⚽',destacado:false}
   ];
+  var DEMO = DEMO_ALL.filter(function(p){ return p.categoria===CAT; });
   var TODOS=[];
 
   function cardHTML(p){
     var oferta = p.precio_anterior && p.precio_anterior > p.precio;
     var pct = oferta ? Math.round(100-(p.precio/p.precio_anterior*100)) : 0;
     var enStock = (p.stock||'En stock').toLowerCase().indexOf('agot')===-1;
-    var img = p.imagen_url ? '<img src="'+p.imagen_url+'">' : (p.icono||'✨');
+    var img = p.imagen_url ? '<img src="'+p.imagen_url+'" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : (p.icono||'✨');
+    var href = p.id ? ('producto.html?id='+encodeURIComponent(p.id)) : null;
+    var open = href ? '<a href="'+href+'" style="display:block">' : '';
+    var close = href ? '</a>' : '';
     return '<div class="card" data-precio="'+p.precio+'" data-nombre="'+p.nombre.replace(/"/g,'')+'" data-oferta="'+(oferta?1:0)+'" data-stock="'+(enStock?1:0)+'" data-dest="'+(p.destacado?1:0)+'">'+
-      '<div class="th">'+img+(oferta?'<span class="badge">-'+pct+'%</span>':'')+'<span class="stock'+(enStock?'':' off')+'">'+(p.stock||'En stock')+'</span></div>'+
+      open+'<div class="th">'+img+(oferta?'<span class="badge">-'+pct+'%</span>':'')+'<span class="stock'+(enStock?'':' off')+'">'+(p.stock||'En stock')+'</span></div>'+
       '<div class="b"><div class="p">'+(p.categoria||'')+'</div><h3>'+p.nombre+'</h3>'+
-      '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+(oferta?'<span class="old">'+eur(p.precio_anterior)+'</span>':'')+'</div>'+
-      '<button class="buy">Comprar</button></div></div>';
+      '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+(oferta?'<span class="old">'+eur(p.precio_anterior)+'</span>':'')+'</div></div>'+close+
+      '<div class="b" style="padding-top:0"><button class="buy">Comprar</button></div></div>';
   }
 
   function pintar(lista){
@@ -257,33 +276,42 @@
     }).catch(function(){ alert('No se pudo iniciar el pago con tarjeta. Usa Bizum por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; });
   });
 
-  // ---- Categorías reales del admin (con conteo aproximado) ----
+  // ---- Categorías reales del admin (con conteo real, resalta la activa) ----
   var LINKS={'Seguidores':'seguidores.html','Cursos':'index.html#cursos'};
-  fetch('/api/categorias').then(function(r){return r.json()}).then(function(cats){
-    if(!Array.isArray(cats)||!cats.length) return;
-    var box=document.getElementById('catList');
-    box.innerHTML='';
-    cats.forEach(function(c,i){
-      var count = TODOS.filter(function(p){return (p.categoria||'')===c.nombre}).length;
-      var href = LINKS[c.nombre] || '#';
-      var a=document.createElement('a');
-      a.href=href; if(i===0) a.className='on';
-      a.innerHTML=c.nombre+' <b>'+(count||'')+'</b>';
-      box.appendChild(a);
+  function pintarCategorias(){
+    fetch('/api/categorias').then(function(r){return r.json()}).then(function(cats){
+      if(!Array.isArray(cats)||!cats.length) return;
+      var box=document.getElementById('catList');
+      box.innerHTML='';
+      cats.forEach(function(c){
+        var count = TODOS.filter(function(p){return (p.categoria||'')===c.nombre}).length;
+        var href = LINKS[c.nombre] || ('categoria.html?cat='+encodeURIComponent(c.nombre));
+        var a=document.createElement('a');
+        a.href=href; if(c.nombre===CAT) a.className='on';
+        a.innerHTML=c.nombre+(count?' <b>'+count+'</b>':'');
+        box.appendChild(a);
+      });
+    }).catch(function(){
+      // si falla, al menos marca activa la categoría actual en el listado fijo
+      document.querySelectorAll('#catList a').forEach(function(a){
+        a.classList.toggle('on', a.textContent.trim()===CAT);
+      });
     });
-  }).catch(function(){});
+  }
 
-  // ---- Cargar catálogo: demo + tus productos reales del admin ----
+  // ---- Cargar catálogo: demo + tus productos reales del admin, filtrado por categoría ----
   TODOS = DEMO.slice();
   pintar(TODOS);
+  pintarCategorias();
   fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
     if(Array.isArray(d) && d.length){
-      var reales = d.map(function(p){ return {
-        nombre:p.nombre, categoria:p.categoria, precio:p.precio, precio_anterior:p.precio_anterior,
+      var reales = d.filter(function(p){ return (p.categoria||'')===CAT; }).map(function(p){ return {
+        id:p.id, nombre:p.nombre, categoria:p.categoria, precio:p.precio, precio_anterior:p.precio_anterior,
         stock:p.stock, imagen_url:p.imagen_url, destacado:p.destacado
       };});
       TODOS = reales.concat(DEMO);
       aplicar();
+      pintarCategorias();
     }
   }).catch(function(){});
 </script>
