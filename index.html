@@ -455,27 +455,27 @@
     }).catch(function(){ alert('No se pudo iniciar el pago con tarjeta. Usa Bizum por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; });
   });
 
-  // ---- Más vendidos: 100% controlado desde el admin (Productos > Destacado en el home) ----
+  // ---- Más vendidos: SOLO productos marcados "Destacado en el home" desde el admin ----
   fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
     var grid=document.getElementById('masVendidosGrid');
     var lista = Array.isArray(d) ? d : [];
-    var destacados = lista.filter(function(p){return p.destacado});
-    var mostrar = (destacados.length ? destacados : lista).slice(0,8);
+    var mostrar = lista.filter(function(p){return p.destacado}).slice(0,8);
     if(!mostrar.length){
-      grid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">Aún no hay productos publicados. Añádelos desde el panel de admin.</div>';
+      grid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">Aún no has destacado ningún producto. Ve al admin → Productos, marca "Destacado en el home" y guarda.</div>';
       return;
     }
     grid.innerHTML='';
     mostrar.forEach(function(p,i){
       var card=document.createElement('div'); card.className='card reveal';
       card.style.transitionDelay=((i%4)*80)+'ms';
-      var img = p.imagen_url ? '<img src="'+p.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:16px 16px 0 0">' : '✨';
+      var img = p.imagen_url ? '<img src="'+p.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:16px 16px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : '✨';
       var badge = p.precio_anterior && p.precio_anterior>p.precio ? '<span class="badge">-'+Math.round((1-p.precio/p.precio_anterior)*100)+'%</span>' : '';
       var old = p.precio_anterior ? '<span class="old">'+eur(p.precio_anterior)+'</span>' : '';
-      card.innerHTML='<div class="thumb">'+img+badge+'<span class="stock">'+(p.stock||'En stock')+'</span></div>'+
+      var href = 'producto.html?id='+encodeURIComponent(p.id);
+      card.innerHTML='<a href="'+href+'" style="display:block"><div class="thumb">'+img+badge+'<span class="stock">'+(p.stock||'En stock')+'</span></div>'+
         '<div class="body"><div class="prov">'+(p.categoria||'')+'</div><h3>'+p.nombre+'</h3>'+
-        '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+old+'</div>'+
-        '<button class="buy">Comprar ahora</button></div>';
+        '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+old+'</div></a>'+
+        '<div class="body" style="padding-top:0"><button class="buy">Comprar ahora</button></div>';
       grid.appendChild(card);
       obs.observe(card); wireTilt(card);
       wireBuy(card.querySelector('.buy'), function(){return p.nombre;}, function(){return p.precio;});
