@@ -272,7 +272,7 @@
       <a href="seguidores.html">Seguidores</a>
       <a href="#cursos">Cursos</a>
     </nav>
-    <div class="search"><i>&#128269;</i><input placeholder="Buscar producto..."></div>
+    <div class="search"><i>&#128269;</i><input id="searchInput" placeholder="Buscar producto..." onkeydown="if(event.key==='Enter')buscarGlobal()"></div>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
     <button class="btn btn-ghost">Entrar</button>
   </div>
@@ -421,6 +421,13 @@
       function(){return parseEur(card.querySelector('.cp').textContent);});
   });
 
+  // ---- Buscador del header: búsqueda global entre todos los productos ----
+  function buscarGlobal(){
+    var v=(document.getElementById('searchInput').value||'').trim();
+    if(!v) return;
+    location.href='categoria.html?cat=Todos&q='+encodeURIComponent(v);
+  }
+
   // ---- Chips de marca: si existe el producto real, va directo a su ficha ----
   document.querySelectorAll('#chipsNav a[data-q]').forEach(function(a){
     a.addEventListener('click', function(e){
@@ -535,4 +542,3 @@
 
 </body>
 </html>
-
