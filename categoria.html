@@ -187,12 +187,13 @@
     'VPN':'Seguridad y privacidad online',
     'Juegos':'Videojuegos y suscripciones gaming'
   };
-  document.title = CAT + ' — LUHA';
-  document.getElementById('catTitulo').textContent = CAT;
-  document.getElementById('catCrumb').textContent = CAT;
-  document.getElementById('catSub').textContent = DESCR[CAT] || 'Todo lo que necesitas, al mejor precio · entrega rápida';
+  var ESBUSQUEDA = (CAT==='Todos');
+  document.title = (ESBUSQUEDA ? 'Buscar: '+Q0 : CAT) + ' — LUHA';
+  document.getElementById('catTitulo').textContent = ESBUSQUEDA ? 'Resultados de búsqueda' : CAT;
+  document.getElementById('catCrumb').textContent = ESBUSQUEDA ? ('"'+Q0+'"') : CAT;
+  document.getElementById('catSub').textContent = ESBUSQUEDA ? ('Mostrando resultados para "'+Q0+'" en todo el catálogo') : (DESCR[CAT] || 'Todo lo que necesitas, al mejor precio · entrega rápida');
 
-  // ---- Catálogo (demo + productos reales del admin), filtrado por categoría ----
+  // ---- Catálogo (demo + productos reales del admin), filtrado por categoría (o todo, si es búsqueda) ----
   var DEMO_ALL=[
     {nombre:'Netflix Premium · 1 mes',categoria:'Streaming',precio:4.99,precio_anterior:7.99,stock:'En stock',icono:'🎬',destacado:true},
     {nombre:'HBO Max · 1 mes',categoria:'Streaming',precio:3.99,precio_anterior:5.99,stock:'En stock',icono:'🎭',destacado:false},
@@ -201,7 +202,7 @@
     {nombre:'Crunchyroll · 1 mes',categoria:'Streaming',precio:2.99,precio_anterior:3.99,stock:'En stock',icono:'🌀',destacado:false},
     {nombre:'DAZN · 1 mes',categoria:'Streaming',precio:9.99,precio_anterior:12.99,stock:'Agotado',icono:'⚽',destacado:false}
   ];
-  var DEMO = DEMO_ALL.filter(function(p){ return p.categoria===CAT; });
+  var DEMO = ESBUSQUEDA ? DEMO_ALL.slice() : DEMO_ALL.filter(function(p){ return p.categoria===CAT; });
   var TODOS=[];
 
   function cardHTML(p){
@@ -307,13 +308,13 @@
   pintarCategorias();
   fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
     if(Array.isArray(d) && d.length){
-      var reales = d.filter(function(p){ return (p.categoria||'')===CAT; }).map(function(p){ return {
+      var reales = d.filter(function(p){ return ESBUSQUEDA || (p.categoria||'')===CAT; }).map(function(p){ return {
         id:p.id, nombre:p.nombre, categoria:p.categoria, precio:p.precio, precio_anterior:p.precio_anterior,
         stock:p.stock, imagen_url:p.imagen_url, destacado:p.destacado
       };});
       TODOS = reales.concat(DEMO);
       aplicar();
-      pintarCategorias();
+      if(!ESBUSQUEDA) pintarCategorias();
     }
   }).catch(function(){});
 </script>
