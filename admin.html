@@ -371,8 +371,11 @@
     var ICONO={pendiente:'🟡',pagado:'🟢',entregado:'✅',cancelado:'🔴'};
     lista.forEach(function(p){
       var tr=document.createElement('tr');
+      var extra='';
+      if(p.detalle && p.detalle!==p.producto) extra+='<br><span class="muted">📝 '+p.detalle+'</span>';
+      if(p.cliente) extra+='<br><span class="muted">👤 '+p.cliente+'</span>';
       tr.innerHTML='<td>'+fechaCorta(p.creado)+'</td>'+
-        '<td><b>'+(p.producto||'')+'</b>'+(p.detalle&&p.detalle!==p.producto?'<br><span class="muted">'+p.detalle+'</span>':'')+'</td>'+
+        '<td><b>'+(p.producto||'')+'</b>'+extra+'</td>'+
         '<td>'+(p.metodo==='tarjeta'?'💳 Tarjeta':'🟢 Bizum')+'</td>'+
         '<td>'+eur(p.precio)+'</td>'+
         '<td><select class="estsel">'+
