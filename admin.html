@@ -253,6 +253,8 @@
         </div>
         <label>Descripción</label>
         <textarea id="prod_desc" rows="2"></textarea>
+        <label>🚀 Entrega automática (opcional) — esto se envía por email al cliente en cuanto paga con tarjeta</label>
+        <textarea id="prod_entrega" rows="3" placeholder="Ej.&#10;Usuario: cliente@luha.com&#10;Contraseña: abc123&#10;O un enlace de Drive / acceso al curso: https://..."></textarea>
         <div class="two">
           <div>
             <label>Foto del producto</label>
@@ -737,6 +739,7 @@
     document.getElementById('prod_old').value=p.precio_anterior||'';
     document.getElementById('prod_stock').value=p.stock||'En stock';
     document.getElementById('prod_desc').value=p.descripcion||'';
+    document.getElementById('prod_entrega').value=p.entrega||'';
     mostrarPreview(p.imagen_url||'');
     document.getElementById('prod_stripe').value=p.stripe_link||'';
     document.getElementById('prod_dest').checked=!!p.destacado;
@@ -744,7 +747,7 @@
   }
   function resetProducto(){
     document.getElementById('prod_titulo').textContent='Nuevo producto';
-    ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_stripe'].forEach(function(id){document.getElementById(id).value='';});
+    ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_entrega','prod_stripe'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('prod_dest').checked=false;
     mostrarPreview('');
     document.getElementById('prod_file').value='';
@@ -795,6 +798,7 @@
     var data={ nombre:nombre, categoria:document.getElementById('prod_cat').value,
       precio:precio, precio_anterior:parseFloat(document.getElementById('prod_old').value)||null,
       stock:document.getElementById('prod_stock').value, descripcion:document.getElementById('prod_desc').value,
+      entrega:document.getElementById('prod_entrega').value,
       imagen_url:document.getElementById('prod_img').value, stripe_link:document.getElementById('prod_stripe').value,
       destacado:document.getElementById('prod_dest').checked, activo:true };
     var id=document.getElementById('prod_id').value;
