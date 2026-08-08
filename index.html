@@ -310,21 +310,7 @@
     <h2>Aprende con nuestros cursos</h2>
     <p class="sub">Acceso inmediato tras la compra. Contenido descargable y actualizado, con certificado.</p>
     <div class="cgrid" id="cgrid">
-      <div class="ccard">
-        <div class="top">&#128200;</div>
-        <div class="b"><h4>Marketing Digital 360°</h4><p>De cero a experto en campañas y ventas online.</p>
-        <div class="row"><span class="cp">19,99 €</span><button class="cbuy">Comprar</button></div></div>
-      </div>
-      <div class="ccard">
-        <div class="top">&#128187;</div>
-        <div class="b"><h4>Diseño con Canva Pro</h4><p>Crea contenido profesional para redes y marca.</p>
-        <div class="row"><span class="cp">14,99 €</span><button class="cbuy">Comprar</button></div></div>
-      </div>
-      <div class="ccard">
-        <div class="top">&#129504;</div>
-        <div class="b"><h4>IA para tu negocio</h4><p>Automatiza y vende usando ChatGPT y más.</p>
-        <div class="row"><span class="cp">24,99 €</span><button class="cbuy">Comprar</button></div></div>
-      </div>
+      <div class="muted" id="cursosVacio" style="grid-column:1/-1;text-align:center;color:#8a8398;padding:20px 0">Cargando cursos…</div>
     </div>
   </section>
 
@@ -498,12 +484,16 @@
     document.getElementById('masVendidosGrid').innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">No se pudieron cargar los productos.</div>';
   });
 
-  // ---- Cursos: añade tus productos reales de categoría "Cursos" junto a los de ejemplo ----
+  // ---- Cursos: 100% controlado desde el admin (Productos con categoría "Cursos") ----
   fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
     var lista = Array.isArray(d) ? d : [];
     var cursos = lista.filter(function(p){ return (p.categoria||'')==='Cursos'; });
-    if(!cursos.length) return;
     var cgrid=document.getElementById('cgrid');
+    if(!cursos.length){
+      cgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:#8a8398;padding:20px 0">Aún no has creado ningún curso. Ve al admin → Productos, elige categoría "Cursos" y guarda.</div>';
+      return;
+    }
+    cgrid.innerHTML='';
     cursos.forEach(function(p){
       var card=document.createElement('div'); card.className='ccard reveal in';
       var top = p.imagen_url
@@ -512,10 +502,12 @@
       card.innerHTML='<div class="top" style="overflow:hidden;padding:0">'+top+'</div>'+
         '<div class="b"><h4>'+p.nombre+'</h4><p>'+(p.descripcion||'')+'</p>'+
         '<div class="row"><span class="cp">'+eur(p.precio)+'</span><button class="cbuy">Comprar</button></div></div>';
-      cgrid.insertBefore(card, cgrid.firstChild);
+      cgrid.appendChild(card);
       wireBuy(card.querySelector('.cbuy'), function(){return p.nombre;}, function(){return p.precio;});
     });
-  }).catch(function(){});
+  }).catch(function(){
+    document.getElementById('cgrid').innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:#8a8398;padding:20px 0">No se pudieron cargar los cursos.</div>';
+  });
 </script>
 
 </body>
