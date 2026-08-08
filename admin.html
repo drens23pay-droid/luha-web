@@ -48,6 +48,11 @@
   .tag{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700}
   .tag.ok{background:rgba(61,230,160,.14);color:var(--ok)}
   .tag.off{background:rgba(255,92,122,.14);color:var(--danger)}
+  .chipf{background:var(--bg2);border:1px solid var(--line);color:var(--txt-mut);padding:6px 13px;
+    border-radius:20px;font-size:12px;cursor:pointer;font-weight:700}
+  .chipf.on{border-color:var(--cyan);color:#fff;box-shadow:0 0 10px rgba(34,225,214,.35)}
+  .estsel{background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:8px;
+    padding:5px 8px;font-size:12px;font-weight:700}
   table{width:100%;border-collapse:collapse}
   th{text-align:left;font-size:11px;text-transform:uppercase;color:var(--txt-mut);padding:8px;border-bottom:1px solid var(--line)}
   td{padding:9px 8px;border-bottom:1px solid rgba(168,85,247,.08);font-size:14px;vertical-align:middle}
@@ -92,7 +97,8 @@
   <aside>
     <div class="logo">LU<span style="color:#fff">HA</span></div>
     <div class="nav">
-      <a class="on" data-s="precios">💰 Precios y comisión</a>
+      <a class="on" data-s="pedidos">🧾 Pedidos</a>
+      <a data-s="precios">💰 Precios y comisión</a>
       <a data-s="paquetes">📦 Paquetes</a>
       <a data-s="servicios">📱 Servicios (API)</a>
       <a data-s="productos">🛍️ Productos</a>
@@ -103,8 +109,29 @@
   </aside>
   <main>
 
+    <!-- PEDIDOS -->
+    <div class="section on" id="s-pedidos">
+      <h1>Pedidos</h1>
+      <div class="sub">Todo lo que se paga por Bizum o tarjeta queda registrado aquí.</div>
+      <div class="panel">
+        <div class="row" style="flex-wrap:wrap;gap:8px">
+          <span class="chipf on" data-f="todos">Todos</span>
+          <span class="chipf" data-f="pendiente">🟡 Pendientes</span>
+          <span class="chipf" data-f="pagado">🟢 Pagados</span>
+          <span class="chipf" data-f="entregado">✅ Entregados</span>
+          <span class="chipf" data-f="cancelado">🔴 Cancelados</span>
+          <button class="btn btn-ghost" style="margin-left:auto;padding:6px 12px" onclick="cargarPedidos()">🔄 Actualizar</button>
+        </div>
+      </div>
+      <div class="panel">
+        <table><thead><tr><th>Fecha</th><th>Producto</th><th>Método</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="ped_body"></tbody></table>
+        <div id="ped_vacio" class="muted" style="padding:14px 0"></div>
+      </div>
+    </div>
+
     <!-- PRECIOS -->
-    <div class="section on" id="s-precios">
+    <div class="section" id="s-precios">
       <h1>Precios y comisión</h1>
       <div class="sub">Configura tu margen de ganancia y cómo se cubre la comisión de Stripe.</div>
       <div class="panel">
@@ -317,8 +344,62 @@
   });
 
   function iniciar(){
-    cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias();
+    cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias(); cargarPedidos();
   }
+
+  // ---------- PEDIDOS ----------
+  var PEDIDOS=[]; var FILTRO_PED='todos';
+  function fechaCorta(iso){
+    if(!iso) return '';
+    var d=new Date(iso);
+    return d.toLocaleDateString('es-ES')+' '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  }
+  function cargarPedidos(){
+    var body=document.getElementById('ped_body'), vacio=document.getElementById('ped_vacio');
+    vacio.textContent='Cargando…'; body.innerHTML='';
+    fetch('/api/pedidos',{headers:H()}).then(function(r){return r.json()}).then(function(d){
+      if(!Array.isArray(d)){ vacio.textContent='⚠️ No se pudo leer los pedidos ('+(d&&d.motivo?d.motivo:'error')+').'; return; }
+      PEDIDOS=d;
+      pintarPedidos();
+    }).catch(function(){ vacio.textContent='⚠️ No se pudo conectar con el servidor.'; });
+  }
+  function pintarPedidos(){
+    var body=document.getElementById('ped_body'), vacio=document.getElementById('ped_vacio');
+    var lista = FILTRO_PED==='todos' ? PEDIDOS : PEDIDOS.filter(function(p){return p.estado===FILTRO_PED});
+    if(!lista.length){ body.innerHTML=''; vacio.textContent='No hay pedidos'+(FILTRO_PED==='todos'?'':' con este filtro')+' todavía.'; return; }
+    vacio.textContent=''; body.innerHTML='';
+    var ICONO={pendiente:'🟡',pagado:'🟢',entregado:'✅',cancelado:'🔴'};
+    lista.forEach(function(p){
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td>'+fechaCorta(p.creado)+'</td>'+
+        '<td><b>'+(p.producto||'')+'</b>'+(p.detalle&&p.detalle!==p.producto?'<br><span class="muted">'+p.detalle+'</span>':'')+'</td>'+
+        '<td>'+(p.metodo==='tarjeta'?'💳 Tarjeta':'🟢 Bizum')+'</td>'+
+        '<td>'+eur(p.precio)+'</td>'+
+        '<td><select class="estsel">'+
+          ['pendiente','pagado','entregado','cancelado'].map(function(e){return '<option value="'+e+'"'+(e===p.estado?' selected':'')+'>'+ICONO[e]+' '+e+'</option>';}).join('')+
+        '</select></td>'+
+        '<td><button class="btn btn-danger" style="padding:5px 10px">Borrar</button></td>';
+      var sel=tr.querySelector('.estsel');
+      sel.onchange=function(){
+        fetch('/api/pedidos',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:p.id,data:{estado:sel.value}})})
+          .then(function(r){return r.json()}).then(function(res){
+            if(res.ok){ p.estado=sel.value; toast('✅ Estado actualizado'); } else { toast('❌ '+(res.motivo||'error')); }
+          });
+      };
+      tr.querySelector('button').onclick=function(){
+        if(confirm('¿Borrar este pedido del historial?')){
+          fetch('/api/pedidos',{method:'POST',headers:H(),body:JSON.stringify({action:'borrar',id:p.id})}).then(function(){cargarPedidos()});
+        }
+      };
+      body.appendChild(tr);
+    });
+  }
+  document.querySelectorAll('.chipf').forEach(function(c){
+    c.addEventListener('click',function(){
+      document.querySelectorAll('.chipf').forEach(function(x){x.classList.remove('on')});
+      c.classList.add('on'); FILTRO_PED=c.dataset.f; pintarPedidos();
+    });
+  });
 
   // ---------- CATEGORÍAS ----------
   function cargarCategorias(){
@@ -528,12 +609,23 @@
       box.innerHTML='';
       d.forEach(function(p){
         var el=document.createElement('div'); el.className='item';
-        el.innerHTML='<span><b>'+p.nombre+'</b> — '+eur(p.precio)+' '+(p.destacado?'⭐':'')+(p.en_home?' 🏠':'')+(p.activo?'':' <span class="tag off">oculto</span>')+'<br><span class="muted">'+(p.descripcion||'')+'</span></span>';
-        var ed=document.createElement('button'); ed.className='btn btn-ghost'; ed.style.marginLeft='auto'; ed.style.padding='4px 10px'; ed.textContent='Editar';
+        el.innerHTML='<span><b>'+p.nombre+'</b> — '+eur(p.precio)+' '+(p.destacado?'⭐':'')+(p.activo?'':' <span class="tag off">oculto</span>')+'<br><span class="muted">'+(p.descripcion||'')+'</span></span>';
+        var home=document.createElement('span'); home.className='switch'; home.style.marginLeft='auto';
+        home.title='Mostrar en Más vendidos del home';
+        home.textContent = p.en_home ? '🏠' : '⬜';
+        home.onclick=function(){
+          var nuevo = !p.en_home;
+          fetch('/api/paquetes',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:p.id,data:{en_home:nuevo}})})
+            .then(function(r){return r.json()}).then(function(res){
+              if(res.ok){ p.en_home=nuevo; home.textContent=nuevo?'🏠':'⬜'; toast(nuevo?'🏠 En Más vendidos':'Quitado de Más vendidos'); }
+              else { toast('❌ '+(res.motivo||'error')); }
+            });
+        };
+        var ed=document.createElement('button'); ed.className='btn btn-ghost'; ed.style.padding='4px 10px'; ed.textContent='Editar';
         ed.onclick=function(){ editarPaquete(p); };
         var del=document.createElement('button'); del.className='btn btn-danger'; del.style.padding='4px 10px'; del.textContent='Borrar';
         del.onclick=function(){ if(confirm('¿Borrar paquete?')){ fetch('/api/paquetes',{method:'POST',headers:H(),body:JSON.stringify({action:'borrar',id:p.id})}).then(function(){cargarPaquetes()}); } };
-        el.appendChild(ed); el.appendChild(del); box.appendChild(el);
+        el.appendChild(home); el.appendChild(ed); el.appendChild(del); box.appendChild(el);
       });
     }).catch(function(){ box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo conectar con el servidor.</div>'; });
   }
@@ -613,12 +705,23 @@
       box.innerHTML='';
       d.forEach(function(p){
         var el=document.createElement('div'); el.className='item';
-        el.innerHTML='<span><b>'+p.nombre+'</b> — '+eur(p.precio)+' <span class="muted">('+(p.categoria||'')+')</span> '+(p.destacado?'⭐':'')+(p.activo?'':' <span class="tag off">oculto</span>')+'</span>';
-        var ed=document.createElement('button'); ed.className='btn btn-ghost'; ed.style.marginLeft='auto'; ed.style.padding='4px 10px'; ed.textContent='Editar';
+        el.innerHTML='<span><b>'+p.nombre+'</b> — '+eur(p.precio)+' <span class="muted">('+(p.categoria||'')+')</span>'+(p.activo?'':' <span class="tag off">oculto</span>')+'</span>';
+        var star=document.createElement('span'); star.className='switch'; star.style.marginLeft='auto';
+        star.title='Destacado en el home (Más vendidos)';
+        star.textContent = p.destacado ? '⭐' : '☆';
+        star.onclick=function(){
+          var nuevo = !p.destacado;
+          fetch('/api/productos',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:p.id,data:{destacado:nuevo}})})
+            .then(function(r){return r.json()}).then(function(res){
+              if(res.ok){ p.destacado=nuevo; star.textContent=nuevo?'⭐':'☆'; toast(nuevo?'⭐ Destacado':'☆ Ya no está destacado'); }
+              else { toast('❌ '+(res.motivo||'error')); }
+            });
+        };
+        var ed=document.createElement('button'); ed.className='btn btn-ghost'; ed.style.padding='4px 10px'; ed.textContent='Editar';
         ed.onclick=function(){ editarProducto(p); };
         var del=document.createElement('button'); del.className='btn btn-danger'; del.style.padding='4px 10px'; del.textContent='Borrar';
         del.onclick=function(){ if(confirm('¿Borrar producto?')){ fetch('/api/productos',{method:'POST',headers:H(),body:JSON.stringify({action:'borrar',id:p.id})}).then(function(){cargarProductos()}); } };
-        el.appendChild(ed); el.appendChild(del); box.appendChild(el);
+        el.appendChild(star); el.appendChild(ed); el.appendChild(del); box.appendChild(el);
       });
     }).catch(function(){ box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo conectar con el servidor.</div>'; });
   }
