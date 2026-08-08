@@ -290,15 +290,15 @@
     </div>
   </section>
 
-  <div class="chips">
+  <div class="chips" id="chipsNav">
     <a class="chip active" href="#masVendidosGrid">Destacados</a>
-    <a class="chip" href="categoria.html?cat=Streaming&amp;q=Netflix">Netflix</a>
-    <a class="chip" href="categoria.html?cat=Streaming&amp;q=HBO">HBO Max</a>
-    <a class="chip" href="categoria.html?cat=Streaming&amp;q=Disney">Disney+</a>
-    <a class="chip" href="categoria.html?cat=Streaming&amp;q=Spotify">Spotify</a>
-    <a class="chip" href="categoria.html?cat=IA&amp;q=ChatGPT">ChatGPT</a>
-    <a class="chip" href="categoria.html?cat=Software&amp;q=Canva">Canva</a>
-    <a class="chip" href="categoria.html?cat=VPN">VPN</a>
+    <a class="chip" data-q="Netflix" href="categoria.html?cat=Streaming&amp;q=Netflix">Netflix</a>
+    <a class="chip" data-q="HBO" href="categoria.html?cat=Streaming&amp;q=HBO">HBO Max</a>
+    <a class="chip" data-q="Disney" href="categoria.html?cat=Streaming&amp;q=Disney">Disney+</a>
+    <a class="chip" data-q="Spotify" href="categoria.html?cat=Streaming&amp;q=Spotify">Spotify</a>
+    <a class="chip" data-q="ChatGPT" href="categoria.html?cat=IA&amp;q=ChatGPT">ChatGPT</a>
+    <a class="chip" data-q="Canva" href="categoria.html?cat=Software&amp;q=Canva">Canva</a>
+    <a class="chip" data-q="VPN" href="categoria.html?cat=VPN">VPN</a>
     <a class="chip" href="#cursos">Cursos</a>
   </div>
 
@@ -421,6 +421,20 @@
       function(){return parseEur(card.querySelector('.cp').textContent);});
   });
 
+  // ---- Chips de marca: si existe el producto real, va directo a su ficha ----
+  document.querySelectorAll('#chipsNav a[data-q]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var q = a.dataset.q.toLowerCase();
+      var fallback = a.getAttribute('href');
+      fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
+        var lista = Array.isArray(d) ? d : [];
+        var m = lista.find(function(p){ return (p.nombre||'').toLowerCase().indexOf(q)>-1; });
+        location.href = m ? ('producto.html?id='+encodeURIComponent(m.id)) : fallback;
+      }).catch(function(){ location.href = fallback; });
+    });
+  });
+
   // ---- CHECKOUT (Bizum / Tarjeta) ----
   var ov=document.getElementById('ov');
   var cur={nombre:'',total:0};
@@ -521,3 +535,4 @@
 
 </body>
 </html>
+
