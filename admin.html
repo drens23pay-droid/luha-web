@@ -62,6 +62,14 @@
   .item .x{margin-left:auto;color:var(--danger);cursor:pointer;font-weight:800}
   .switch{cursor:pointer;font-size:20px}
   .toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--cyan);color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.4);display:none;z-index:99}
+  .drop{border:2px dashed var(--line);border-radius:14px;padding:26px 14px;text-align:center;cursor:pointer;transition:.2s;background:var(--bg2)}
+  .drop:hover,.drop.over{border-color:var(--cyan);background:rgba(34,225,214,.06)}
+  .drop i{font-size:26px;display:block;margin-bottom:8px}
+  .drop p{font-size:13px;color:var(--txt-mut)}
+  .uploading{display:none;font-size:13px;color:var(--lila);margin-top:8px}
+  .preview{display:none;margin-top:10px;position:relative;max-width:200px}
+  .preview img{width:100%;border-radius:12px;border:1px solid var(--line);display:block}
+  .preview .rm{position:absolute;top:-8px;right:-8px;background:var(--danger);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-weight:800}
   @media(max-width:820px){#app{grid-template-columns:1fr}aside{display:none}.two,.three{grid-template-columns:1fr}}
 </style>
 </head>
@@ -204,7 +212,20 @@
         <label>Descripción</label>
         <textarea id="prod_desc" rows="2"></textarea>
         <div class="two">
-          <div><label>URL de imagen</label><input id="prod_img" placeholder="https://..."></div>
+          <div>
+            <label>Foto del producto</label>
+            <div class="drop" id="dropZone">
+              <i>📷</i>
+              <p>Arrastra una imagen aquí o haz clic para elegirla</p>
+              <input type="file" id="prod_file" accept="image/*" style="display:none">
+            </div>
+            <div class="uploading" id="uploadingMsg">Subiendo imagen…</div>
+            <div class="preview" id="prod_preview">
+              <img id="prod_preview_img" alt="preview">
+              <button class="rm" id="prod_preview_rm" type="button">✕</button>
+            </div>
+            <input type="hidden" id="prod_img">
+          </div>
           <div><label>Link de pago Stripe (opcional)</label><input id="prod_stripe" placeholder="https://buy.stripe.com/..."></div>
         </div>
         <label style="margin-top:10px"><input type="checkbox" id="prod_dest" style="width:auto;margin-right:8px">Destacado en el home</label>
@@ -212,10 +233,14 @@
           <button class="btn btn-neon" onclick="guardarProducto()">Guardar producto</button>
           <button class="btn btn-ghost" onclick="resetProducto()">Nuevo</button>
         </div>
+        <div class="warn" id="prod_err" style="display:none;margin-top:10px"></div>
       </div>
       <div class="panel">
-        <h2>Tus productos</h2>
-        <div id="listaProductos"><div class="muted">Cargando…</div></div>
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin-bottom:0">Tus productos</h2>
+          <button class="btn btn-ghost" style="padding:5px 12px" onclick="cargarProductos()">🔄 Actualizar</button>
+        </div>
+        <div id="listaProductos" style="margin-top:12px"><div class="muted">Cargando…</div></div>
       </div>
     </div>
 
@@ -493,9 +518,11 @@
 
   // ---------- PRODUCTOS ----------
   function cargarProductos(){
+    var box=document.getElementById('listaProductos');
+    box.innerHTML='<div class="muted">Cargando…</div>';
     fetch('/api/productos',{headers:H()}).then(function(r){return r.json()}).then(function(d){
-      var box=document.getElementById('listaProductos');
-      if(!Array.isArray(d)||!d.length){ box.innerHTML='<div class="muted">Aún no hay productos.</div>'; return; }
+      if(!Array.isArray(d)){ box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo leer la lista ('+(d&&d.motivo?d.motivo:'error')+').</div>'; return; }
+      if(!d.length){ box.innerHTML='<div class="muted">Aún no hay productos. Crea el primero arriba ⬆️</div>'; return; }
       box.innerHTML='';
       d.forEach(function(p){
         var el=document.createElement('div'); el.className='item';
@@ -506,7 +533,7 @@
         del.onclick=function(){ if(confirm('¿Borrar producto?')){ fetch('/api/productos',{method:'POST',headers:H(),body:JSON.stringify({action:'borrar',id:p.id})}).then(function(){cargarProductos()}); } };
         el.appendChild(ed); el.appendChild(del); box.appendChild(el);
       });
-    });
+    }).catch(function(){ box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo conectar con el servidor.</div>'; });
   }
   function editarProducto(p){
     document.getElementById('prod_titulo').textContent='Editar producto';
@@ -517,20 +544,61 @@
     document.getElementById('prod_old').value=p.precio_anterior||'';
     document.getElementById('prod_stock').value=p.stock||'En stock';
     document.getElementById('prod_desc').value=p.descripcion||'';
-    document.getElementById('prod_img').value=p.imagen_url||'';
+    mostrarPreview(p.imagen_url||'');
     document.getElementById('prod_stripe').value=p.stripe_link||'';
     document.getElementById('prod_dest').checked=!!p.destacado;
     window.scrollTo(0,0);
   }
   function resetProducto(){
     document.getElementById('prod_titulo').textContent='Nuevo producto';
-    ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_img','prod_stripe'].forEach(function(id){document.getElementById(id).value='';});
+    ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_stripe'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('prod_dest').checked=false;
+    mostrarPreview('');
+    document.getElementById('prod_file').value='';
   }
+
+  // ---------- SUBIDA DE FOTO (drag & drop) ----------
+  function mostrarPreview(url){
+    document.getElementById('prod_img').value=url||'';
+    var box=document.getElementById('prod_preview'), img=document.getElementById('prod_preview_img');
+    if(url){ img.src=url; box.style.display='block'; } else { img.src=''; box.style.display='none'; }
+  }
+  function subirArchivo(file){
+    if(!file) return;
+    if(!/^image\//.test(file.type)){ toast('Solo se admiten imágenes'); return; }
+    if(file.size > 5*1024*1024){ toast('Máximo 5MB'); return; }
+    var reader=new FileReader();
+    document.getElementById('uploadingMsg').style.display='block';
+    reader.onload=function(){
+      var dataUrl=reader.result;
+      var base64=dataUrl.split(',')[1];
+      fetch('/api/upload',{method:'POST',headers:H(),body:JSON.stringify({filename:file.name,contentType:file.type,dataBase64:base64})})
+        .then(function(r){return r.json()}).then(function(d){
+          document.getElementById('uploadingMsg').style.display='none';
+          if(d.ok){ mostrarPreview(d.url); toast('✅ Imagen subida'); }
+          else { toast('❌ '+(d.motivo||'error al subir')); }
+        }).catch(function(){ document.getElementById('uploadingMsg').style.display='none'; toast('❌ Error al subir'); });
+    };
+    reader.readAsDataURL(file);
+  }
+  (function(){
+    var zone=document.getElementById('dropZone'), input=document.getElementById('prod_file');
+    zone.addEventListener('click',function(){ input.click(); });
+    input.addEventListener('change',function(){ if(input.files[0]) subirArchivo(input.files[0]); });
+    ['dragenter','dragover'].forEach(function(ev){ zone.addEventListener(ev,function(e){ e.preventDefault(); zone.classList.add('over'); }); });
+    ['dragleave','drop'].forEach(function(ev){ zone.addEventListener(ev,function(e){ e.preventDefault(); zone.classList.remove('over'); }); });
+    zone.addEventListener('drop',function(e){
+      var f=e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) subirArchivo(f);
+    });
+    document.getElementById('prod_preview_rm').addEventListener('click',function(e){ e.stopPropagation(); mostrarPreview(''); input.value=''; });
+  })();
   function guardarProducto(){
+    var errBox=document.getElementById('prod_err'); errBox.style.display='none';
     var nombre=document.getElementById('prod_nombre').value.trim();
     var precio=parseFloat(document.getElementById('prod_precio').value)||0;
     if(!nombre || precio<=0){ toast('Completa nombre y precio'); return; }
+    if(!TOKEN){ errBox.textContent='⚠️ No has iniciado sesión correctamente. Sal y vuelve a entrar con tu ADMIN_TOKEN.'; errBox.style.display='block'; return; }
     var data={ nombre:nombre, categoria:document.getElementById('prod_cat').value,
       precio:precio, precio_anterior:parseFloat(document.getElementById('prod_old').value)||null,
       stock:document.getElementById('prod_stock').value, descripcion:document.getElementById('prod_desc').value,
@@ -539,8 +607,9 @@
     var id=document.getElementById('prod_id').value;
     var payload = id ? {action:'editar',id:id,data:data} : {action:'crear',data:data};
     fetch('/api/productos',{method:'POST',headers:H(),body:JSON.stringify(payload)}).then(function(r){return r.json()}).then(function(d){
-      if(d.ok){ toast('✅ Producto guardado'); resetProducto(); cargarProductos(); } else { toast('❌ '+(d.motivo||'error')); }
-    });
+      if(d.ok){ toast('✅ Producto guardado'); resetProducto(); cargarProductos(); }
+      else { var m='❌ No se pudo guardar: '+(d.motivo||'error desconocido'); errBox.textContent=m; errBox.style.display='block'; toast(m); }
+    }).catch(function(){ var m='❌ No se pudo conectar con el servidor.'; errBox.textContent=m; errBox.style.display='block'; toast(m); });
   }
 
   // auto-login si ya hay token
