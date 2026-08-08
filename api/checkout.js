@@ -44,10 +44,25 @@ module.exports = async (req, res) => {
         price_data: { currency: 'eur', product_data: { name: nombre }, unit_amount: total },
         quantity: 1
       }],
-      success_url: origin + '/gracias.html?ok=1',
+      success_url: origin + '/gracias.html?ok=1&session_id={CHECKOUT_SESSION_ID}',
       cancel_url: origin + '/seguidores.html',
       metadata: { detalle: String(body.detalle || '').slice(0, 490) }
     });
+
+    // Registrar el pedido como "pendiente" (el webhook lo pasará a "pagado" cuando Stripe confirme el cobro)
+    try {
+      const SUPABASE_URL = process.env.SUPABASE_URL, SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+      if (SUPABASE_URL && SUPABASE_KEY) {
+        await fetch(SUPABASE_URL + '/rest/v1/pedidos', {
+          method: 'POST',
+          headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            producto: nombre, precio: total / 100, metodo: 'tarjeta', estado: 'pendiente',
+            detalle: String(body.detalle || '').slice(0, 490), stripe_session_id: session.id
+          })
+        });
+      }
+    } catch (e) { /* si falla el registro, no bloquea el pago */ }
 
     return res.status(200).json({ ok: true, url: session.url });
   } catch (e) {
