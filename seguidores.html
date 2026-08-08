@@ -290,13 +290,17 @@
 
   document.getElementById('payBizum').addEventListener('click',function(){
     var link=document.getElementById('mLink').value||'(pendiente)';
+    var detalle=cur.svc+' x'+cur.qty.toLocaleString('es-ES')+' — enlace: '+link;
     var msg='Hola LUHA 👋 quiero PAGAR CON BIZUM:%0A'+
       '• Servicio: '+cur.svc+'%0A'+
       '• Cantidad: '+cur.qty.toLocaleString('es-ES')+'%0A'+
       '• Total: '+eur(cur.total)+'%0A'+
       '• Mi enlace/usuario: '+link+'%0A%0A'+
       'Haré el Bizum al '+BIZUM+' y te envío el comprobante por aquí. 📎';
-    location.href='https://wa.me/'+WA+'?text='+encodeURIComponent(decodeURIComponent(msg));
+    var ir=function(){ location.href='https://wa.me/'+WA+'?text='+encodeURIComponent(decodeURIComponent(msg)); };
+    fetch('/api/pedidos',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'crear',data:{producto:cur.svc,precio:cur.total,metodo:'bizum',estado:'pendiente',detalle:detalle}})
+    }).then(ir).catch(ir);
   });
 
   document.getElementById('payCard').addEventListener('click',function(){
