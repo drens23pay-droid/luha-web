@@ -260,9 +260,9 @@
   <div class="wrap bar">
     <div class="logo">LU<span>HA</span></div>
     <nav class="top">
-      <a href="categoria.html">Streaming</a>
-      <a href="categoria.html">Software</a>
-      <a href="categoria.html">IA</a>
+      <a href="categoria.html?cat=Streaming">Streaming</a>
+      <a href="categoria.html?cat=Software">Software</a>
+      <a href="categoria.html?cat=IA">IA</a>
       <a href="seguidores.html">Seguidores</a>
       <a href="#cursos">Cursos</a>
     </nav>
@@ -301,55 +301,8 @@
     <a href="#">Ver todo &rarr;</a>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <div class="thumb">&#127909;<span class="badge">-38%</span><span class="stock">En stock</span></div>
-      <div class="body"><div class="prov">Streaming</div><h3>Netflix Premium · 1 mes</h3>
-      <div class="price"><span class="now">4,99 €</span><span class="old">7,99 €</span></div>
-      <button class="buy">Comprar ahora</button></div>
-    </div>
-    <div class="card">
-      <div class="thumb">&#127902;<span class="badge">-33%</span><span class="stock">En stock</span></div>
-      <div class="body"><div class="prov">Streaming</div><h3>HBO Max · 1 mes</h3>
-      <div class="price"><span class="now">3,99 €</span><span class="old">5,99 €</span></div>
-      <button class="buy">Comprar ahora</button></div>
-    </div>
-    <div class="card">
-      <div class="thumb">&#127925;<span class="badge">-30%</span><span class="stock">En stock</span></div>
-      <div class="body"><div class="prov">Música</div><h3>Spotify Premium · 1 mes</h3>
-      <div class="price"><span class="now">3,49 €</span><span class="old">4,99 €</span></div>
-      <button class="buy">Comprar ahora</button></div>
-    </div>
-    <div class="card">
-      <div class="thumb">&#129302;<span class="badge">-20%</span><span class="stock">En stock</span></div>
-      <div class="body"><div class="prov">IA</div><h3>ChatGPT Plus · 1 mes</h3>
-      <div class="price"><span class="now">7,99 €</span><span class="old">9,99 €</span></div>
-      <button class="buy">Comprar ahora</button></div>
-    </div>
-    <div class="card">
-      <div class="thumb">&#127912;<span class="badge">-25%</span><span class="stock">En stock</span></div>
-      <div class="body"><div class="prov">Software</div><h3>Canva Pro · 1 mes</h3>
-      <div class="price"><span class="now">2,99 €</span><span class="old">3,99 €</span></div>
-      <button class="buy">Comprar ahora</button></div>
-    </div>
-    <div class="card">
-      <div class="thumb">&#128250;<span class="badge">-40%</span><span class="stock">En stock</span></div>
-      <div class="body"><div class="prov">Streaming</div><h3>Disney+ · 1 mes</h3>
-      <div class="price"><span class="now">3,49 €</span><span class="old">5,99 €</span></div>
-      <button class="buy">Comprar ahora</button></div>
-    </div>
-    <div class="card">
-      <div class="thumb">&#128274;<span class="badge">-35%</span><span class="stock">En stock</span></div>
-      <div class="body"><div class="prov">Seguridad</div><h3>NordVPN · 1 mes</h3>
-      <div class="price"><span class="now">2,49 €</span><span class="old">3,99 €</span></div>
-      <button class="buy">Comprar ahora</button></div>
-    </div>
-    <div class="card">
-      <div class="thumb">&#127916;<span class="badge">-28%</span><span class="stock">En stock</span></div>
-      <div class="body"><div class="prov">Streaming</div><h3>Prime Video · 1 mes</h3>
-      <div class="price"><span class="now">3,29 €</span><span class="old">4,59 €</span></div>
-      <button class="buy">Comprar ahora</button></div>
-    </div>
+  <div class="grid" id="masVendidosGrid">
+    <div class="muted" id="masVendidosVacio" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">Cargando productos…</div>
   </div>
 
   <section class="courses reveal" id="cursos">
@@ -400,7 +353,7 @@
       </div>
       <div>
         <h5>Tienda</h5>
-        <a href="#">Streaming</a><a href="#">Software</a><a href="#">IA</a><a href="#cursos">Cursos</a>
+        <a href="categoria.html?cat=Streaming">Streaming</a><a href="categoria.html?cat=Software">Software</a><a href="categoria.html?cat=IA">IA</a><a href="#cursos">Cursos</a>
       </div>
       <div>
         <h5>Legal</h5>
@@ -445,10 +398,10 @@
   },{threshold:.12});
   function prep(sel){document.querySelectorAll(sel).forEach(function(el,i){
     el.classList.add('reveal');el.style.transitionDelay=((i%4)*80)+'ms';obs.observe(el)})}
-  prep('.card');prep('.ccard');prep('.tcard');
+  prep('.ccard');prep('.tcard');
   document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el)});
 
-  document.querySelectorAll('.card').forEach(function(c){
+  function wireTilt(c){
     c.addEventListener('mousemove',function(e){
       var r=c.getBoundingClientRect();
       var rx=((e.clientY-r.top)/r.height-.5)*-6;
@@ -456,7 +409,7 @@
       c.style.transform='translateY(-4px) perspective(700px) rotateX('+rx+'deg) rotateY('+ry+'deg)';
     });
     c.addEventListener('mouseleave',function(){c.style.transform=''});
-  });
+  }
 
   var WA='34641564952';
   var BIZUM='641 564 952';
@@ -470,11 +423,6 @@
   function wireBuy(btn, getName, getTotal){
     btn.addEventListener('click',function(){ abrirCheckout(getName(), getTotal()); });
   }
-  document.querySelectorAll('.card').forEach(function(card){
-    var b=card.querySelector('.buy'); if(!b) return;
-    wireBuy(b, function(){return card.querySelector('h3').textContent;},
-      function(){return parseEur(card.querySelector('.now').textContent);});
-  });
   document.querySelectorAll('.ccard').forEach(function(card){
     var b=card.querySelector('.cbuy'); if(!b) return;
     wireBuy(b, function(){return card.querySelector('h4').textContent;},
@@ -507,22 +455,34 @@
     }).catch(function(){ alert('No se pudo iniciar el pago con tarjeta. Usa Bizum por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; });
   });
 
-  // ---- Cargar tus productos reales del admin (si hay) y añadirlos al grid ----
+  // ---- Más vendidos: 100% controlado desde el admin (Productos > Destacado en el home) ----
   fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
-    if(!Array.isArray(d)||!d.length) return;
-    var grid=document.querySelector('.grid');
-    d.forEach(function(p){
-      var card=document.createElement('div'); card.className='card reveal in';
+    var grid=document.getElementById('masVendidosGrid');
+    var lista = Array.isArray(d) ? d : [];
+    var destacados = lista.filter(function(p){return p.destacado});
+    var mostrar = (destacados.length ? destacados : lista).slice(0,8);
+    if(!mostrar.length){
+      grid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">Aún no hay productos publicados. Añádelos desde el panel de admin.</div>';
+      return;
+    }
+    grid.innerHTML='';
+    mostrar.forEach(function(p,i){
+      var card=document.createElement('div'); card.className='card reveal';
+      card.style.transitionDelay=((i%4)*80)+'ms';
       var img = p.imagen_url ? '<img src="'+p.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:16px 16px 0 0">' : '✨';
+      var badge = p.precio_anterior && p.precio_anterior>p.precio ? '<span class="badge">-'+Math.round((1-p.precio/p.precio_anterior)*100)+'%</span>' : '';
       var old = p.precio_anterior ? '<span class="old">'+eur(p.precio_anterior)+'</span>' : '';
-      card.innerHTML='<div class="thumb">'+img+'<span class="stock">'+(p.stock||'En stock')+'</span></div>'+
+      card.innerHTML='<div class="thumb">'+img+badge+'<span class="stock">'+(p.stock||'En stock')+'</span></div>'+
         '<div class="body"><div class="prov">'+(p.categoria||'')+'</div><h3>'+p.nombre+'</h3>'+
         '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+old+'</div>'+
         '<button class="buy">Comprar ahora</button></div>';
-      grid.insertBefore(card, grid.firstChild);
+      grid.appendChild(card);
+      obs.observe(card); wireTilt(card);
       wireBuy(card.querySelector('.buy'), function(){return p.nombre;}, function(){return p.precio;});
     });
-  }).catch(function(){});
+  }).catch(function(){
+    document.getElementById('masVendidosGrid').innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">No se pudieron cargar los productos.</div>';
+  });
 </script>
 
 </body>
