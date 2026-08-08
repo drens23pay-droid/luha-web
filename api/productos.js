@@ -6,7 +6,9 @@ module.exports = async (req, res) => {
   const admin = req.headers['x-admin-token'] === process.env.ADMIN_TOKEN;
   try {
     if (req.method === 'GET') {
-      var q = admin ? '?select=*&order=creado.desc' : '?select=*&activo=eq.true&order=destacado.desc,creado.desc';
+      // El campo "entrega" (credenciales/enlaces) NUNCA se expone al público, solo al admin.
+      var cols = 'id,nombre,categoria,precio,precio_anterior,stock,descripcion,imagen_url,stripe_link,destacado,activo,creado';
+      var q = admin ? '?select=*&order=creado.desc' : '?select='+cols+'&activo=eq.true&order=destacado.desc,creado.desc';
       const r = await fetch(URL+'/rest/v1/productos'+q, { headers:H });
       return res.status(200).json(await r.json());
     }
