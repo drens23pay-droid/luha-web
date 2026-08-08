@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "LUHA — tienda de suscripciones, cursos y seguidores (frontend + funciones serverless para Vercel).",
-  "scripts": {
-    "dev": "echo \"Abre index.html en el navegador, o usa 'vercel dev' para probar /api\""
+  "dependencies": {
+    "stripe": "^16.12.0"
   }
 }
