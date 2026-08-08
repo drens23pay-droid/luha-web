@@ -117,23 +117,29 @@
 </header>
 
 <div class="wrap">
-  <div class="crumb"><a href="index.html">Inicio</a> / <a href="#">Streaming</a> / Netflix Premium</div>
+  <div class="crumb"><a href="index.html">Inicio</a> / <a href="#" id="crumbCat">Tienda</a> / <span id="crumbNombre">Cargando…</span></div>
 
-  <div class="prod">
+  <div id="cargando" style="padding:60px 0;text-align:center;color:var(--txt-mut)">Cargando producto…</div>
+  <div id="noEncontrado" style="display:none;padding:60px 0;text-align:center">
+    <h1 style="margin-bottom:10px">Producto no encontrado</h1>
+    <p style="color:var(--txt-mut);margin-bottom:20px">Puede que se haya retirado o el enlace esté mal.</p>
+    <a href="index.html" class="buy" style="display:inline-block;padding:12px 24px">&larr; Volver a la tienda</a>
+  </div>
+
+  <div class="prod" id="prodBox" style="display:none">
     <div class="gallery ring">
-      <div class="hero-img">&#127909;</div>
-      <span class="badge">-38% Oferta</span>
+      <div class="hero-img" id="heroImg">&#10024;</div>
+      <span class="badge" id="badgeOferta" style="display:none"></span>
     </div>
     <div class="info">
-      <div class="prov">Streaming · Entrega rápida</div>
-      <h1>Netflix Premium · 1 mes</h1>
-      <div class="stars">★★★★★ <span>(214 valoraciones)</span></div>
+      <div class="prov" id="prov">Streaming · Entrega rápida</div>
+      <h1 id="nombreProd">—</h1>
       <div class="pricebox">
-        <span class="now">4,99 €</span><span class="old">7,99 €</span><span class="save">Ahorras 3,00 €</span>
+        <span class="now" id="precioNow">—</span><span class="old" id="precioOld" style="display:none"></span><span class="save" id="ahorro" style="display:none"></span>
       </div>
       <div class="meta">
-        <span class="pill ok">✔ En stock</span>
-        <span class="pill">Entrega en minutos</span>
+        <span class="pill ok" id="pillStock">✔ En stock</span>
+        <span class="pill">Entrega rápida</span>
         <span class="pill">Garantía incluida</span>
       </div>
       <button class="buy">Comprar ahora · Pago seguro con Stripe</button>
@@ -141,25 +147,20 @@
     </div>
   </div>
 
-  <div class="desc">
+  <div class="desc" id="descBox" style="display:none">
     <h2>Sobre este <b>producto</b></h2>
-    <p>Disfruta de Netflix Premium en calidad 4K Ultra HD en todos tus dispositivos. Acceso inmediato tras la compra, con soporte y garantía durante todo el periodo. Ideal para ver series, películas y contenido exclusivo sin límites.</p>
+    <p id="descTexto">Acceso inmediato tras la compra, con soporte y garantía durante todo el periodo.</p>
     <div class="feats">
       <div class="feat"><i>&#9889;</i><h4>Entrega rápida</h4><p>Recibe tu acceso en minutos por WhatsApp.</p></div>
       <div class="feat"><i>&#128737;</i><h4>Garantía</h4><p>Reposición sin coste durante el periodo.</p></div>
-      <div class="feat"><i>&#128179;</i><h4>Pago seguro</h4><p>Cobro protegido con Stripe.</p></div>
+      <div class="feat"><i>&#128179;</i><h4>Pago seguro</h4><p>Cobro protegido con Stripe o Bizum.</p></div>
       <div class="feat"><i>&#128172;</i><h4>Soporte real</h4><p>Te ayudamos por WhatsApp cada día.</p></div>
     </div>
   </div>
 
-  <div class="rel">
+  <div class="rel" id="relBox" style="display:none">
     <h2>También te puede interesar</h2>
-    <div class="grid">
-      <div class="card"><div class="th">&#127902;</div><div class="b"><div class="p">Streaming</div><h3>HBO Max · 1 mes</h3><div class="pr">3,99 €</div></div></div>
-      <div class="card"><div class="th">&#127925;</div><div class="b"><div class="p">Música</div><h3>Spotify · 1 mes</h3><div class="pr">3,49 €</div></div></div>
-      <div class="card"><div class="th">&#128250;</div><div class="b"><div class="p">Streaming</div><h3>Disney+ · 1 mes</h3><div class="pr">3,49 €</div></div></div>
-      <div class="card"><div class="th">&#129302;</div><div class="b"><div class="p">IA</div><h3>ChatGPT Plus</h3><div class="pr">7,99 €</div></div></div>
-    </div>
+    <div class="grid" id="relGrid"></div>
   </div>
 </div>
 
@@ -192,14 +193,11 @@
   var WA='34641564952';
   var BIZUM='641 564 952';
   function wa(txt){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(txt)}
-  function eur(v){return (Math.round(v*100)/100).toFixed(2).replace('.',',')+' €'}
-  function parseEur(t){return parseFloat((t||'0').replace(/\./g,'').replace(',','.').replace('€','').trim())||0}
-  var name=document.querySelector('.info h1').textContent;
-  var precio=parseEur(document.querySelector('.pricebox .now').textContent);
+  function eur(v){return (Math.round((v||0)*100)/100).toFixed(2).replace('.',',')+' €'}
   document.querySelectorAll('.wa').forEach(function(a){a.setAttribute('href',wa('Hola LUHA 👋 quiero información, por favor.'))});
 
   var ov=document.getElementById('ov');
-  var cur={nombre:name,total:precio};
+  var cur={nombre:'',total:0};
   function abrirCheckout(nombre,total){
     cur={nombre:nombre,total:total};
     document.getElementById('mSvc').textContent=nombre;
@@ -223,15 +221,69 @@
     }).catch(function(){ alert('No se pudo iniciar el pago con tarjeta. Usa Bizum por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; });
   });
 
-  var buy=document.querySelector('.buy'),waBtn=document.querySelector('.wa-btn');
-  if(buy)buy.addEventListener('click',function(){ abrirCheckout(name, precio); });
-  if(waBtn)waBtn.addEventListener('click',function(){location.href=wa('Hola LUHA 👋 tengo una consulta sobre: '+name)});
-  document.querySelectorAll('.rel .card').forEach(function(c){
-    c.style.cursor='pointer';
-    c.addEventListener('click',function(){
-      var n=c.querySelector('h3').textContent, p=parseEur(c.querySelector('.pr').textContent);
-      abrirCheckout(n,p);
-    });
+  // ---- Cargar el producto real según ?id= ----
+  var ID = new URLSearchParams(location.search).get('id');
+  var buy=document.querySelector('.buy'), waBtn=document.querySelector('.wa-btn');
+
+  function pintarProducto(p, todos){
+    document.getElementById('cargando').style.display='none';
+    document.getElementById('prodBox').style.display='grid';
+    document.getElementById('descBox').style.display='block';
+
+    document.title = p.nombre+' — LUHA';
+    document.getElementById('crumbNombre').textContent = p.nombre;
+    var catHref = 'categoria.html?cat='+encodeURIComponent(p.categoria||'');
+    document.getElementById('crumbCat').textContent = p.categoria||'Tienda';
+    document.getElementById('crumbCat').setAttribute('href', catHref);
+    document.getElementById('nombreProd').textContent = p.nombre;
+    document.getElementById('prov').textContent = (p.categoria||'')+' · Entrega rápida';
+    document.getElementById('precioNow').textContent = eur(p.precio);
+
+    var img = document.getElementById('heroImg');
+    if(p.imagen_url){
+      img.innerHTML='<img src="'+p.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:20px" onerror="this.parentElement.innerHTML=\'&#10024;\'">';
+    }
+
+    var oferta = p.precio_anterior && p.precio_anterior > p.precio;
+    if(oferta){
+      var pct = Math.round(100-(p.precio/p.precio_anterior*100));
+      var badge=document.getElementById('badgeOferta'); badge.style.display='inline-block'; badge.textContent='-'+pct+'% Oferta';
+      var old=document.getElementById('precioOld'); old.style.display='inline'; old.textContent=eur(p.precio_anterior);
+      var ah=document.getElementById('ahorro'); ah.style.display='inline'; ah.textContent='Ahorras '+eur(p.precio_anterior-p.precio);
+    }
+
+    var enStock=(p.stock||'En stock').toLowerCase().indexOf('agot')===-1;
+    var pill=document.getElementById('pillStock');
+    pill.textContent = enStock ? '✔ En stock' : 'Agotado';
+    pill.className = 'pill'+(enStock?' ok':'');
+
+    if(p.descripcion){ document.getElementById('descTexto').textContent = p.descripcion; }
+
+    cur={nombre:p.nombre,total:p.precio};
+    if(buy) buy.onclick=function(){ abrirCheckout(p.nombre, p.precio); };
+    if(waBtn) waBtn.onclick=function(){ location.href=wa('Hola LUHA 👋 tengo una consulta sobre: '+p.nombre); };
+
+    // Relacionados: misma categoría, excluyendo este producto
+    var relacionados = todos.filter(function(x){ return x.id!==p.id && (x.categoria||'')===(p.categoria||''); }).slice(0,4);
+    if(relacionados.length){
+      document.getElementById('relBox').style.display='block';
+      var relGrid=document.getElementById('relGrid');
+      relGrid.innerHTML = relacionados.map(function(r){
+        var rimg = r.imagen_url ? '<img src="'+r.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:14px 14px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : '✨';
+        return '<a class="card" href="producto.html?id='+encodeURIComponent(r.id)+'" style="display:block">'+
+          '<div class="th">'+rimg+'</div><div class="b"><div class="p">'+(r.categoria||'')+'</div><h3>'+r.nombre+'</h3><div class="pr">'+eur(r.precio)+'</div></div></a>';
+      }).join('');
+    }
+  }
+
+  fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
+    var todos = Array.isArray(d) ? d : [];
+    var p = todos.find(function(x){ return String(x.id)===String(ID); });
+    if(!p){ document.getElementById('cargando').style.display='none'; document.getElementById('noEncontrado').style.display='block'; return; }
+    pintarProducto(p, todos);
+  }).catch(function(){
+    document.getElementById('cargando').style.display='none';
+    document.getElementById('noEncontrado').style.display='block';
   });
 </script>
 
