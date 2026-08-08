@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netflix Premium — LUHA</title>
+<style>
+  :root{--bg:#0B0B0F;--bg2:#111117;--card:#16161F;--neon:#A855F7;--neon2:#8B2FFF;
+    --lila:#C77DFF;--cyan:#22E1D6;--pink:#FF3DAE;--white:#fff;--txt:#EDEAF5;--txt-mut:#9A93B0;--line:rgba(168,85,247,.18);--ok:#3DE6A0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--txt);line-height:1.55;
+    background:radial-gradient(1200px 600px at 80% -10%,rgba(139,47,255,.18),transparent 60%),var(--bg)}
+  a{text-decoration:none;color:inherit}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 22px}
+  @property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+  @keyframes spin{to{--ang:360deg}}
+  header{position:sticky;top:0;z-index:40;background:rgba(11,11,15,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .bar{display:flex;align-items:center;gap:20px;height:66px}
+  .logo{font-weight:800;font-size:20px;letter-spacing:1px;color:var(--lila)}
+  .logo span{color:#fff}
+  .bar nav{display:flex;gap:18px;margin-left:10px;font-size:14px;color:var(--txt-mut)}
+  .bar nav a:hover{color:var(--lila)}
+  .wa{margin-left:auto;background:#1f2a1f;border:1px solid #2b5c33;color:#7ee59a;padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px}
+  .crumb{color:var(--txt-mut);font-size:13px;padding:22px 0 6px}
+  .crumb a:hover{color:var(--lila)}
+  .prod{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:16px 0 40px}
+  .gallery{position:relative}
+  .ring{position:relative;border-radius:20px}
+  .ring::after{content:'';position:absolute;inset:-2px;border-radius:20px;padding:2px;
+    background:conic-gradient(from var(--ang),transparent 0deg,var(--cyan) 45deg,var(--neon) 110deg,var(--pink) 175deg,transparent 235deg);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;animation:spin 4s linear infinite;pointer-events:none}
+  .hero-img{height:360px;border-radius:20px;background:linear-gradient(135deg,#1c1430,#2a1a45);
+    display:flex;align-items:center;justify-content:center;font-size:120px}
+  .badge{position:absolute;top:16px;left:16px;background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));
+    color:#fff;font-size:13px;font-weight:700;padding:6px 12px;border-radius:20px;box-shadow:0 0 14px rgba(168,85,247,.6)}
+  .info .prov{font-size:12px;color:var(--txt-mut);text-transform:uppercase;letter-spacing:1px}
+  .info h1{font-size:34px;font-weight:800;margin:8px 0 12px}
+  .stars{color:#f5c518;font-size:16px;margin-bottom:14px}
+  .stars span{color:var(--txt-mut);font-size:13px;margin-left:6px}
+  .pricebox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:8px 0 18px}
+  .pricebox .now{font-size:38px;font-weight:800;color:#fff}
+  .pricebox .old{font-size:16px;color:var(--txt-mut);text-decoration:line-through;margin-left:10px}
+  .pricebox .save{color:var(--ok);font-size:14px;margin-left:8px}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 18px}
+  .pill{background:var(--card);border:1px solid var(--line);color:var(--txt-mut);font-size:13px;padding:6px 12px;border-radius:20px}
+  .pill.ok{color:var(--ok);border-color:rgba(61,230,160,.3)}
+  .buy{width:100%;padding:15px;border-radius:12px;font-size:16px;font-weight:800;border:none;cursor:pointer;
+    background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));color:#fff;box-shadow:0 0 22px rgba(168,85,247,.5)}
+  .buy:hover{box-shadow:0 0 32px rgba(168,85,247,.85)}
+  .wa-btn{width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:700;margin-top:10px;
+    background:transparent;border:1px solid #2b5c33;color:#7ee59a;cursor:pointer}
+  .wa-btn:hover{box-shadow:0 0 16px rgba(61,230,160,.35)}
+  .desc{margin-top:36px}
+  .desc h2{font-size:22px;font-weight:800;margin-bottom:12px}
+  .desc h2 b{color:var(--lila)}
+  .desc p{color:var(--txt-mut);margin-bottom:14px}
+  .feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}
+  .feat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .feat i{color:var(--lila);font-size:20px}
+  .feat h4{font-size:15px;margin:6px 0 4px}
+  .feat p{font-size:13px;color:var(--txt-mut)}
+  .rel{margin:48px 0 30px}
+  .rel h2{font-size:22px;font-weight:800;margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;transition:.25s}
+  .card:hover{transform:translateY(-4px);border-color:var(--neon);box-shadow:0 10px 30px rgba(139,47,255,.25)}
+  .card .th{height:120px;border-radius:14px 14px 0 0;background:linear-gradient(135deg,#1c1430,#241a3d);
+    display:flex;align-items:center;justify-content:center;font-size:38px}
+  .card .b{padding:12px 14px 14px}
+  .card .b .p{font-size:12px;color:var(--txt-mut)}
+  .card .b h3{font-size:14px;margin:4px 0 8px}
+  .card .b .pr{font-size:17px;font-weight:800;color:#fff}
+  footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0;color:var(--txt-mut);font-size:13px;text-align:center;background:var(--bg2)}
+  .note{position:fixed;left:22px;bottom:22px;background:#1C1C28;border:1px solid var(--line);color:var(--txt-mut);font-size:12px;padding:8px 14px;border-radius:10px}
+  @media(max-width:760px){.prod{grid-template-columns:1fr}.bar nav{display:none}}
+
+  /* MODAL CHECKOUT */
+  .overlay{position:fixed;inset:0;background:rgba(5,5,9,.72);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
+  .overlay.on{display:flex}
+  .modal{background:var(--card);border:1px solid var(--neon);border-radius:20px;max-width:440px;width:100%;padding:26px;box-shadow:0 0 40px rgba(139,47,255,.35)}
+  .modal h2{font-size:20px;font-weight:800;margin-bottom:4px}
+  .modal .msub{color:var(--txt-mut);font-size:13px;margin-bottom:16px}
+  .rec{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px}
+  .rec .r{display:flex;justify-content:space-between;padding:3px 0}
+  .rec .r .k{color:var(--txt-mut)}
+  .rec .r.tt{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:800;font-size:16px}
+  .pays{display:grid;gap:10px;margin-top:16px}
+  .pay{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);cursor:pointer;transition:.2s;text-align:left;width:100%;color:var(--txt)}
+  .pay:hover{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,225,214,.25)}
+  .pay .pic{font-size:22px}
+  .pay .pt b{display:block;font-size:15px}
+  .pay .pt span{font-size:12px;color:var(--txt-mut)}
+  .pay.card{background:linear-gradient(90deg,rgba(255,61,174,.15),rgba(34,225,214,.12));border-color:var(--neon)}
+  .mclose{background:transparent;border:none;color:var(--txt-mut);font-size:22px;cursor:pointer;float:right;line-height:1}
+  .mclose:hover{color:#fff}
+</style>
+</head>
+<body>
+<style>
+  .neonbar{position:fixed;top:0;left:0;width:100%;height:3px;z-index:200;
+    background:linear-gradient(90deg,transparent,#FF3DAE,#A855F7,#22E1D6,transparent);
+    background-size:200% 100%;animation:neonsweep 3.5s linear infinite;
+    box-shadow:0 0 10px rgba(168,85,247,.8),0 0 22px rgba(34,225,214,.5);pointer-events:none}
+  @keyframes neonsweep{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @media (prefers-reduced-motion: reduce){.neonbar{animation:none;background-position:0 0}}
+</style>
+<div class="neonbar"></div>
+
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="index.html">LU<span>HA</span></a>
+    <nav><a href="index.html">Inicio</a><a href="#">Streaming</a><a href="#">Cursos</a><a href="index.html#seguidores">Seguidores</a></nav>
+    <a class="wa" href="#">&#9993; +34 641 564 952</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="crumb"><a href="index.html">Inicio</a> / <a href="#">Streaming</a> / Netflix Premium</div>
+
+  <div class="prod">
+    <div class="gallery ring">
+      <div class="hero-img">&#127909;</div>
+      <span class="badge">-38% Oferta</span>
+    </div>
+    <div class="info">
+      <div class="prov">Streaming · Entrega rápida</div>
+      <h1>Netflix Premium · 1 mes</h1>
+      <div class="stars">★★★★★ <span>(214 valoraciones)</span></div>
+      <div class="pricebox">
+        <span class="now">4,99 €</span><span class="old">7,99 €</span><span class="save">Ahorras 3,00 €</span>
+      </div>
+      <div class="meta">
+        <span class="pill ok">✔ En stock</span>
+        <span class="pill">Entrega en minutos</span>
+        <span class="pill">Garantía incluida</span>
+      </div>
+      <button class="buy">Comprar ahora · Pago seguro con Stripe</button>
+      <button class="wa-btn">&#9993; Consultar por WhatsApp</button>
+    </div>
+  </div>
+
+  <div class="desc">
+    <h2>Sobre este <b>producto</b></h2>
+    <p>Disfruta de Netflix Premium en calidad 4K Ultra HD en todos tus dispositivos. Acceso inmediato tras la compra, con soporte y garantía durante todo el periodo. Ideal para ver series, películas y contenido exclusivo sin límites.</p>
+    <div class="feats">
+      <div class="feat"><i>&#9889;</i><h4>Entrega rápida</h4><p>Recibe tu acceso en minutos por WhatsApp.</p></div>
+      <div class="feat"><i>&#128737;</i><h4>Garantía</h4><p>Reposición sin coste durante el periodo.</p></div>
+      <div class="feat"><i>&#128179;</i><h4>Pago seguro</h4><p>Cobro protegido con Stripe.</p></div>
+      <div class="feat"><i>&#128172;</i><h4>Soporte real</h4><p>Te ayudamos por WhatsApp cada día.</p></div>
+    </div>
+  </div>
+
+  <div class="rel">
+    <h2>También te puede interesar</h2>
+    <div class="grid">
+      <div class="card"><div class="th">&#127902;</div><div class="b"><div class="p">Streaming</div><h3>HBO Max · 1 mes</h3><div class="pr">3,99 €</div></div></div>
+      <div class="card"><div class="th">&#127925;</div><div class="b"><div class="p">Música</div><h3>Spotify · 1 mes</h3><div class="pr">3,49 €</div></div></div>
+      <div class="card"><div class="th">&#128250;</div><div class="b"><div class="p">Streaming</div><h3>Disney+ · 1 mes</h3><div class="pr">3,49 €</div></div></div>
+      <div class="card"><div class="th">&#129302;</div><div class="b"><div class="p">IA</div><h3>ChatGPT Plus</h3><div class="pr">7,99 €</div></div></div>
+    </div>
+  </div>
+</div>
+
+<footer>© 2026 LUHA · Pago con Bizum o tarjeta (Stripe) · Soporte +34 641 564 952</footer>
+
+<!-- MODAL DE CHECKOUT -->
+<div class="overlay" id="ov">
+  <div class="modal">
+    <button class="mclose" id="mClose">&times;</button>
+    <h2>Completa tu pedido</h2>
+    <div class="msub">Revisa y elige cómo pagar.</div>
+    <div class="rec">
+      <div class="r"><span class="k">Producto</span><span id="mSvc">—</span></div>
+      <div class="r tt"><span>Total</span><span id="mTot">—</span></div>
+    </div>
+    <div class="pays">
+      <button class="pay" id="payBizum">
+        <span class="pic">🟢</span>
+        <span class="pt"><b>Pagar con Bizum</b><span>Haz el Bizum y envía el comprobante por WhatsApp</span></span>
+      </button>
+      <button class="pay card" id="payCard">
+        <span class="pic">💳</span>
+        <span class="pt"><b>Pagar con tarjeta</b><span>Pago seguro con Stripe, al instante</span></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var WA='34641564952';
+  var BIZUM='641 564 952';
+  function wa(txt){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(txt)}
+  function eur(v){return (Math.round(v*100)/100).toFixed(2).replace('.',',')+' €'}
+  function parseEur(t){return parseFloat((t||'0').replace(/\./g,'').replace(',','.').replace('€','').trim())||0}
+  var name=document.querySelector('.info h1').textContent;
+  var precio=parseEur(document.querySelector('.pricebox .now').textContent);
+  document.querySelectorAll('.wa').forEach(function(a){a.setAttribute('href',wa('Hola LUHA 👋 quiero información, por favor.'))});
+
+  var ov=document.getElementById('ov');
+  var cur={nombre:name,total:precio};
+  function abrirCheckout(nombre,total){
+    cur={nombre:nombre,total:total};
+    document.getElementById('mSvc').textContent=nombre;
+    document.getElementById('mTot').textContent=eur(total);
+    ov.classList.add('on');
+  }
+  document.getElementById('mClose').addEventListener('click',function(){ov.classList.remove('on')});
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('on')});
+  document.getElementById('payBizum').addEventListener('click',function(){
+    var msg='Hola LUHA 👋 quiero PAGAR CON BIZUM:\n• Producto: '+cur.nombre+'\n• Total: '+eur(cur.total)+
+      '\n\nHaré el Bizum al '+BIZUM+' y te envío el comprobante por aquí. 📎';
+    location.href='https://wa.me/'+WA+'?text='+encodeURIComponent(msg);
+  });
+  document.getElementById('payCard').addEventListener('click',function(){
+    var btn=this; btn.style.opacity=.6; btn.querySelector('.pt b').textContent='Redirigiendo…';
+    fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nombre:cur.nombre, total:cur.total, detalle:cur.nombre})
+    }).then(function(r){return r.json()}).then(function(d){
+      if(d && d.ok && d.url){ location.href=d.url; }
+      else { alert('El pago con tarjeta aún no está activo. Usa Bizum o inténtalo más tarde.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; }
+    }).catch(function(){ alert('No se pudo iniciar el pago con tarjeta. Usa Bizum por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; });
+  });
+
+  var buy=document.querySelector('.buy'),waBtn=document.querySelector('.wa-btn');
+  if(buy)buy.addEventListener('click',function(){ abrirCheckout(name, precio); });
+  if(waBtn)waBtn.addEventListener('click',function(){location.href=wa('Hola LUHA 👋 tengo una consulta sobre: '+name)});
+  document.querySelectorAll('.rel .card').forEach(function(c){
+    c.style.cursor='pointer';
+    c.addEventListener('click',function(){
+      var n=c.querySelector('h3').textContent, p=parseEur(c.querySelector('.pr').textContent);
+      abrirCheckout(n,p);
+    });
+  });
+</script>
+
+</body>
+</html>

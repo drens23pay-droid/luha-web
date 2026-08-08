@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¡Gracias por tu compra! — LUHA</title>
+<style>
+  :root{--bg:#0B0B0F;--bg2:#111117;--card:#16161F;--neon:#A855F7;--neon2:#8B2FFF;--lila:#C77DFF;
+    --cyan:#22E1D6;--pink:#FF3DAE;--txt:#EDEAF5;--txt-mut:#9A93B0;--line:rgba(168,85,247,.18);--ok:#3DE6A0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--txt);line-height:1.55;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;padding:30px;
+    background:radial-gradient(900px 500px at 50% -10%,rgba(255,61,174,.16),transparent 60%),
+               radial-gradient(700px 400px at 10% 100%,rgba(34,225,214,.12),transparent 55%),var(--bg)}
+  @property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+  @keyframes spin{to{--ang:360deg}}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+  .box{max-width:460px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:40px 34px;text-align:center;position:relative}
+  .box::after{content:'';position:absolute;inset:-2px;border-radius:22px;padding:2px;
+    background:conic-gradient(from var(--ang),transparent 0deg,var(--cyan) 45deg,var(--neon) 110deg,var(--pink) 175deg,transparent 235deg);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+    animation:spin 4s linear infinite;pointer-events:none}
+  .logo{font-weight:800;font-size:20px;letter-spacing:1px;margin-bottom:22px;
+    background:linear-gradient(90deg,var(--pink),var(--lila),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .check{width:84px;height:84px;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:44px;color:#fff;
+    background:linear-gradient(135deg,var(--ok),var(--cyan));box-shadow:0 0 30px rgba(61,230,160,.5);animation:pop .5s ease-out}
+  h1{font-size:26px;font-weight:800;margin-bottom:8px}
+  .lead{color:var(--txt-mut);margin-bottom:22px}
+  .summary{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:left;margin-bottom:22px}
+  .summary .row{display:flex;justify-content:space-between;font-size:14px;padding:6px 0}
+  .summary .row .k{color:var(--txt-mut)}
+  .summary .row.total{border-top:1px solid var(--line);margin-top:6px;padding-top:12px;font-weight:800;font-size:16px}
+  .steps{text-align:left;margin-bottom:24px}
+  .steps .s{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+  .steps .n{min-width:26px;height:26px;border-radius:50%;background:rgba(139,47,255,.2);color:var(--lila);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+  .steps .t{font-size:14px;color:var(--txt-mut)}
+  .steps .t b{color:var(--txt)}
+  .cta{display:block;width:100%;padding:15px;border-radius:12px;font-weight:800;font-size:15px;border:none;cursor:pointer;margin-bottom:10px;
+    background:#25D366;color:#0b3d1e;box-shadow:0 0 20px rgba(37,211,102,.4)}
+  .back{display:block;color:var(--txt-mut);font-size:14px;text-decoration:none}
+  .back:hover{color:var(--lila)}
+</style>
+</head>
+<body>
+<style>
+  .neonbar{position:fixed;top:0;left:0;width:100%;height:3px;z-index:200;
+    background:linear-gradient(90deg,transparent,#FF3DAE,#A855F7,#22E1D6,transparent);
+    background-size:200% 100%;animation:neonsweep 3.5s linear infinite;
+    box-shadow:0 0 10px rgba(168,85,247,.8),0 0 22px rgba(34,225,214,.5);pointer-events:none}
+  @keyframes neonsweep{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @media (prefers-reduced-motion: reduce){.neonbar{animation:none;background-position:0 0}}
+</style>
+<div class="neonbar"></div>
+
+  <div class="box">
+    <div class="logo">LU<span style="color:#fff">HA</span></div>
+    <div class="check">&#10003;</div>
+    <h1>¡Gracias por tu compra!</h1>
+    <p class="lead">Tu pago se ha realizado correctamente. Ya estamos preparando tu pedido.</p>
+
+    <div class="summary">
+      <div class="row"><span class="k">Producto</span><span>Netflix Premium · 1 mes</span></div>
+      <div class="row"><span class="k">Nº de pedido</span><span>#LH-100248</span></div>
+      <div class="row"><span class="k">Método</span><span>Tarjeta (Stripe)</span></div>
+      <div class="row total"><span>Total pagado</span><span>4,99 €</span></div>
+    </div>
+
+    <div class="steps">
+      <div class="s"><div class="n">1</div><div class="t"><b>Recibirás tu acceso por WhatsApp</b> en pocos minutos.</div></div>
+      <div class="s"><div class="n">2</div><div class="t">Si es un curso, el enlace de acceso llega a tu correo/WhatsApp.</div></div>
+      <div class="s"><div class="n">3</div><div class="t">¿Dudas? Escríbenos y te ayudamos al momento.</div></div>
+    </div>
+
+    <a class="cta" id="waCta" href="#">&#9993; Escribir a soporte por WhatsApp</a>
+    <a class="back" href="index.html">&larr; Volver a la tienda</a>
+  </div>
+
+  <script>
+    var WA='34641564952';
+    document.getElementById('waCta').setAttribute('href',
+      'https://wa.me/'+WA+'?text='+encodeURIComponent('Hola LUHA 👋 acabo de pagar el pedido #LH-100248, ¿me confirman la entrega?'));
+  </script>
+</body>
+</html>
