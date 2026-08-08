@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Admin — LUHA</title>
+<style>
+  :root{--bg:#0B0B0F;--bg2:#111117;--card:#16161F;--card2:#1C1C28;--neon:#A855F7;--neon2:#8B2FFF;
+    --lila:#C77DFF;--cyan:#22E1D6;--pink:#FF3DAE;--txt:#EDEAF5;--txt-mut:#9A93B0;--line:rgba(168,85,247,.18);--ok:#3DE6A0;--warn:#f5b942;--danger:#ff5c7a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--txt);background:var(--bg);line-height:1.5}
+  a{text-decoration:none;color:inherit}
+  .layout{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+  /* SIDEBAR */
+  aside{background:var(--bg2);border-right:1px solid var(--line);padding:22px 14px;position:sticky;top:0;height:100vh}
+  .logo{font-weight:800;font-size:19px;letter-spacing:1px;color:var(--lila);padding:0 10px 20px}
+  .logo span{color:#fff}
+  .nav a{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;color:var(--txt-mut);font-size:14px;margin-bottom:3px}
+  .nav a i{font-size:17px;width:20px;text-align:center}
+  .nav a:hover{background:var(--card);color:var(--txt)}
+  .nav a.active{background:linear-gradient(90deg,rgba(139,47,255,.25),transparent);color:#fff;border:1px solid var(--line)}
+  .nav a.active i{color:var(--lila)}
+  .navsec{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--txt-mut);padding:16px 12px 8px;opacity:.7}
+
+  /* MAIN */
+  main{padding:26px 30px}
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+  .top h1{font-size:24px;font-weight:800}
+  .top .sub{color:var(--txt-mut);font-size:13px;margin-top:2px}
+  .btn{border:none;cursor:pointer;font-weight:700;border-radius:10px;font-size:14px;padding:10px 16px}
+  .btn-neon{background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));color:#fff;box-shadow:0 0 16px rgba(168,85,247,.4)}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
+  .btn-ghost:hover{border-color:var(--lila);color:var(--lila)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .stat .l{font-size:12px;color:var(--txt-mut);text-transform:uppercase;letter-spacing:.5px}
+  .stat .v{font-size:26px;font-weight:800;color:#fff;margin-top:4px}
+  .stat .v b{color:var(--lila)}
+
+  .cols{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;align-items:start}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .panel h2{font-size:16px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+  .panel h2 .mini{font-size:12px;color:var(--txt-mut);font-weight:400}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--txt-mut);padding:8px 8px;border-bottom:1px solid var(--line)}
+  td{padding:10px 8px;border-bottom:1px solid rgba(168,85,247,.08);font-size:14px;vertical-align:middle}
+  .prow{display:flex;align-items:center;gap:10px}
+  .pimg{width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,#1c1430,#241a3d);display:flex;align-items:center;justify-content:center;font-size:20px}
+  .tag{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700}
+  .tag.pub{background:rgba(61,230,160,.14);color:var(--ok)}
+  .tag.draft{background:rgba(245,185,66,.14);color:var(--warn)}
+  .tag.out{background:rgba(255,92,122,.14);color:var(--danger)}
+  .act i{color:var(--txt-mut);font-size:16px;cursor:pointer;margin-left:10px}
+  .act i:hover{color:var(--lila)}
+
+  /* FORM */
+  label{display:block;font-size:13px;color:var(--txt-mut);margin:12px 0 5px}
+  input,select,textarea{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);
+    padding:10px 12px;border-radius:10px;font-size:14px;outline:none;font-family:inherit}
+  input:focus,select:focus,textarea:focus{border-color:var(--neon)}
+  textarea{resize:vertical;min-height:70px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:.2s;background:var(--bg2)}
+  .drop:hover{border-color:var(--neon);background:rgba(139,47,255,.06)}
+  .drop i{font-size:30px;color:var(--lila)}
+  .drop p{font-size:13px;color:var(--txt-mut);margin-top:6px}
+  .preview{margin-top:12px;display:none}
+  .preview img{width:100%;height:150px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+
+  /* LIVE PREVIEW CARD */
+  .livewrap{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:18px}
+  .livewrap .h{font-size:12px;color:var(--txt-mut);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;max-width:220px}
+  .pcard .th{height:120px;background:linear-gradient(135deg,#1c1430,#241a3d);display:flex;align-items:center;justify-content:center;font-size:38px;position:relative}
+  .pcard .th img{width:100%;height:100%;object-fit:cover}
+  .pcard .bd{padding:12px 13px}
+  .pcard .bd .pv{font-size:11px;color:var(--txt-mut);text-transform:uppercase}
+  .pcard .bd h4{font-size:14px;margin:4px 0 8px;min-height:34px}
+  .pcard .bd .pr{font-size:18px;font-weight:800;color:#fff}
+  .pcard .bd .pr small{font-size:12px;color:var(--txt-mut);text-decoration:line-through;font-weight:400;margin-left:6px}
+  .pcard .buy{width:100%;margin-top:10px;padding:9px;border:none;border-radius:8px;font-weight:700;font-size:13px;
+    background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));color:#fff;cursor:pointer}
+
+  /* VALIDATION */
+  .valid{margin-top:14px;font-size:13px}
+  .valid .row{display:flex;align-items:center;gap:8px;padding:4px 0;color:var(--txt-mut)}
+  .valid .row.ok{color:var(--ok)}
+  .valid .row i{font-style:normal}
+  .actions{display:flex;gap:10px;margin-top:16px}
+  .actions .btn{flex:1}
+
+  @media(max-width:900px){.layout{grid-template-columns:1fr}aside{display:none}.cols{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <aside>
+    <div class="logo">LU<span>HA</span></div>
+    <div class="navsec">Gestión</div>
+    <div class="nav">
+      <a class="active" href="#"><i>&#128230;</i> Productos</a>
+      <a href="#"><i>&#127891;</i> Cursos</a>
+      <a href="#"><i>&#128241;</i> Seguidores (API)</a>
+      <a href="#"><i>&#127991;</i> Categorías</a>
+    </div>
+    <div class="navsec">Ventas</div>
+    <div class="nav">
+      <a href="#"><i>&#128179;</i> Pedidos</a>
+      <a href="#"><i>&#128100;</i> Clientes</a>
+    </div>
+    <div class="navsec">Ajustes</div>
+    <div class="nav">
+      <a href="#"><i>&#9881;</i> Configuración</a>
+      <a href="index.html"><i>&#128065;</i> Ver tienda</a>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div>
+        <h1>Productos</h1>
+        <div class="sub">Gestiona tu catálogo, precios y stock sin tocar código.</div>
+      </div>
+      <button class="btn btn-neon">+ Nuevo producto</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="l">Ventas hoy</div><div class="v">12</div></div>
+      <div class="stat"><div class="l">Ingresos hoy</div><div class="v"><b>68,40 €</b></div></div>
+      <div class="stat"><div class="l">Productos</div><div class="v">28</div></div>
+      <div class="stat"><div class="l">Pedidos pendientes</div><div class="v">3</div></div>
+    </div>
+
+    <div class="cols">
+      <div class="panel">
+        <h2>Tus productos <span class="mini">28 en total</span></h2>
+        <table>
+          <thead><tr><th>Producto</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><div class="prow"><div class="pimg">&#127909;</div>Netflix Premium</div></td><td>4,99 €</td><td><span class="tag pub">Publicado</span></td><td class="act"><i>&#9998;</i><i>&#128465;</i></td></tr>
+            <tr><td><div class="prow"><div class="pimg">&#127902;</div>HBO Max</div></td><td>3,99 €</td><td><span class="tag pub">Publicado</span></td><td class="act"><i>&#9998;</i><i>&#128465;</i></td></tr>
+            <tr><td><div class="prow"><div class="pimg">&#129302;</div>ChatGPT Plus</div></td><td>7,99 €</td><td><span class="tag draft">Borrador</span></td><td class="act"><i>&#9998;</i><i>&#128465;</i></td></tr>
+            <tr><td><div class="prow"><div class="pimg">&#127925;</div>Spotify Premium</div></td><td>3,49 €</td><td><span class="tag pub">Publicado</span></td><td class="act"><i>&#9998;</i><i>&#128465;</i></td></tr>
+            <tr><td><div class="prow"><div class="pimg">&#128250;</div>Disney+</div></td><td>3,49 €</td><td><span class="tag out">Agotado</span></td><td class="act"><i>&#9998;</i><i>&#128465;</i></td></tr>
+            <tr><td><div class="prow"><div class="pimg">&#127912;</div>Canva Pro</div></td><td>2,99 €</td><td><span class="tag pub">Publicado</span></td><td class="act"><i>&#9998;</i><i>&#128465;</i></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Editar producto</h2>
+        <label>Foto del producto</label>
+        <div class="drop" id="drop">
+          <i>&#128247;</i>
+          <p>Arrastra una imagen o haz clic para subir</p>
+          <input type="file" id="file" accept="image/*" style="display:none">
+        </div>
+        <div class="preview" id="prev"><img id="prevImg" alt="preview"></div>
+
+        <label>Nombre del producto</label>
+        <input id="fName" type="text" value="Netflix Premium · 1 mes" placeholder="Ej. Netflix Premium 1 mes">
+
+        <div class="two">
+          <div><label>Categoría</label>
+            <select id="fCat"><option>Streaming</option><option>Música</option><option>IA</option><option>Software</option><option>Cursos</option><option>Seguidores</option></select>
+          </div>
+          <div><label>Estado</label>
+            <select id="fState"><option>Publicado</option><option>Borrador</option><option>Agotado</option></select>
+          </div>
+        </div>
+
+        <div class="two">
+          <div><label>Precio venta (€)</label><input id="fPrice" type="number" value="4.99" step="0.01"></div>
+          <div><label>Precio anterior (€)</label><input id="fOld" type="number" value="7.99" step="0.01"></div>
+        </div>
+
+        <label>Link de pago de Stripe</label>
+        <input id="fStripe" type="text" value="https://buy.stripe.com/..." placeholder="https://buy.stripe.com/...">
+
+        <label>Descripción</label>
+        <textarea id="fDesc" placeholder="Describe el producto...">Netflix Premium en 4K, acceso inmediato, con garantía.</textarea>
+
+        <div class="valid" id="valid"></div>
+
+        <div class="actions">
+          <button class="btn btn-ghost">Guardar borrador</button>
+          <button class="btn btn-neon">Publicar</button>
+        </div>
+
+        <div class="livewrap">
+          <div class="h">Vista previa en vivo</div>
+          <div class="pcard">
+            <div class="th" id="lvTh">&#127909;</div>
+            <div class="bd">
+              <div class="pv" id="lvCat">Streaming</div>
+              <h4 id="lvName">Netflix Premium · 1 mes</h4>
+              <div class="pr"><span id="lvPrice">4,99 €</span><small id="lvOld">7,99 €</small></div>
+              <button class="buy">Comprar ahora</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  var drop=document.getElementById('drop'),file=document.getElementById('file'),
+      prev=document.getElementById('prev'),prevImg=document.getElementById('prevImg'),lvTh=document.getElementById('lvTh');
+  drop.addEventListener('click',function(){file.click()});
+  file.addEventListener('change',function(e){
+    var f=e.target.files[0];if(!f)return;
+    var url=URL.createObjectURL(f);
+    prevImg.src=url;prev.style.display='block';
+    lvTh.innerHTML='<img src="'+url+'">';
+    validate();
+  });
+  var fName=document.getElementById('fName'),fCat=document.getElementById('fCat'),
+      fPrice=document.getElementById('fPrice'),fOld=document.getElementById('fOld'),
+      fStripe=document.getElementById('fStripe'),
+      lvName=document.getElementById('lvName'),lvCat=document.getElementById('lvCat'),
+      lvPrice=document.getElementById('lvPrice'),lvOld=document.getElementById('lvOld');
+  function eur(v){return (parseFloat(v)||0).toFixed(2).replace('.',',')+' €'}
+  function sync(){
+    lvName.textContent=fName.value||'Nombre del producto';
+    lvCat.textContent=fCat.value;
+    lvPrice.textContent=eur(fPrice.value);
+    lvOld.textContent=fOld.value?eur(fOld.value):'';
+    validate();
+  }
+  function validate(){
+    var v=document.getElementById('valid');
+    var checks=[
+      {ok:file.files.length>0,t:'Foto subida'},
+      {ok:fName.value.trim().length>2,t:'Nombre completo'},
+      {ok:parseFloat(fPrice.value)>0,t:'Precio de venta válido'},
+      {ok:/^https:\/\/buy\.stripe\.com\//.test(fStripe.value),t:'Link de Stripe válido'}
+    ];
+    v.innerHTML=checks.map(function(c){
+      return '<div class="row '+(c.ok?'ok':'')+'"><i>'+(c.ok?'✔':'○')+'</i>'+c.t+'</div>';
+    }).join('');
+  }
+  [fName,fCat,fPrice,fOld,fStripe].forEach(function(el){el.addEventListener('input',sync)});
+  sync();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Streaming — LUHA</title>
+<style>
+  :root{--bg:#0B0B0F;--bg2:#111117;--card:#16161F;--neon:#A855F7;--neon2:#8B2FFF;--lila:#C77DFF;
+    --cyan:#22E1D6;--pink:#FF3DAE;--txt:#EDEAF5;--txt-mut:#9A93B0;--line:rgba(168,85,247,.18);--ok:#3DE6A0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--txt);line-height:1.5;
+    background:radial-gradient(1000px 500px at 85% -10%,rgba(255,61,174,.12),transparent 60%),
+               radial-gradient(900px 500px at 0% 10%,rgba(34,225,214,.08),transparent 55%),var(--bg)}
+  a{text-decoration:none;color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+  @property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+  @keyframes spin{to{--ang:360deg}}
+  header{position:sticky;top:0;z-index:40;background:rgba(11,11,15,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .bar{display:flex;align-items:center;gap:20px;height:66px}
+  .logo{font-weight:800;font-size:20px;letter-spacing:1px;
+    background:linear-gradient(90deg,var(--pink),var(--lila),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .bar nav{display:flex;gap:18px;margin-left:10px;font-size:14px;color:var(--txt-mut)}
+  .bar nav a:hover{color:var(--lila)}
+  .search{margin-left:auto}
+  .search input{background:var(--card);border:1px solid var(--line);color:var(--txt);padding:9px 14px;border-radius:10px;width:220px;font-size:14px;outline:none}
+  .wa{background:#1f2a1f;border:1px solid #2b5c33;color:#7ee59a;padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px}
+  .crumb{color:var(--txt-mut);font-size:13px;padding:20px 0 4px}
+  .layout{display:grid;grid-template-columns:230px 1fr;gap:28px;padding:8px 0 50px}
+  aside{position:sticky;top:82px;height:fit-content;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+  aside h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--lila);margin-bottom:10px}
+  aside a{display:flex;justify-content:space-between;padding:9px 10px;border-radius:9px;color:var(--txt-mut);font-size:14px;margin-bottom:2px}
+  aside a:hover{background:var(--bg2);color:var(--txt)}
+  aside a.on{background:linear-gradient(90deg,rgba(139,47,255,.25),transparent);color:#fff;border-left:3px solid var(--cyan)}
+  aside a b{color:var(--txt-mut);font-weight:400;font-size:12px}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:6px}
+  .head h1{font-size:30px;font-weight:800}
+  .head .sub{color:var(--txt-mut);font-size:13px}
+  .toolbar{display:flex;align-items:center;gap:10px;margin:16px 0 18px;flex-wrap:wrap}
+  .chip{background:var(--card);border:1px solid var(--line);color:var(--txt-mut);padding:7px 14px;border-radius:20px;font-size:13px;cursor:pointer}
+  .chip.on,.chip:hover{border-color:var(--cyan);color:#fff;box-shadow:0 0 12px rgba(34,225,214,.35)}
+  select{margin-left:auto;background:var(--card);border:1px solid var(--line);color:var(--txt);padding:8px 12px;border-radius:10px;font-size:13px;outline:none}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;transition:.25s;position:relative}
+  .card::after{content:'';position:absolute;inset:-2px;border-radius:16px;padding:2px;
+    background:conic-gradient(from var(--ang),transparent 0deg,var(--cyan) 45deg,var(--neon) 110deg,var(--pink) 175deg,transparent 235deg);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+    opacity:0;transition:opacity .35s;animation:spin 3s linear infinite;pointer-events:none}
+  .card:hover::after{opacity:1}
+  .card:hover{transform:translateY(-4px)}
+  .th{height:130px;border-radius:16px 16px 0 0;background:linear-gradient(135deg,#1c1430,#241a3d);display:flex;align-items:center;justify-content:center;font-size:42px;position:relative}
+  .badge{position:absolute;top:10px;left:10px;background:linear-gradient(90deg,var(--pink),var(--neon2));color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px}
+  .stock{position:absolute;top:10px;right:10px;font-size:11px;color:var(--ok);background:rgba(61,230,160,.12);border:1px solid rgba(61,230,160,.3);padding:3px 8px;border-radius:20px}
+  .b{padding:13px 14px 15px}
+  .b .p{font-size:11px;color:var(--txt-mut);text-transform:uppercase}
+  .b h3{font-size:14px;margin:4px 0 9px;min-height:38px}
+  .b .price{display:flex;align-items:baseline;gap:7px;margin-bottom:11px}
+  .b .now{font-size:19px;font-weight:800;color:#fff}
+  .b .old{font-size:12px;color:var(--txt-mut);text-decoration:line-through}
+  .buy{width:100%;padding:10px;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;
+    background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));color:#fff}
+  .fab{position:fixed;right:22px;bottom:22px;background:#25D366;color:#0b3d1e;font-weight:800;padding:14px 20px;border-radius:40px;box-shadow:0 8px 30px rgba(37,211,102,.45)}
+  footer{border-top:1px solid var(--line);padding:24px 0;color:var(--txt-mut);font-size:13px;text-align:center;background:var(--bg2)}
+  @media(max-width:820px){.layout{grid-template-columns:1fr}aside{position:static}.bar nav,.search{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="index.html">LU<span>HA</span></a>
+    <nav><a href="index.html">Inicio</a><a href="categoria.html">Streaming</a><a href="seguidores.html">Seguidores</a><a href="index.html#cursos">Cursos</a></nav>
+    <div class="search"><input placeholder="Buscar producto..."></div>
+    <a class="wa" href="#">&#9993; +34 641 564 952</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="crumb"><a href="index.html">Inicio</a> / Streaming</div>
+  <div class="layout">
+    <aside>
+      <h3>Categorías</h3>
+      <a class="on" href="#">Streaming <b>12</b></a>
+      <a href="#">Software <b>8</b></a>
+      <a href="#">IA <b>6</b></a>
+      <a href="seguidores.html">Seguidores <b>200+</b></a>
+      <a href="#">Música <b>4</b></a>
+      <a href="index.html#cursos">Cursos <b>5</b></a>
+      <a href="#">VPN <b>3</b></a>
+      <a href="#">Juegos <b>7</b></a>
+    </aside>
+    <main>
+      <div class="head">
+        <div><h1>Streaming</h1><div class="sub">Netflix, HBO, Disney y más · entrega rápida</div></div>
+      </div>
+      <div class="toolbar">
+        <span class="chip on">Destacados</span>
+        <span class="chip">En oferta</span>
+        <span class="chip">En stock</span>
+        <select><option>Ordenar: Destacados</option><option>Precio: menor a mayor</option><option>Precio: mayor a menor</option><option>Nombre A-Z</option></select>
+      </div>
+      <div class="grid" id="grid">
+        <div class="card"><div class="th">&#127909;<span class="badge">-38%</span><span class="stock">Stock</span></div><div class="b"><div class="p">Streaming</div><h3>Netflix Premium · 1 mes</h3><div class="price"><span class="now">4,99 €</span><span class="old">7,99 €</span></div><button class="buy">Comprar</button></div></div>
+        <div class="card"><div class="th">&#127902;<span class="badge">-33%</span><span class="stock">Stock</span></div><div class="b"><div class="p">Streaming</div><h3>HBO Max · 1 mes</h3><div class="price"><span class="now">3,99 €</span><span class="old">5,99 €</span></div><button class="buy">Comprar</button></div></div>
+        <div class="card"><div class="th">&#128250;<span class="badge">-40%</span><span class="stock">Stock</span></div><div class="b"><div class="p">Streaming</div><h3>Disney+ · 1 mes</h3><div class="price"><span class="now">3,49 €</span><span class="old">5,99 €</span></div><button class="buy">Comprar</button></div></div>
+        <div class="card"><div class="th">&#127916;<span class="badge">-28%</span><span class="stock">Stock</span></div><div class="b"><div class="p">Streaming</div><h3>Prime Video · 1 mes</h3><div class="price"><span class="now">3,29 €</span><span class="old">4,59 €</span></div><button class="buy">Comprar</button></div></div>
+        <div class="card"><div class="th">&#127793;<span class="badge">-25%</span><span class="stock">Stock</span></div><div class="b"><div class="p">Streaming</div><h3>Crunchyroll · 1 mes</h3><div class="price"><span class="now">2,99 €</span><span class="old">3,99 €</span></div><button class="buy">Comprar</button></div></div>
+        <div class="card"><div class="th">&#9917;<span class="badge">-20%</span><span class="stock">Stock</span></div><div class="b"><div class="p">Streaming</div><h3>DAZN · 1 mes</h3><div class="price"><span class="now">9,99 €</span><span class="old">12,99 €</span></div><button class="buy">Comprar</button></div></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<a class="fab" href="#">&#9993; WhatsApp</a>
+<footer>© 2026 LUHA · Pagos con Stripe · Soporte +34 641 564 952</footer>
+<script>
+  var WA='34641564952';
+  function wa(t){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(t)}
+  document.querySelectorAll('.wa,.fab').forEach(function(a){a.setAttribute('href',wa('Hola LUHA 👋 quiero información, por favor.'))});
+  document.querySelectorAll('.buy').forEach(function(b){b.addEventListener('click',function(){
+    location.href=wa('Hola LUHA 👋 quiero comprar: '+b.closest('.card').querySelector('h3').textContent)})});
+  document.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click',function(){
+    document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on')});c.classList.add('on')})});
+</script>
+</body>
+</html>
