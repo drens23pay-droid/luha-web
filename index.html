@@ -218,9 +218,39 @@
     .hero h1{font-size:36px}
     .fgrid{grid-template-columns:1fr}
   }
+
+  /* MODAL CHECKOUT (Bizum / Tarjeta) */
+  .overlay{position:fixed;inset:0;background:rgba(5,5,9,.72);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
+  .overlay.on{display:flex}
+  .modal{background:var(--card);border:1px solid var(--neon);border-radius:20px;max-width:440px;width:100%;padding:26px;box-shadow:0 0 40px rgba(139,47,255,.35)}
+  .modal h2{font-size:20px;font-weight:800;margin-bottom:4px}
+  .modal .msub{color:var(--txt-mut);font-size:13px;margin-bottom:16px}
+  .rec{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px}
+  .rec .r{display:flex;justify-content:space-between;padding:3px 0}
+  .rec .r .k{color:var(--txt-mut)}
+  .rec .r.tt{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:800;font-size:16px}
+  .pays{display:grid;gap:10px;margin-top:16px}
+  .pay{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);cursor:pointer;transition:.2s;text-align:left;width:100%;color:var(--txt)}
+  .pay:hover{border-color:var(--lila);box-shadow:0 0 14px rgba(199,125,255,.25)}
+  .pay .pic{font-size:22px}
+  .pay .pt b{display:block;font-size:15px}
+  .pay .pt span{font-size:12px;color:var(--txt-mut)}
+  .pay.card{background:linear-gradient(90deg,rgba(139,47,255,.15),rgba(199,125,255,.12));border-color:var(--neon)}
+  .mclose{background:transparent;border:none;color:var(--txt-mut);font-size:22px;cursor:pointer;float:right;line-height:1}
+  .mclose:hover{color:#fff}
 </style>
 </head>
 <body>
+<style>
+  .neonbar{position:fixed;top:0;left:0;width:100%;height:3px;z-index:200;
+    background:linear-gradient(90deg,transparent,#FF3DAE,#A855F7,#22E1D6,transparent);
+    background-size:200% 100%;animation:neonsweep 3.5s linear infinite;
+    box-shadow:0 0 10px rgba(168,85,247,.8),0 0 22px rgba(34,225,214,.5);pointer-events:none}
+  @keyframes neonsweep{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @media (prefers-reduced-motion: reduce){.neonbar{animation:none;background-position:0 0}}
+</style>
+<div class="neonbar"></div>
+
 
 <div class="blob b1"></div>
 <div class="blob b2"></div>
@@ -409,7 +439,29 @@
 </footer>
 
 <a class="fab" href="#">&#9993; WhatsApp</a>
-<div class="note">Maqueta · colores y productos de ejemplo</div>
+
+<!-- MODAL DE CHECKOUT -->
+<div class="overlay" id="ov">
+  <div class="modal">
+    <button class="mclose" id="mClose">&times;</button>
+    <h2>Completa tu pedido</h2>
+    <div class="msub">Revisa y elige cómo pagar.</div>
+    <div class="rec">
+      <div class="r"><span class="k">Producto</span><span id="mSvc">—</span></div>
+      <div class="r tt"><span>Total</span><span id="mTot">—</span></div>
+    </div>
+    <div class="pays">
+      <button class="pay" id="payBizum">
+        <span class="pic">🟢</span>
+        <span class="pt"><b>Pagar con Bizum</b><span>Haz el Bizum y envía el comprobante por WhatsApp</span></span>
+      </button>
+      <button class="pay card" id="payCard">
+        <span class="pic">💳</span>
+        <span class="pt"><b>Pagar con tarjeta</b><span>Pago seguro con Stripe, al instante</span></span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
   var svc=document.getElementById('svc'),qty=document.getElementById('qty'),
@@ -443,28 +495,74 @@
   });
 
   var WA='34641564952';
+  var BIZUM='641 564 952';
   function wa(txt){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(txt)}
   document.querySelectorAll('.wa,.fab').forEach(function(a){
     a.setAttribute('href',wa('Hola LUHA 👋 quiero información, por favor.'));
   });
-  document.querySelectorAll('.buy').forEach(function(b){
-    b.addEventListener('click',function(){
-      var card=b.closest('.card');
-      var name=card?card.querySelector('h3').textContent:'un producto';
-      location.href=wa('Hola LUHA 👋 quiero comprar: '+name);
-    });
+  function eur(v){return (Math.round(v*100)/100).toFixed(2).replace('.',',')+' €'}
+  function parseEur(t){return parseFloat((t||'0').replace(/\./g,'').replace(',','.').replace('€','').trim())||0}
+
+  function wireBuy(btn, getName, getTotal){
+    btn.addEventListener('click',function(){ abrirCheckout(getName(), getTotal()); });
+  }
+  document.querySelectorAll('.card').forEach(function(card){
+    var b=card.querySelector('.buy'); if(!b) return;
+    wireBuy(b, function(){return card.querySelector('h3').textContent;},
+      function(){return parseEur(card.querySelector('.now').textContent);});
   });
-  document.querySelectorAll('.cbuy').forEach(function(b){
-    b.addEventListener('click',function(){
-      var card=b.closest('.ccard');
-      var name=card?card.querySelector('h4').textContent:'un curso';
-      location.href=wa('Hola LUHA 👋 me interesa el curso: '+name);
-    });
+  document.querySelectorAll('.ccard').forEach(function(card){
+    var b=card.querySelector('.cbuy'); if(!b) return;
+    wireBuy(b, function(){return card.querySelector('h4').textContent;},
+      function(){return parseEur(card.querySelector('.cp').textContent);});
   });
   var smmBtn=document.querySelector('.smm .buy, .totbox .buy');
   if(smmBtn){smmBtn.addEventListener('click',function(){
-    location.href=wa('Hola LUHA 👋 quiero pedir '+document.getElementById('qlab').textContent+' de '+svc.options[svc.selectedIndex].text+' ('+tot.textContent+')');
+    abrirCheckout(svc.options[svc.selectedIndex].text+' · '+document.getElementById('qlab').textContent, parseEur(tot.textContent));
   });}
+
+  // ---- CHECKOUT (Bizum / Tarjeta) ----
+  var ov=document.getElementById('ov');
+  var cur={nombre:'',total:0};
+  function abrirCheckout(nombre,total){
+    cur={nombre:nombre,total:total};
+    document.getElementById('mSvc').textContent=nombre;
+    document.getElementById('mTot').textContent=eur(total);
+    ov.classList.add('on');
+  }
+  document.getElementById('mClose').addEventListener('click',function(){ov.classList.remove('on')});
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('on')});
+  document.getElementById('payBizum').addEventListener('click',function(){
+    var msg='Hola LUHA 👋 quiero PAGAR CON BIZUM:\n• Producto: '+cur.nombre+'\n• Total: '+eur(cur.total)+
+      '\n\nHaré el Bizum al '+BIZUM+' y te envío el comprobante por aquí. 📎';
+    location.href='https://wa.me/'+WA+'?text='+encodeURIComponent(msg);
+  });
+  document.getElementById('payCard').addEventListener('click',function(){
+    var btn=this; btn.style.opacity=.6; btn.querySelector('.pt b').textContent='Redirigiendo…';
+    fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nombre:cur.nombre, total:cur.total, detalle:cur.nombre})
+    }).then(function(r){return r.json()}).then(function(d){
+      if(d && d.ok && d.url){ location.href=d.url; }
+      else { alert('El pago con tarjeta aún no está activo. Usa Bizum o inténtalo más tarde.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; }
+    }).catch(function(){ alert('No se pudo iniciar el pago con tarjeta. Usa Bizum por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; });
+  });
+
+  // ---- Cargar tus productos reales del admin (si hay) y añadirlos al grid ----
+  fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
+    if(!Array.isArray(d)||!d.length) return;
+    var grid=document.querySelector('.grid');
+    d.forEach(function(p){
+      var card=document.createElement('div'); card.className='card reveal in';
+      var img = p.imagen_url ? '<img src="'+p.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:16px 16px 0 0">' : '✨';
+      var old = p.precio_anterior ? '<span class="old">'+eur(p.precio_anterior)+'</span>' : '';
+      card.innerHTML='<div class="thumb">'+img+'<span class="stock">'+(p.stock||'En stock')+'</span></div>'+
+        '<div class="body"><div class="prov">'+(p.categoria||'')+'</div><h3>'+p.nombre+'</h3>'+
+        '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+old+'</div>'+
+        '<button class="buy">Comprar ahora</button></div>';
+      grid.insertBefore(card, grid.firstChild);
+      wireBuy(card.querySelector('.buy'), function(){return p.nombre;}, function(){return p.precio;});
+    });
+  }).catch(function(){});
 </script>
 
 </body>
