@@ -1,9 +1,0 @@
-{
-  "name": "luha-web",
-  "version": "1.0.0",
-  "private": true,
-  "description": "LUHA — tienda de suscripciones, cursos y seguidores (frontend + funciones serverless para Vercel).",
-  "dependencies": {
-    "stripe": "^16.12.0"
-  }
-}
