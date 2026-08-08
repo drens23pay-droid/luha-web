@@ -241,7 +241,7 @@
 
     var img = document.getElementById('heroImg');
     if(p.imagen_url){
-      img.innerHTML='<img src="'+p.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:20px" onerror="this.parentElement.innerHTML=\'&#10024;\'">';
+      img.innerHTML='<img src="'+p.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:20px" onerror="this.parentElement.innerHTML=\'&#10024;\'">';
     }
 
     var oferta = p.precio_anterior && p.precio_anterior > p.precio;
@@ -269,7 +269,7 @@
       document.getElementById('relBox').style.display='block';
       var relGrid=document.getElementById('relGrid');
       relGrid.innerHTML = relacionados.map(function(r){
-        var rimg = r.imagen_url ? '<img src="'+r.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:14px 14px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : '✨';
+        var rimg = r.imagen_url ? '<img src="'+r.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:14px 14px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : '✨';
         return '<a class="card" href="producto.html?id='+encodeURIComponent(r.id)+'" style="display:block">'+
           '<div class="th">'+rimg+'</div><div class="b"><div class="p">'+(r.categoria||'')+'</div><h3>'+r.nombre+'</h3><div class="pr">'+eur(r.precio)+'</div></div></a>';
       }).join('');
