@@ -126,8 +126,11 @@
     transition:.25s;position:relative}
   .card:hover{transform:translateY(-4px);border-color:var(--neon);
     box-shadow:0 10px 34px rgba(139,47,255,.28)}
-  .thumb{height:150px;display:flex;align-items:center;justify-content:center;font-size:44px;
-    background:linear-gradient(135deg,#1c1430,#241a3d);position:relative;border-radius:16px 16px 0 0}
+  .thumb{height:210px;display:flex;align-items:center;justify-content:center;font-size:44px;
+    background:linear-gradient(135deg,#1c1430,#241a3d);position:relative;border-radius:16px 16px 0 0;overflow:hidden}
+  .thumb .verMas{position:absolute;inset:0;background:rgba(11,11,15,.55);display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:14px;opacity:0;transition:opacity .2s;letter-spacing:.3px}
+  .card:hover .thumb .verMas{opacity:1}
   .badge{position:absolute;top:10px;left:10px;background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));
     color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;
     box-shadow:0 0 12px rgba(168,85,247,.6)}
@@ -155,8 +158,11 @@
   .ccard{background:#fff;border:1px solid #e7e1f5;border-radius:18px;position:relative;
     box-shadow:0 6px 20px rgba(90,50,160,.08);transition:.25s}
   .ccard:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(90,50,160,.16)}
-  .ccard .top{height:120px;background:linear-gradient(135deg,#8B2FFF,#C77DFF);border-radius:18px 18px 0 0;
-    display:flex;align-items:center;justify-content:center;font-size:38px;color:#fff}
+  .ccard .top{height:190px;background:linear-gradient(135deg,#8B2FFF,#C77DFF);border-radius:18px 18px 0 0;
+    display:flex;align-items:center;justify-content:center;font-size:38px;color:#fff;position:relative;overflow:hidden}
+  .ccard .top .verMas{position:absolute;inset:0;background:rgba(20,16,24,.55);display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:14px;opacity:0;transition:opacity .2s}
+  .ccard:hover .top .verMas{opacity:1}
   .ccard .b{padding:16px 18px}
   .ccard h4{font-size:17px;font-weight:700;color:#1a1226;margin-bottom:6px}
   .ccard p{font-size:13px;color:#6a6280;margin-bottom:14px}
@@ -472,7 +478,8 @@
       var badge = p.precio_anterior && p.precio_anterior>p.precio ? '<span class="badge">-'+Math.round((1-p.precio/p.precio_anterior)*100)+'%</span>' : '';
       var old = p.precio_anterior ? '<span class="old">'+eur(p.precio_anterior)+'</span>' : '';
       var href = p.tipo==='producto' ? ('producto.html?id='+encodeURIComponent(p.id)) : 'seguidores.html';
-      card.innerHTML='<a href="'+href+'" style="display:block"><div class="thumb">'+img+badge+'<span class="stock">'+(p.stock||'En stock')+'</span></div>'+
+      var verMas = p.tipo==='producto' ? '<span class="verMas">Ver detalles &rarr;</span>' : '';
+      card.innerHTML='<a href="'+href+'" style="display:block"><div class="thumb">'+img+badge+verMas+'<span class="stock">'+(p.stock||'En stock')+'</span></div>'+
         '<div class="body"><div class="prov">'+(p.categoria||'')+'</div><h3>'+p.nombre+'</h3>'+
         '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+old+'</div></a>'+
         '<div class="body" style="padding-top:0"><button class="buy">Comprar ahora</button></div>';
@@ -497,13 +504,15 @@
     cursos.forEach(function(p){
       var card=document.createElement('div'); card.className='ccard reveal in';
       var top = p.imagen_url
-        ? '<img src="'+p.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:18px 18px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'🎓\'}))">'
+        ? '<img src="'+p.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'🎓\'}))">'
         : '🎓';
-      card.innerHTML='<div class="top" style="overflow:hidden;padding:0">'+top+'</div>'+
-        '<div class="b"><h4>'+p.nombre+'</h4><p>'+(p.descripcion||'')+'</p>'+
-        '<div class="row"><span class="cp">'+eur(p.precio)+'</span><button class="cbuy">Comprar</button></div></div>';
+      var href = 'producto.html?id='+encodeURIComponent(p.id);
+      card.innerHTML='<a href="'+href+'" style="display:block"><div class="top">'+top+'<span class="verMas">Ver detalles &rarr;</span></div>'+
+        '<div class="b"><h4>'+p.nombre+'</h4><p>'+(p.descripcion||'')+'</p></div></a>'+
+        '<div class="b" style="padding-top:0"><div class="row"><span class="cp">'+eur(p.precio)+'</span><button class="cbuy">Comprar</button></div></div>';
       cgrid.appendChild(card);
-      wireBuy(card.querySelector('.cbuy'), function(){return p.nombre;}, function(){return p.precio;});
+      var btn = card.querySelector('.cbuy');
+      wireBuy(btn, function(){return p.nombre;}, function(){return p.precio;});
     });
   }).catch(function(){
     document.getElementById('cgrid').innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:#8a8398;padding:20px 0">No se pudieron cargar los cursos.</div>';
