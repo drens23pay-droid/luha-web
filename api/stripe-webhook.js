@@ -27,10 +27,12 @@ module.exports = async (req, res) => {
       const session = event.data.object;
       const SUPABASE_URL = process.env.SUPABASE_URL, SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
       if (SUPABASE_URL && SUPABASE_KEY) {
+        const cd = session.customer_details || {};
+        const cliente = [cd.name, cd.email, cd.phone].filter(Boolean).join(' · ');
         await fetch(SUPABASE_URL + '/rest/v1/pedidos?stripe_session_id=eq.' + encodeURIComponent(session.id), {
           method: 'PATCH',
           headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado: 'pagado' })
+          body: JSON.stringify({ estado: 'pagado', cliente: cliente || null })
         });
       }
     }
