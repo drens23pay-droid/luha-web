@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
       }],
       success_url: origin + '/gracias.html?ok=1&session_id={CHECKOUT_SESSION_ID}',
       cancel_url: origin + '/seguidores.html',
-      metadata: { detalle: String(body.detalle || '').slice(0, 490) }
+      metadata: { detalle: String(body.detalle || '').slice(0, 490), producto: nombre }
     });
 
     // Registrar el pedido como "pendiente" (el webhook lo pasará a "pagado" cuando Stripe confirme el cobro)
