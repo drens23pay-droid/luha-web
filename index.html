@@ -221,7 +221,7 @@
   /* FLOATING WA */
   .fab{position:fixed;right:22px;bottom:22px;z-index:60;display:inline-flex;align-items:center;gap:9px;
     background:#25D366;color:#0b3d1e;font-weight:800;padding:14px 20px;border-radius:40px;
-    box-shadow:0 8px 30px rgba(37,211,102,.45);font-size:15px}
+    box-shadow:0 8px 30px rgba(37,211,102,.45);font-size:15px;border:none;cursor:pointer;font-family:inherit}
   .fab:hover{transform:scale(1.05)}
   .note{position:fixed;left:22px;bottom:22px;background:var(--card2);border:1px solid var(--line);
     color:var(--txt-mut);font-size:12px;padding:8px 14px;border-radius:10px;z-index:60}
@@ -230,6 +230,27 @@
     .hero h1{font-size:36px}
     .fgrid{grid-template-columns:1fr}
   }
+
+  /* CHATBOT */
+  .chatbox{position:fixed;right:22px;bottom:90px;z-index:70;width:330px;max-width:calc(100vw - 40px);
+    background:var(--card);border:1px solid var(--neon);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.5);
+    display:none;flex-direction:column;overflow:hidden;max-height:70vh}
+  .chatbox.on{display:flex}
+  .chatbox .chd{background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));padding:14px 16px;
+    display:flex;align-items:center;justify-content:space-between;color:#fff}
+  .chatbox .chd b{font-size:14px}
+  .chatbox .chd span{font-size:11px;opacity:.85;display:block}
+  .chatbox .chclose{background:rgba(255,255,255,.2);border:none;color:#fff;width:24px;height:24px;
+    border-radius:50%;cursor:pointer;font-size:14px;line-height:1}
+  .chatbox .chbody{padding:14px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:10px;background:var(--bg2)}
+  .chmsg{background:var(--card);border:1px solid var(--line);border-radius:12px 12px 12px 2px;
+    padding:9px 12px;font-size:13px;color:var(--txt);max-width:88%;align-self:flex-start;line-height:1.45}
+  .chopts{display:flex;flex-direction:column;gap:7px;padding:0 14px 14px;background:var(--bg2)}
+  .chopt{background:var(--card);border:1px solid var(--line);color:var(--txt);text-align:left;
+    padding:9px 12px;border-radius:10px;font-size:13px;cursor:pointer;transition:.15s}
+  .chopt:hover{border-color:var(--cyan);color:#fff}
+  .chopt.wa{background:rgba(37,211,102,.12);border-color:rgba(37,211,102,.4);color:#7ee59a;font-weight:700}
+  @media(max-width:480px){.chatbox{right:10px;left:10px;width:auto;bottom:84px}}
 
   /* MODAL CHECKOUT (Bizum / Tarjeta) */
   .overlay{position:fixed;inset:0;background:rgba(5,5,9,.72);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
@@ -365,7 +386,16 @@
   </div>
 </footer>
 
-<a class="fab" href="#">&#9993; WhatsApp</a>
+<button class="fab" id="chatToggle" type="button">&#128172; Ayuda</button>
+
+<div class="chatbox" id="chatbox">
+  <div class="chd">
+    <div><b>LUHA Bot</b><span>Te responde al instante</span></div>
+    <button class="chclose" id="chatClose" type="button">&times;</button>
+  </div>
+  <div class="chbody" id="chBody"></div>
+  <div class="chopts" id="chOpts"></div>
+</div>
 
 <!-- MODAL DE CHECKOUT -->
 <div class="overlay" id="ov">
@@ -412,9 +442,58 @@
   var WA='34641564952';
   var BIZUM='641 564 952';
   function wa(txt){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(txt)}
-  document.querySelectorAll('.wa,.fab').forEach(function(a){
+  document.querySelectorAll('.wa').forEach(function(a){
     a.setAttribute('href',wa('Hola LUHA 👋 quiero información, por favor.'));
   });
+
+  // ---- CHATBOT (respuestas fijas) ----
+  var chBody=document.getElementById('chBody'), chOpts=document.getElementById('chOpts'), chatbox=document.getElementById('chatbox');
+  var CHMENU='menu';
+  var CHNODES={
+    menu:{
+      msg:'¡Hola! 👋 Soy el asistente de LUHA. ¿Sobre qué quieres saber?',
+      ops:[
+        {t:'💳 ¿Cómo puedo pagar?', to:'pago'},
+        {t:'📦 ¿Cómo recibo mi pedido?', to:'entrega'},
+        {t:'🛍️ ¿Qué vende LUHA?', to:'catalogo'},
+        {t:'🙋 Hablar con un asesor real', wa:'Hola LUHA 👋 quiero hablar con un asesor, tengo una consulta.'}
+      ]
+    },
+    pago:{
+      msg:'Aceptamos <b>Bizum</b> y <b>tarjeta</b> (pago seguro con Stripe). Elige tu producto, dale a "Comprar ahora" y sigue los pasos — con Bizum solo tienes que enviarnos el comprobante por WhatsApp.',
+      ops:[{t:'⬅ Volver al menú', to:'menu'},{t:'🙋 Hablar con un asesor real', wa:'Hola LUHA 👋 tengo dudas sobre cómo pagar.'}]
+    },
+    entrega:{
+      msg:'En cuanto se confirma tu pago, te contactamos por WhatsApp con el acceso o los datos de tu compra — normalmente en pocos minutos.',
+      ops:[{t:'⬅ Volver al menú', to:'menu'},{t:'🙋 Hablar con un asesor real', wa:'Hola LUHA 👋 tengo una duda sobre la entrega de mi pedido.'}]
+    },
+    catalogo:{
+      msg:'Vendemos suscripciones de <b>streaming</b>, <b>software</b>, herramientas de <b>IA</b>, <b>cursos</b> online, y <b>seguidores/likes</b> para redes sociales — todo verificado y a buen precio.',
+      ops:[{t:'⬅ Volver al menú', to:'menu'},{t:'🙋 Hablar con un asesor real', wa:'Hola LUHA 👋 quiero más información sobre lo que venden.'}]
+    }
+  };
+  function chAdd(msg){
+    var d=document.createElement('div'); d.className='chmsg'; d.innerHTML=msg;
+    chBody.appendChild(d); chBody.scrollTop=chBody.scrollHeight;
+  }
+  function chIr(id){
+    var n=CHNODES[id]; if(!n) return;
+    chAdd(n.msg);
+    chOpts.innerHTML='';
+    n.ops.forEach(function(op){
+      var b=document.createElement('button'); b.className='chopt'+(op.wa?' wa':''); b.textContent=op.t;
+      b.onclick=function(){
+        if(op.wa){ location.href=wa(op.wa); return; }
+        chIr(op.to);
+      };
+      chOpts.appendChild(b);
+    });
+  }
+  document.getElementById('chatToggle').addEventListener('click',function(){
+    chatbox.classList.toggle('on');
+    if(chatbox.classList.contains('on') && !chBody.childElementCount){ chIr(CHMENU); }
+  });
+  document.getElementById('chatClose').addEventListener('click',function(){ chatbox.classList.remove('on'); });
   function eur(v){return (Math.round(v*100)/100).toFixed(2).replace('.',',')+' €'}
   function parseEur(t){return parseFloat((t||'0').replace(/\./g,'').replace(',','.').replace('€','').trim())||0}
 
