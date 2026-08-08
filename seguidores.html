@@ -56,6 +56,18 @@
   .order{width:100%;padding:12px;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;
     background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));color:#fff;box-shadow:0 0 16px rgba(168,85,247,.4)}
   .fab{position:fixed;right:22px;bottom:22px;background:#25D366;color:#0b3d1e;font-weight:800;padding:14px 20px;border-radius:40px;box-shadow:0 8px 30px rgba(37,211,102,.45);z-index:30}
+
+  /* PAQUETES DESTACADOS */
+  .pkgs{padding:6px 0 8px}
+  .pkgs h2{font-size:20px;font-weight:800;margin-bottom:4px}
+  .pkgs h2 b{color:var(--pink)}
+  .pkgs .sub{color:var(--txt-mut);font-size:13px;margin-bottom:14px}
+  .pkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:36px}
+  .pkg{background:var(--card);border:1px solid var(--neon);border-radius:16px;padding:18px;position:relative;box-shadow:0 0 20px rgba(139,47,255,.15)}
+  .pkg .star{position:absolute;top:12px;right:14px;color:#f5c518}
+  .pkg h3{font-size:15px;font-weight:800;margin-bottom:6px}
+  .pkg p{font-size:12px;color:var(--txt-mut);margin-bottom:12px;min-height:32px}
+  .pkg .pr{font-size:24px;font-weight:800;color:#fff;margin-bottom:12px}
   footer{border-top:1px solid var(--line);padding:24px 0;color:var(--txt-mut);font-size:13px;text-align:center;background:var(--bg2)}
 
   /* MODAL CHECKOUT */
@@ -84,6 +96,16 @@
 </style>
 </head>
 <body>
+<style>
+  .neonbar{position:fixed;top:0;left:0;width:100%;height:3px;z-index:200;
+    background:linear-gradient(90deg,transparent,#FF3DAE,#A855F7,#22E1D6,transparent);
+    background-size:200% 100%;animation:neonsweep 3.5s linear infinite;
+    box-shadow:0 0 10px rgba(168,85,247,.8),0 0 22px rgba(34,225,214,.5);pointer-events:none}
+  @keyframes neonsweep{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @media (prefers-reduced-motion: reduce){.neonbar{animation:none;background-position:0 0}}
+</style>
+<div class="neonbar"></div>
+
 <header>
   <div class="wrap bar">
     <a class="logo" href="index.html">LU<span>HA</span></a>
@@ -98,6 +120,12 @@
     <h1>Compra <em>seguidores, likes y vistas</em></h1>
     <p>Elige la plataforma, ajusta la cantidad y paga con Bizum o tarjeta. Entrega rápida y reposición garantizada.</p>
     <div class="search"><input id="q" placeholder="Buscar servicio (ej. seguidores, likes...)"></div>
+  </div>
+
+  <div class="pkgs" id="pkgsWrap" style="display:none">
+    <h2>Nuestros <b>combos</b></h2>
+    <div class="sub">Paquetes preparados con el mejor precio.</div>
+    <div class="pkgrid" id="pkgGrid"></div>
   </div>
 
   <div class="tabs" id="tabs"></div>
@@ -143,8 +171,30 @@
   var ICON={Instagram:'📸',TikTok:'🎵',YouTube:'▶️',Facebook:'👍',X:'🐦',Spotify:'🎧',Telegram:'✈️',WhatsApp:'💬',Twitch:'🎮','Tráfico web':'🌐',Otros:'✨'};
   var ORDER=['Instagram','TikTok','YouTube','Facebook','X','Spotify','Telegram','WhatsApp','Twitch','Tráfico web','Otros'];
 
-  // Margen sobre el precio del proveedor (editable). 1.6 = +60%.
+  // Margen sobre el precio del proveedor. Se sobreescribe con el valor guardado en el admin (/api/config).
   var MARGIN=1.6;
+  fetch('/api/config').then(function(r){return r.json()}).then(function(c){
+    if(c && c.margen_pct){ MARGIN = 1 + (parseFloat(c.margen_pct)/100); }
+  }).catch(function(){});
+
+  // ---- Paquetes/combos creados en el admin ----
+  fetch('/api/paquetes').then(function(r){return r.json()}).then(function(d){
+    if(!Array.isArray(d)||!d.length) return;
+    var wrap=document.getElementById('pkgsWrap'), grid=document.getElementById('pkgGrid');
+    grid.innerHTML='';
+    d.forEach(function(p){
+      var el=document.createElement('div'); el.className='pkg';
+      el.innerHTML=(p.destacado?'<span class="star">★</span>':'')+
+        '<h3>'+p.nombre+'</h3><p>'+(p.descripcion||'')+'</p>'+
+        '<div class="pr">'+eur(p.precio)+'</div>'+
+        '<button class="order">Comprar ahora</button>';
+      el.querySelector('.order').addEventListener('click',function(){
+        abrirCheckout(p.nombre, 1, p.precio);
+      });
+      grid.appendChild(el);
+    });
+    wrap.style.display='block';
+  }).catch(function(){});
 
   var DEMO=[
     {p:'Instagram',n:'Instagram · Seguidores',rate:2.50,min:100,max:20000},
