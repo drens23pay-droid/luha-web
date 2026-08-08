@@ -226,7 +226,7 @@
 
   // ---- Cargar el producto real según ?id= ----
   var ID = new URLSearchParams(location.search).get('id');
-  var buy=document.querySelector('.buy'), waBtn=document.querySelector('.wa-btn');
+  var buy=document.querySelector('#prodBox .buy'), waBtn=document.querySelector('#prodBox .wa-btn');
 
   function pintarProducto(p, todos){
     document.getElementById('cargando').style.display='none';
