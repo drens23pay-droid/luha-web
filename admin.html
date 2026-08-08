@@ -256,8 +256,11 @@
         </div>
       </div>
       <div class="panel">
-        <h2>Tus categorías</h2>
-        <div id="listaCategorias"><div class="muted">Cargando…</div></div>
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin-bottom:0">Tus categorías</h2>
+          <button class="btn btn-ghost" style="padding:5px 12px" onclick="cargarCategorias()">🔄 Actualizar</button>
+        </div>
+        <div id="listaCategorias" style="margin-top:12px"><div class="muted">Cargando…</div></div>
       </div>
     </div>
 
@@ -304,9 +307,14 @@
 
   // ---------- CATEGORÍAS ----------
   function cargarCategorias(){
+    var box=document.getElementById('listaCategorias');
+    box.innerHTML='<div class="muted">Cargando…</div>';
     fetch('/api/categorias',{headers:H()}).then(function(r){return r.json()}).then(function(d){
-      var box=document.getElementById('listaCategorias');
-      if(!Array.isArray(d)||!d.length){ box.innerHTML='<div class="muted">Aún no hay categorías.</div>'; return; }
+      if(!Array.isArray(d)){
+        box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo leer la tabla de categorías ('+(d&&d.motivo?d.motivo:(d&&d.message?d.message:'error'))+'). Es posible que la tabla "categorias" no exista todavía en Supabase — revisa la consola SQL de tu proyecto.</div>';
+        return;
+      }
+      if(!d.length){ box.innerHTML='<div class="muted">Aún no hay categorías. Crea la primera arriba ⬆️</div>'; return; }
       d.sort(function(a,b){return (a.orden||0)-(b.orden||0)});
       box.innerHTML='';
       d.forEach(function(c,i){
@@ -329,6 +337,8 @@
         }};
         box.appendChild(el);
       });
+    }).catch(function(){
+      box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo conectar con el servidor.</div>';
     });
   }
   function moverCategoria(lista,i,dir){
