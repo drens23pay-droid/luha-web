@@ -178,6 +178,7 @@
 
   // ---- Categoría actual (por ?cat=) ----
   var CAT = new URLSearchParams(location.search).get('cat') || 'Streaming';
+  var Q0 = new URLSearchParams(location.search).get('q') || '';
   var DESCR = {
     'Streaming':'Netflix, HBO, Disney y más · entrega rápida',
     'Software':'Licencias y suscripciones de software premium',
@@ -300,8 +301,9 @@
   }
 
   // ---- Cargar catálogo: demo + tus productos reales del admin, filtrado por categoría ----
+  if(Q0){ document.getElementById('q').value = Q0; }
   TODOS = DEMO.slice();
-  pintar(TODOS);
+  if(Q0){ aplicar(); } else { pintar(TODOS); }
   pintarCategorias();
   fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
     if(Array.isArray(d) && d.length){
