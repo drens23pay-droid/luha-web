@@ -59,10 +59,10 @@
     <p class="lead">Tu pago se ha realizado correctamente. Ya estamos preparando tu pedido.</p>
 
     <div class="summary">
-      <div class="row"><span class="k">Producto</span><span>Netflix Premium · 1 mes</span></div>
-      <div class="row"><span class="k">Nº de pedido</span><span>#LH-100248</span></div>
-      <div class="row"><span class="k">Método</span><span>Tarjeta (Stripe)</span></div>
-      <div class="row total"><span>Total pagado</span><span>4,99 €</span></div>
+      <div class="row"><span class="k">Producto</span><span id="gProd">—</span></div>
+      <div class="row"><span class="k">Nº de pedido</span><span id="gCod">—</span></div>
+      <div class="row"><span class="k">Método</span><span id="gMet">Tarjeta (Stripe)</span></div>
+      <div class="row total"><span>Total pagado</span><span id="gTot">—</span></div>
     </div>
 
     <div class="steps">
@@ -77,8 +77,25 @@
 
   <script>
     var WA='34641564952';
-    document.getElementById('waCta').setAttribute('href',
-      'https://wa.me/'+WA+'?text='+encodeURIComponent('Hola LUHA 👋 acabo de pagar el pedido #LH-100248, ¿me confirman la entrega?'));
+    function eur(v){return (Math.round((v||0)*100)/100).toFixed(2).replace('.',',')+' €'}
+    function setWa(codigo){
+      document.getElementById('waCta').setAttribute('href',
+        'https://wa.me/'+WA+'?text='+encodeURIComponent('Hola LUHA 👋 acabo de pagar el pedido '+(codigo||'')+', ¿me confirman la entrega?'));
+    }
+    setWa('');
+
+    // Cargar los datos reales del pedido con la sesión de Stripe
+    var sid = new URLSearchParams(location.search).get('session_id');
+    if(sid){
+      fetch('/api/pedidos?session='+encodeURIComponent(sid)).then(function(r){return r.json()}).then(function(p){
+        if(!p || !p.producto) return;
+        document.getElementById('gProd').textContent = p.producto;
+        document.getElementById('gCod').textContent = '#'+(p.codigo||'—');
+        document.getElementById('gMet').textContent = p.metodo==='tarjeta' ? 'Tarjeta (Stripe)' : 'Bizum';
+        document.getElementById('gTot').textContent = eur(p.precio);
+        setWa('#'+(p.codigo||''));
+      }).catch(function(){});
+    }
   </script>
 </body>
 </html>
