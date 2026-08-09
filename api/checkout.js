@@ -58,8 +58,13 @@ module.exports = async (req, res) => {
 
     const origin = req.headers.origin || ('https://' + req.headers.host);
 
+    // metodo: 'bizum' -> Bizum automático vía Stripe (con comisión, igual que tarjeta).
+    // cualquier otro valor -> tarjeta (comportamiento de siempre).
+    const esBizumAuto = body.metodo === 'bizum';
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
+      payment_method_types: esBizumAuto ? ['bizum'] : ['card'],
       line_items: [{
         price_data: { currency: 'eur', product_data: { name: nombre }, unit_amount: cobrar },
         quantity: 1
@@ -77,7 +82,7 @@ module.exports = async (req, res) => {
           method: 'POST',
           headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            codigo: codigo, producto: nombre, precio: cobrar / 100, metodo: 'tarjeta', estado: 'pendiente',
+            codigo: codigo, producto: nombre, precio: cobrar / 100, metodo: esBizumAuto ? 'bizum' : 'tarjeta', estado: 'pendiente',
             detalle: String(body.detalle || '').slice(0, 490), stripe_session_id: session.id
           })
         });
