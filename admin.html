@@ -466,6 +466,7 @@
             if(res.ok){
               p.estado=res.estado_final||sel.value;
               if(res.email_enviado && res.estado_final==='entregado'){ toast('📧 Acceso enviado por email — pedido entregado'); cargarPedidos(); }
+              else if(res.email_enviado && res.estado_final==='cancelado'){ toast('📧 Aviso de cancelación enviado al cliente'); cargarPedidos(); }
               else if(res.email_enviado){ toast('📧 Email de confirmación enviado al cliente'); cargarPedidos(); }
               else { toast('✅ Estado actualizado'); }
             } else { toast('❌ '+(res.motivo||'error')); }
