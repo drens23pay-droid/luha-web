@@ -556,20 +556,37 @@
     location.href='categoria.html?cat=Todos&q='+encodeURIComponent(v);
   }
   var SEARCH_DATA=[];
-  fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
-    SEARCH_DATA = Array.isArray(d) ? d.filter(function(p){return p.activo!==false}) : [];
-  }).catch(function(){});
+  Promise.all([
+    fetch('/api/productos').then(function(r){return r.json()}).catch(function(){return [];}),
+    fetch('/api/paquetes').then(function(r){return r.json()}).catch(function(){return [];})
+  ]).then(function(res){
+    var productos = Array.isArray(res[0]) ? res[0].filter(function(p){return p.activo!==false}) : [];
+    var paquetes = Array.isArray(res[1]) ? res[1].filter(function(p){return p.activo!==false}) : [];
+    SEARCH_DATA = productos.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'producto.html?id='+encodeURIComponent(p.id)}; })
+      .concat(paquetes.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'seguidores.html'}; }));
+  });
+  // Enlaces fijos: para que "seguidores", "likes", "tiktok"... lleven directo a la página de servicios,
+  // aunque no exista un producto con ese nombre exacto en el catálogo de precio fijo.
+  var STATIC_LINKS=[
+    { nombre:'Seguidores y Likes (redes sociales)', href:'seguidores.html',
+      alias:['seguidor','segui','like','tiktok','instagram','youtube','facebook','twitter',' x ','spotify','telegram','whatsapp','twitch','trafico'] }
+  ];
   function buscarEnVivo(){
     var v=(document.getElementById('searchInput').value||'').trim().toLowerCase();
     var drop=document.getElementById('searchDrop');
     if(v.length<2){ drop.style.display='none'; drop.innerHTML=''; return; }
-    var matches=SEARCH_DATA.filter(function(p){ return (p.nombre||'').toLowerCase().indexOf(v)>-1; }).slice(0,6);
-    if(!matches.length){
+    var fijos = STATIC_LINKS.filter(function(s){
+      if(s.nombre.toLowerCase().indexOf(v)>-1) return true;
+      return s.alias.some(function(a){ return a.indexOf(v)>-1; });
+    }).map(function(s){ return {nombre:s.nombre, href:s.href, precio:null}; });
+    var reales = SEARCH_DATA.filter(function(p){ return (p.nombre||'').toLowerCase().indexOf(v)>-1; });
+    var todos = fijos.concat(reales).slice(0,6);
+    if(!todos.length){
       drop.innerHTML='<div class="sdItem sdEmpty">Sin resultados — pulsa Enter para buscar en todo</div>';
       drop.style.display='block'; return;
     }
-    drop.innerHTML = matches.map(function(p){
-      return '<a class="sdItem" href="producto.html?id='+encodeURIComponent(p.id)+'"><span>'+p.nombre+'</span><b>'+eur(p.precio)+'</b></a>';
+    drop.innerHTML = todos.map(function(p){
+      return '<a class="sdItem" href="'+p.href+'"><span>'+p.nombre+'</span>'+(p.precio!=null?'<b>'+eur(p.precio)+'</b>':'')+'</a>';
     }).join('') + '<a class="sdItem sdAll" href="categoria.html?cat=Todos&q='+encodeURIComponent(v)+'">Ver todos los resultados para "'+v+'" &rarr;</a>';
     drop.style.display='block';
   }
