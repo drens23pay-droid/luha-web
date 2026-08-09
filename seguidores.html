@@ -353,16 +353,18 @@
   // Cargar catálogo real (o DEMO de respaldo) + config del admin (mostrar/ocultar, margen por servicio)
   Promise.all([
     fetch('/api/servicios').then(function(r){return r.json()}).catch(function(){return null}),
-    fetch('/api/servicios-config').then(function(r){return r.json()}).catch(function(){return []})
+    fetch('/api/servicios-config').then(function(r){return r.json()}).catch(function(){return []}),
+    fetch('/api/config').then(function(r){return r.json()}).catch(function(){return {}})
   ]).then(function(res){
-    var d=res[0], cfgList=Array.isArray(res[1])?res[1]:[];
+    var d=res[0], cfgList=Array.isArray(res[1])?res[1]:[], cfgGlobal=res[2]||{};
     var CFG={}; cfgList.forEach(function(c){ CFG[String(c.service_id)]=c; });
+    var defActivo = cfgGlobal.servicios_default_activo !== 'false'; // por defecto true salvo modo curado
     if(!Array.isArray(d)||!d.length) throw 0;
     var list=d.filter(function(s){
       if(esBasura(s)) return false;
       var cfg=CFG[String(s.service)];
-      if(cfg && cfg.activo===false) return false; // oculto desde el admin
-      return true;
+      var activo = cfg ? (cfg.activo!==false) : defActivo;
+      return activo;
     }).map(function(s){
       var cfg=CFG[String(s.service)];
       var m = (cfg && cfg.margen_override!=null && cfg.margen_override!=='') ? (1+parseFloat(cfg.margen_override)/100) : MARGIN;
