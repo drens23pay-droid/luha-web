@@ -860,15 +860,24 @@
         '<td><button class="btn btn-ghost" style="padding:5px 10px">Guardar</button></td>';
       var sw=tr.querySelectorAll('.switch');
       var estado={activo:cfg.activo!==false, destacado:!!cfg.destacado};
-      sw[0].onclick=function(){ estado.activo=!estado.activo; sw[0].textContent=estado.activo?'✅':'⬜'; };
-      sw[1].onclick=function(){ estado.destacado=!estado.destacado; sw[1].textContent=estado.destacado?'⭐':'☆'; };
-      tr.querySelector('button').onclick=function(){
+      function svGuardarAuto(){
         var mo=tr.querySelector('input[type=number]').value;
         var data={ service_id:String(s.service), activo:estado.activo, destacado:estado.destacado, margen_override: mo===''?null:parseFloat(mo) };
         fetch('/api/servicios-config',{method:'POST',headers:H(),body:JSON.stringify({data:data})}).then(function(r){return r.json()}).then(function(d){
-          if(d.ok){ SVCFG[s.service]=data; toast('✅ Guardado'); } else { toast('❌ '+(d.motivo||'error')); }
+          if(!d.ok){ toast('❌ '+(d.motivo||'error')); return; }
+          SVCFG[s.service]=data;
+          var filtro=document.getElementById('sv_filtro').value;
+          var sigueVisible = filtro==='todos' ||
+            (filtro==='mostrados' && data.activo) ||
+            (filtro==='ocultos' && !data.activo) ||
+            (filtro==='destacados' && data.destacado);
+          if(!sigueVisible){ tr.remove(); delete SV_FILAS[s.service]; toast('✅ Guardado — ya no coincide con el filtro'); }
+          else { toast('✅ Guardado'); }
         });
-      };
+      }
+      sw[0].onclick=function(){ estado.activo=!estado.activo; sw[0].textContent=estado.activo?'✅':'⬜'; svGuardarAuto(); };
+      sw[1].onclick=function(){ estado.destacado=!estado.destacado; sw[1].textContent=estado.destacado?'⭐':'☆'; svGuardarAuto(); };
+      tr.querySelector('button').onclick=svGuardarAuto;
       SV_FILAS[s.service] = { s:s, tr:tr, estado:estado, sw:sw, chk:tr.querySelector('.sv_chk'), mo:tr.querySelector('input[type=number]') };
       body.appendChild(tr);
     });
