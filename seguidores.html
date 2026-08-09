@@ -309,6 +309,17 @@
         nota.style.display='block';
       } else { nota.style.display='none'; }
     });
+    var pagoCard=document.getElementById('payCard'), pagoBizumAuto=document.getElementById('payBizumAuto');
+    [pagoCard, pagoBizumAuto].forEach(function(btn){
+      if(!btn) return;
+      if(total < 0.50){
+        btn.style.opacity=.4; btn.style.pointerEvents='none';
+        var nota2=(btn===pagoCard)?document.getElementById('cardFeeNote'):document.getElementById('bizumAutoFeeNote');
+        if(nota2){ nota2.textContent='Mínimo 0,50€ para pago automático'; nota2.style.color='#ff6b6b'; nota2.style.display='block'; }
+      } else {
+        btn.style.opacity=1; btn.style.pointerEvents='';
+      }
+    });
     ov.classList.add('on');
   }
   document.getElementById('mClose').addEventListener('click',function(){ov.classList.remove('on')});
@@ -341,7 +352,10 @@
       body:JSON.stringify({nombre:cur.svc+' x'+cur.qty, total:cur.total, detalle:cur.svc+' | '+cur.qty+' | '+link})
     }).then(function(r){return r.json()}).then(function(d){
       if(d && d.ok && d.url){ location.href=d.url; }
-      else { alert('El pago con tarjeta aún no está activo. Usa Bizum o inténtalo más tarde.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; }
+      else {
+        var msg = (d && d.motivo==='IMPORTE_INVALIDO') ? 'El importe mínimo para pago automático es 0,50€. Sube la cantidad o usa Bizum manual.' : 'El pago con tarjeta aún no está activo. Usa Bizum o inténtalo más tarde.';
+        alert(msg); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta';
+      }
     }).catch(function(){ alert('No se pudo iniciar el pago con tarjeta. Usa Bizum por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; });
   });
 
@@ -352,7 +366,10 @@
       body:JSON.stringify({nombre:cur.svc+' x'+cur.qty, total:cur.total, detalle:cur.svc+' | '+cur.qty+' | '+link, metodo:'bizum'})
     }).then(function(r){return r.json()}).then(function(d){
       if(d && d.ok && d.url){ location.href=d.url; }
-      else { alert('El Bizum automático aún no está activo. Usa el Bizum manual o inténtalo más tarde.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Bizum automático'; }
+      else {
+        var msg = (d && d.motivo==='IMPORTE_INVALIDO') ? 'El importe mínimo para Bizum automático es 0,50€. Sube la cantidad o usa Bizum manual.' : 'El Bizum automático aún no está activo. Usa el Bizum manual o inténtalo más tarde.';
+        alert(msg); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Bizum automático';
+      }
     }).catch(function(){ alert('No se pudo iniciar el Bizum automático. Usa el Bizum manual por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Bizum automático'; });
   });
 
