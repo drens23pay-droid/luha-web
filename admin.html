@@ -384,13 +384,34 @@
   function toast(t){ var e=document.getElementById('toast'); e.textContent=t; e.style.display='block'; setTimeout(function(){e.style.display='none'},2500); }
   function eur(v){ return (Math.round((v||0)*100)/100).toFixed(2).replace('.',',')+' €'; }
 
+  // Comprueba de verdad contra el servidor si el token es válido (no basta con que no esté vacío).
+  function tokenValido(token){
+    return fetch('/api/pedidos',{headers:{'x-admin-token':token}}).then(function(r){
+      return r.status !== 401;
+    }).catch(function(){ return false; });
+  }
   function entrar(){
-    TOKEN = document.getElementById('pass').value.trim();
-    if(!TOKEN){ return; }
-    sessionStorage.setItem('luha_token', TOKEN);
-    document.getElementById('login').style.display='none';
-    document.getElementById('app').style.display='grid';
-    iniciar();
+    var intentado = document.getElementById('pass').value.trim();
+    var errBox = document.getElementById('loginErr');
+    var btn = document.querySelector('#login .btn-neon');
+    if(!intentado){ return; }
+    errBox.style.display='none';
+    if(btn){ btn.disabled=true; btn.textContent='Comprobando…'; }
+    tokenValido(intentado).then(function(ok){
+      if(btn){ btn.disabled=false; btn.textContent='Entrar'; }
+      if(!ok){
+        errBox.textContent='Contraseña incorrecta';
+        errBox.style.display='block';
+        sessionStorage.removeItem('luha_token');
+        TOKEN='';
+        return;
+      }
+      TOKEN = intentado;
+      sessionStorage.setItem('luha_token', TOKEN);
+      document.getElementById('login').style.display='none';
+      document.getElementById('app').style.display='grid';
+      iniciar();
+    });
   }
   function salir(){ sessionStorage.removeItem('luha_token'); location.reload(); }
 
@@ -890,8 +911,19 @@
     }).catch(function(){ var m='❌ No se pudo conectar con el servidor.'; errBox.textContent=m; errBox.style.display='block'; toast(m); });
   }
 
-  // auto-login si ya hay token
-  if(TOKEN){ document.getElementById('login').style.display='none'; document.getElementById('app').style.display='grid'; iniciar(); }
+  // auto-login si ya hay token guardado — pero validándolo primero contra el servidor
+  if(TOKEN){
+    tokenValido(TOKEN).then(function(ok){
+      if(ok){
+        document.getElementById('login').style.display='none';
+        document.getElementById('app').style.display='grid';
+        iniciar();
+      } else {
+        sessionStorage.removeItem('luha_token');
+        TOKEN='';
+      }
+    });
+  }
 </script>
 </body>
 </html>
