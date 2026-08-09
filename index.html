@@ -103,6 +103,16 @@
   .search input::placeholder{color:var(--txt-mut)}
   .search i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--lila);font-size:14px;z-index:1;pointer-events:none}
   .search:focus-within i{color:var(--cyan)}
+  .searchDrop{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;background:#0d0d13;
+    border:1px solid var(--line);border-radius:12px;overflow:hidden;z-index:80;
+    box-shadow:0 12px 30px rgba(0,0,0,.5)}
+  .sdItem{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;
+    font-size:13px;color:var(--txt);border-bottom:1px solid rgba(168,85,247,.1)}
+  a.sdItem:hover{background:rgba(168,85,247,.14)}
+  .sdItem:last-child{border-bottom:none}
+  .sdItem b{color:var(--cyan);white-space:nowrap}
+  .sdEmpty{color:var(--txt-mut);justify-content:center}
+  .sdAll{justify-content:center;color:var(--cyan);font-weight:600}
   .btn{border:none;cursor:pointer;font-weight:600;border-radius:10px;font-size:14px}
   .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--txt);padding:9px 16px}
   .btn-ghost:hover{border-color:var(--lila);color:var(--lila)}
@@ -320,7 +330,7 @@
       <a href="seguidores.html">Seguidores</a>
       <a href="#cursos">Cursos</a>
     </nav>
-    <div class="search"><i>&#128269;</i><input id="searchInput" placeholder="Buscar producto..." onkeydown="if(event.key==='Enter')buscarGlobal()"></div>
+    <div class="search"><i>&#128269;</i><input id="searchInput" placeholder="Buscar producto..." autocomplete="off" oninput="buscarEnVivo()" onkeydown="if(event.key==='Enter')buscarGlobal()"><div class="searchDrop" id="searchDrop"></div></div>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
     <button class="btn btn-ghost">Entrar</button>
   </div>
@@ -545,6 +555,28 @@
     if(!v) return;
     location.href='categoria.html?cat=Todos&q='+encodeURIComponent(v);
   }
+  var SEARCH_DATA=[];
+  fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
+    SEARCH_DATA = Array.isArray(d) ? d.filter(function(p){return p.activo!==false}) : [];
+  }).catch(function(){});
+  function buscarEnVivo(){
+    var v=(document.getElementById('searchInput').value||'').trim().toLowerCase();
+    var drop=document.getElementById('searchDrop');
+    if(v.length<2){ drop.style.display='none'; drop.innerHTML=''; return; }
+    var matches=SEARCH_DATA.filter(function(p){ return (p.nombre||'').toLowerCase().indexOf(v)>-1; }).slice(0,6);
+    if(!matches.length){
+      drop.innerHTML='<div class="sdItem sdEmpty">Sin resultados — pulsa Enter para buscar en todo</div>';
+      drop.style.display='block'; return;
+    }
+    drop.innerHTML = matches.map(function(p){
+      return '<a class="sdItem" href="producto.html?id='+encodeURIComponent(p.id)+'"><span>'+p.nombre+'</span><b>'+eur(p.precio)+'</b></a>';
+    }).join('') + '<a class="sdItem sdAll" href="categoria.html?cat=Todos&q='+encodeURIComponent(v)+'">Ver todos los resultados para "'+v+'" &rarr;</a>';
+    drop.style.display='block';
+  }
+  document.addEventListener('click', function(e){
+    var box=document.querySelector('.search');
+    if(box && !box.contains(e.target)){ document.getElementById('searchDrop').style.display='none'; }
+  });
 
   // ---- Chips de marca: si existe el producto real, va directo a su ficha ----
   document.querySelectorAll('#chipsNav a[data-q]').forEach(function(a){
