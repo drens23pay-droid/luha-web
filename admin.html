@@ -285,7 +285,7 @@
       <h1>Servicios del catálogo (API)</h1>
       <div class="sub">Elige qué mostrar, destaca los mejores y ajusta el margen por servicio si quieres.</div>
       <div class="panel">
-        <div class="row"><input id="sv_busca" placeholder="Buscar servicio..." oninput="renderServicios()"></div>
+        <div class="row"><input id="sv_busca" placeholder="Buscar servicio..." oninput="svBuscar()"></div>
         <div class="muted" style="margin:8px 0" id="sv_info"></div>
         <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <button class="btn btn-ghost" onclick="svMasivoMostrar(true)">✅ Mostrar seleccionados</button>
@@ -293,6 +293,16 @@
           <button class="btn btn-ghost" onclick="svMasivoDestacar(true)">⭐ Destacar seleccionados</button>
           <button class="btn btn-ghost" onclick="svMasivoDestacar(false)">☆ Quitar destacado</button>
           <button class="btn btn-neon" onclick="svGuardarSeleccionados()">💾 Guardar seleccionados</button>
+        </div>
+        <div class="row" style="gap:8px;align-items:center;margin-bottom:10px">
+          <button class="btn btn-ghost" onclick="svPagAnt()">⬅ Anterior</button>
+          <span class="muted" id="sv_pag_info" style="min-width:140px;text-align:center"></span>
+          <button class="btn btn-ghost" onclick="svPagSig()">Siguiente ➡</button>
+          <select id="sv_pagesize" onchange="svCambiarTam()" style="margin-left:auto">
+            <option value="80">80 por página</option>
+            <option value="150">150 por página</option>
+            <option value="300">300 por página</option>
+          </select>
         </div>
         <table class="responsive"><thead><tr><th><input type="checkbox" id="sv_selall" onclick="svSelAll(this)"></th><th>Servicio</th><th>Coste/1000</th><th>Mostrar</th><th>Destacar</th><th>Margen propio %</th><th></th></tr></thead>
           <tbody id="sv_body"></tbody></table>
@@ -782,10 +792,22 @@
 
   // ---------- SERVICIOS ----------
   var SV_FILAS = {};
+  var SV_PAGE = 0;
+  function svBuscar(){ SV_PAGE=0; renderServicios(); }
+  function svCambiarTam(){ SV_PAGE=0; renderServicios(); }
+  function svPagAnt(){ if(SV_PAGE>0){ SV_PAGE--; renderServicios(); } }
+  function svPagSig(){ SV_PAGE++; renderServicios(); }
   function renderServicios(){
     var q=(document.getElementById('sv_busca').value||'').toLowerCase();
-    var list = CATALOGO.filter(function(s){ return !q || (s.name||'').toLowerCase().indexOf(q)>-1; }).slice(0,80);
-    document.getElementById('sv_info').textContent = CATALOGO.length+' servicios en total · mostrando '+list.length+(q?'':' (busca para ver más)');
+    var pageSize = parseInt(document.getElementById('sv_pagesize').value||'80');
+    var filtrados = CATALOGO.filter(function(s){ return !q || (s.name||'').toLowerCase().indexOf(q)>-1; });
+    var totalPag = Math.max(1, Math.ceil(filtrados.length/pageSize));
+    if(SV_PAGE>=totalPag) SV_PAGE=totalPag-1;
+    if(SV_PAGE<0) SV_PAGE=0;
+    var desde=SV_PAGE*pageSize, hasta=Math.min(desde+pageSize, filtrados.length);
+    var list = filtrados.slice(desde, hasta);
+    document.getElementById('sv_info').textContent = CATALOGO.length+' servicios en total · '+filtrados.length+' coinciden con la búsqueda · mostrando '+(desde+1)+'-'+hasta;
+    document.getElementById('sv_pag_info').textContent = 'Página '+(SV_PAGE+1)+' de '+totalPag;
     var body=document.getElementById('sv_body'); body.innerHTML='';
     document.getElementById('sv_selall').checked=false;
     SV_FILAS={};
