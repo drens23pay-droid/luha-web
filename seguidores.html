@@ -149,6 +149,8 @@
     </div>
     <label>Tu enlace o usuario (a dónde va el pedido)</label>
     <input id="mLink" placeholder="instagram.com/tuusuario">
+    <label style="margin-top:8px">Tu email (opcional, para confirmarte la entrega)</label>
+    <input id="mEmail" type="email" placeholder="tucorreo@ejemplo.com">
     <div class="pays">
       <button class="pay" id="payBizum">
         <span class="pic">🟢</span>
@@ -290,6 +292,7 @@
 
   document.getElementById('payBizum').addEventListener('click',function(){
     var link=document.getElementById('mLink').value||'(pendiente)';
+    var email=(document.getElementById('mEmail').value||'').trim();
     var detalle=cur.svc+' x'+cur.qty.toLocaleString('es-ES')+' — enlace: '+link;
     function ir(codigo){
       var msg='Hola LUHA 👋 quiero PAGAR CON BIZUM:%0A'+
@@ -299,10 +302,11 @@
         '• Total: '+eur(cur.total)+'%0A'+
         '• Mi enlace/usuario: '+link+'%0A%0A'+
         'Haré el Bizum al '+BIZUM+' y te envío el comprobante por aquí. 📎';
-      location.href='https://wa.me/'+WA+'?text='+encodeURIComponent(decodeURIComponent(msg));
+      window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(decodeURIComponent(msg)),'_blank');
+      if(codigo){ location.href='gracias.html?codigo='+encodeURIComponent(codigo); }
     }
     fetch('/api/pedidos',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'crear',data:{producto:cur.svc,precio:cur.total,metodo:'bizum',estado:'pendiente',detalle:detalle}})
+      body:JSON.stringify({action:'crear',data:{producto:cur.svc,precio:cur.total,metodo:'bizum',estado:'pendiente',detalle:detalle,cliente:email}})
     }).then(function(r){return r.json()}).then(function(d){ ir(d&&d.codigo); }).catch(function(){ ir(null); });
   });
 
