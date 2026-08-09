@@ -36,12 +36,32 @@ module.exports = async (req, res) => {
     const total = Math.round((parseFloat(body.total) || 0) * 100);
     if (total < 50) return res.status(200).json({ ok: false, motivo: 'IMPORTE_INVALIDO' });
 
+    const SUPABASE_URL = process.env.SUPABASE_URL, SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+
+    // Si en "Precios y comisión" está marcado que la comisión de Stripe la paga el cliente,
+    // subimos el importe a cobrar para que, tras el descuento de Stripe, te quede el precio íntegro.
+    let cobrar = total;
+    try {
+      if (SUPABASE_URL && SUPABASE_KEY) {
+        const rc = await fetch(SUPABASE_URL + '/rest/v1/config?select=*', { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
+        const rows = await rc.json();
+        const cfg = {}; (Array.isArray(rows) ? rows : []).forEach(function (x) { cfg[x.clave] = x.valor; });
+        if (cfg.cobrar_comision_cliente === 'true') {
+          const pct = parseFloat(cfg.stripe_fee_pct || '1.5') / 100;
+          const fijo = parseFloat(cfg.stripe_fee_fijo || '0.25');
+          const base = total / 100;
+          const conComision = (base + fijo) / (1 - pct);
+          cobrar = Math.round(conComision * 100);
+        }
+      }
+    } catch (e) { /* si falla la lectura de config, cobramos el precio base sin añadir comisión */ }
+
     const origin = req.headers.origin || ('https://' + req.headers.host);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: [{
-        price_data: { currency: 'eur', product_data: { name: nombre }, unit_amount: total },
+        price_data: { currency: 'eur', product_data: { name: nombre }, unit_amount: cobrar },
         quantity: 1
       }],
       success_url: origin + '/gracias.html?ok=1&session_id={CHECKOUT_SESSION_ID}',
@@ -51,14 +71,13 @@ module.exports = async (req, res) => {
 
     // Registrar el pedido como "pendiente" (el webhook lo pasará a "pagado" cuando Stripe confirme el cobro)
     try {
-      const SUPABASE_URL = process.env.SUPABASE_URL, SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
       if (SUPABASE_URL && SUPABASE_KEY) {
         const codigo = 'LH-' + Math.floor(100000 + Math.random() * 900000);
         await fetch(SUPABASE_URL + '/rest/v1/pedidos', {
           method: 'POST',
           headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            codigo: codigo, producto: nombre, precio: total / 100, metodo: 'tarjeta', estado: 'pendiente',
+            codigo: codigo, producto: nombre, precio: cobrar / 100, metodo: 'tarjeta', estado: 'pendiente',
             detalle: String(body.detalle || '').slice(0, 490), stripe_session_id: session.id
           })
         });
