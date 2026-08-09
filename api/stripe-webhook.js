@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
           const entrega = Array.isArray(rows) && rows[0] && rows[0].entrega;
           if (entrega) {
             const nodemailer = require('nodemailer');
-            const t = nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: GMAIL_PASS } });
+            const t = nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: String(GMAIL_PASS).replace(/\s/g, '') } });
             const htmlEntrega = String(entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
             await t.sendMail({
               from: 'LUHA <' + GMAIL_USER + '>',
@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
             estadoFinal = 'entregado';
           }
         }
-      } catch (e) { /* si el email falla, el pedido queda en "pagado" y lo entregas a mano */ }
+      } catch (e) { console.error('LUHA email error:', e && e.message ? e.message : e); }
 
       if (SUPABASE_URL && SUPABASE_KEY) {
         await fetch(SUPABASE_URL + '/rest/v1/pedidos?stripe_session_id=eq.' + encodeURIComponent(session.id), {
