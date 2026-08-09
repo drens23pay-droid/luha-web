@@ -287,7 +287,14 @@
       <div class="panel">
         <div class="row"><input id="sv_busca" placeholder="Buscar servicio..." oninput="renderServicios()"></div>
         <div class="muted" style="margin:8px 0" id="sv_info"></div>
-        <table class="responsive"><thead><tr><th>Servicio</th><th>Coste/1000</th><th>Mostrar</th><th>Destacar</th><th>Margen propio %</th><th></th></tr></thead>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn btn-ghost" onclick="svMasivoMostrar(true)">✅ Mostrar seleccionados</button>
+          <button class="btn btn-ghost" onclick="svMasivoMostrar(false)">⬜ Ocultar seleccionados</button>
+          <button class="btn btn-ghost" onclick="svMasivoDestacar(true)">⭐ Destacar seleccionados</button>
+          <button class="btn btn-ghost" onclick="svMasivoDestacar(false)">☆ Quitar destacado</button>
+          <button class="btn btn-neon" onclick="svGuardarSeleccionados()">💾 Guardar seleccionados</button>
+        </div>
+        <table class="responsive"><thead><tr><th><input type="checkbox" id="sv_selall" onclick="svSelAll(this)"></th><th>Servicio</th><th>Coste/1000</th><th>Mostrar</th><th>Destacar</th><th>Margen propio %</th><th></th></tr></thead>
           <tbody id="sv_body"></tbody></table>
       </div>
     </div>
@@ -774,15 +781,19 @@
   })();
 
   // ---------- SERVICIOS ----------
+  var SV_FILAS = {};
   function renderServicios(){
     var q=(document.getElementById('sv_busca').value||'').toLowerCase();
     var list = CATALOGO.filter(function(s){ return !q || (s.name||'').toLowerCase().indexOf(q)>-1; }).slice(0,80);
     document.getElementById('sv_info').textContent = CATALOGO.length+' servicios en total · mostrando '+list.length+(q?'':' (busca para ver más)');
     var body=document.getElementById('sv_body'); body.innerHTML='';
+    document.getElementById('sv_selall').checked=false;
+    SV_FILAS={};
     list.forEach(function(s){
       var cfg=SVCFG[s.service]||{activo:true,destacado:false,margen_override:null};
       var tr=document.createElement('tr');
-      tr.innerHTML='<td data-label="Servicio" style="text-align:right">'+s.name+'</td><td data-label="Coste/1000">'+eur(parseFloat(s.rate))+'</td>'+
+      tr.innerHTML='<td data-label=""><input type="checkbox" class="sv_chk"></td>'+
+        '<td data-label="Servicio" style="text-align:right">'+s.name+'</td><td data-label="Coste/1000">'+eur(parseFloat(s.rate))+'</td>'+
         '<td data-label="Mostrar"><span class="switch">'+(cfg.activo!==false?'✅':'⬜')+'</span></td>'+
         '<td data-label="Destacar"><span class="switch">'+(cfg.destacado?'⭐':'☆')+'</span></td>'+
         '<td data-label="Margen %"><input type="number" style="width:80px" value="'+(cfg.margen_override!=null?cfg.margen_override:'')+'" placeholder="global"></td>'+
@@ -792,13 +803,43 @@
       sw[0].onclick=function(){ estado.activo=!estado.activo; sw[0].textContent=estado.activo?'✅':'⬜'; };
       sw[1].onclick=function(){ estado.destacado=!estado.destacado; sw[1].textContent=estado.destacado?'⭐':'☆'; };
       tr.querySelector('button').onclick=function(){
-        var mo=tr.querySelector('input').value;
+        var mo=tr.querySelector('input[type=number]').value;
         var data={ service_id:String(s.service), activo:estado.activo, destacado:estado.destacado, margen_override: mo===''?null:parseFloat(mo) };
         fetch('/api/servicios-config',{method:'POST',headers:H(),body:JSON.stringify({data:data})}).then(function(r){return r.json()}).then(function(d){
           if(d.ok){ SVCFG[s.service]=data; toast('✅ Guardado'); } else { toast('❌ '+(d.motivo||'error')); }
         });
       };
+      SV_FILAS[s.service] = { s:s, tr:tr, estado:estado, sw:sw, chk:tr.querySelector('.sv_chk'), mo:tr.querySelector('input[type=number]') };
       body.appendChild(tr);
+    });
+  }
+  function svSelAll(chk){
+    Object.keys(SV_FILAS).forEach(function(id){ SV_FILAS[id].chk.checked = chk.checked; });
+  }
+  function svSeleccionados(){
+    var ids=Object.keys(SV_FILAS).filter(function(id){ return SV_FILAS[id].chk.checked; });
+    if(!ids.length){ toast('Marca al menos un servicio con el check'); }
+    return ids.map(function(id){ return SV_FILAS[id]; });
+  }
+  function svMasivoMostrar(mostrar){
+    var sel=svSeleccionados(); if(!sel.length) return;
+    sel.forEach(function(f){ f.estado.activo=mostrar; f.sw[0].textContent=mostrar?'✅':'⬜'; });
+    toast((mostrar?'✅ ':'⬜ ')+sel.length+' marcados — pulsa "Guardar seleccionados" para confirmar');
+  }
+  function svMasivoDestacar(destacar){
+    var sel=svSeleccionados(); if(!sel.length) return;
+    sel.forEach(function(f){ f.estado.destacado=destacar; f.sw[1].textContent=destacar?'⭐':'☆'; });
+    toast((destacar?'⭐ ':'☆ ')+sel.length+' marcados — pulsa "Guardar seleccionados" para confirmar');
+  }
+  function svGuardarSeleccionados(){
+    var sel=svSeleccionados(); if(!sel.length) return;
+    var datos=sel.map(function(f){
+      var mo=f.mo.value;
+      return { service_id:String(f.s.service), activo:f.estado.activo, destacado:f.estado.destacado, margen_override: mo===''?null:parseFloat(mo) };
+    });
+    fetch('/api/servicios-config',{method:'POST',headers:H(),body:JSON.stringify({data:datos})}).then(function(r){return r.json()}).then(function(d){
+      if(d.ok){ datos.forEach(function(x){ SVCFG[x.service_id]=x; }); toast('✅ Guardados '+datos.length+' servicios'); }
+      else { toast('❌ '+(d.motivo||'error')); }
     });
   }
 
