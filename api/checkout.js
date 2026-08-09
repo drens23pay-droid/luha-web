@@ -53,11 +53,12 @@ module.exports = async (req, res) => {
     try {
       const SUPABASE_URL = process.env.SUPABASE_URL, SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
       if (SUPABASE_URL && SUPABASE_KEY) {
+        const codigo = 'LH-' + Math.floor(100000 + Math.random() * 900000);
         await fetch(SUPABASE_URL + '/rest/v1/pedidos', {
           method: 'POST',
           headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            producto: nombre, precio: total / 100, metodo: 'tarjeta', estado: 'pendiente',
+            codigo: codigo, producto: nombre, precio: total / 100, metodo: 'tarjeta', estado: 'pendiente',
             detalle: String(body.detalle || '').slice(0, 490), stripe_session_id: session.id
           })
         });
