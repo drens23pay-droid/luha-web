@@ -75,7 +75,23 @@
   .preview{display:none;margin-top:10px;position:relative;max-width:200px}
   .preview img{width:100%;border-radius:12px;border:1px solid var(--line);display:block}
   .preview .rm{position:absolute;top:-8px;right:-8px;background:var(--danger);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-weight:800}
-  @media(max-width:820px){#app{grid-template-columns:1fr}aside{display:none}.two,.three{grid-template-columns:1fr}}
+  .panel{overflow-x:auto}
+  @media(max-width:820px){
+    #app{grid-template-columns:1fr}
+    aside{position:sticky;top:0;z-index:60;border-right:none;border-bottom:1px solid var(--line);
+      padding:10px 12px;display:flex;align-items:center;gap:10px}
+    aside .logo{font-size:16px;padding:0;white-space:nowrap;margin:0}
+    .nav{display:flex;overflow-x:auto;gap:6px;flex:1;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .nav::-webkit-scrollbar{display:none}
+    .nav a{white-space:nowrap;margin-bottom:0;padding:8px 12px;font-size:13px;flex-shrink:0}
+    main{padding:16px 14px}
+    h1{font-size:19px}
+    .two,.three{grid-template-columns:1fr}
+    th,td{font-size:12px;padding:7px 6px}
+    .row{flex-wrap:wrap}
+    .toast{left:14px;right:14px;bottom:14px;text-align:center}
+    .btn{font-size:13px}
+  }
 </style>
 </head>
 <body>
