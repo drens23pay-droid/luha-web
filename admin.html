@@ -87,10 +87,26 @@
     main{padding:16px 14px}
     h1{font-size:19px}
     .two,.three{grid-template-columns:1fr}
-    th,td{font-size:12px;padding:7px 6px}
     .row{flex-wrap:wrap}
+    .item{flex-wrap:wrap}
+    .item .x, .item button, .item .switch{margin-left:0!important}
     .toast{left:14px;right:14px;bottom:14px;text-align:center}
     .btn{font-size:13px}
+    .panel{padding:14px}
+
+    /* tablas -> tarjetas apiladas (nada de scroll horizontal tipo escritorio) */
+    table.responsive{border:none}
+    table.responsive thead{display:none}
+    table.responsive, table.responsive tbody, table.responsive tr, table.responsive td{display:block;width:100%}
+    table.responsive tr{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+    table.responsive td{border:none;padding:6px 0;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:right}
+    table.responsive td::before{content:attr(data-label);font-size:10px;font-weight:800;text-transform:uppercase;color:var(--txt-mut);text-align:left;flex-shrink:0}
+    table.responsive td:empty{display:none}
+    table.responsive td:last-child{justify-content:flex-end}
+  }
+  @media(max-width:420px){
+    .nav a{padding:7px 9px;font-size:12px}
+    aside .logo{font-size:14px}
   }
 </style>
 </head>
@@ -143,7 +159,7 @@
         </div>
       </div>
       <div class="panel">
-        <table><thead><tr><th>Código</th><th>Fecha</th><th>Producto</th><th>Método</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+        <table class="responsive"><thead><tr><th>Código</th><th>Fecha</th><th>Producto</th><th>Método</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
           <tbody id="ped_body"></tbody></table>
         <div id="ped_vacio" class="muted" style="padding:14px 0"></div>
       </div>
@@ -247,7 +263,7 @@
       <div class="panel">
         <div class="row"><input id="sv_busca" placeholder="Buscar servicio..." oninput="renderServicios()"></div>
         <div class="muted" style="margin:8px 0" id="sv_info"></div>
-        <table><thead><tr><th>Servicio</th><th>Coste/1000</th><th>Mostrar</th><th>Destacar</th><th>Margen propio %</th><th></th></tr></thead>
+        <table class="responsive"><thead><tr><th>Servicio</th><th>Coste/1000</th><th>Mostrar</th><th>Destacar</th><th>Margen propio %</th><th></th></tr></thead>
           <tbody id="sv_body"></tbody></table>
       </div>
     </div>
@@ -401,12 +417,12 @@
       var extra='';
       if(p.detalle && p.detalle!==p.producto) extra+='<br><span class="muted">📝 '+p.detalle+'</span>';
       if(p.cliente) extra+='<br><span class="muted">👤 '+p.cliente+'</span>';
-      tr.innerHTML='<td><b style="color:var(--cyan)">'+(p.codigo||'—')+'</b></td>'+
-        '<td>'+fechaCorta(p.creado)+'</td>'+
-        '<td><b>'+(p.producto||'')+'</b>'+extra+'</td>'+
-        '<td>'+(p.metodo==='tarjeta'?'💳 Tarjeta':'🟢 Bizum')+'</td>'+
-        '<td>'+eur(p.precio)+'</td>'+
-        '<td><select class="estsel">'+
+      tr.innerHTML='<td data-label="Código"><b style="color:var(--cyan)">'+(p.codigo||'—')+'</b></td>'+
+        '<td data-label="Fecha">'+fechaCorta(p.creado)+'</td>'+
+        '<td data-label="Producto" style="text-align:right"><span><b>'+(p.producto||'')+'</b>'+extra+'</span></td>'+
+        '<td data-label="Método">'+(p.metodo==='tarjeta'?'💳 Tarjeta':'🟢 Bizum')+'</td>'+
+        '<td data-label="Precio">'+eur(p.precio)+'</td>'+
+        '<td data-label="Estado"><select class="estsel">'+
           ['pendiente','pagado','entregado','cancelado'].map(function(e){return '<option value="'+e+'"'+(e===p.estado?' selected':'')+'>'+ICONO[e]+' '+e+'</option>';}).join('')+
         '</select></td>'+
         '<td><button class="btn btn-danger" style="padding:5px 10px">Borrar</button></td>';
@@ -710,10 +726,10 @@
     list.forEach(function(s){
       var cfg=SVCFG[s.service]||{activo:true,destacado:false,margen_override:null};
       var tr=document.createElement('tr');
-      tr.innerHTML='<td>'+s.name+'</td><td>'+eur(parseFloat(s.rate))+'</td>'+
-        '<td><span class="switch">'+(cfg.activo!==false?'✅':'⬜')+'</span></td>'+
-        '<td><span class="switch">'+(cfg.destacado?'⭐':'☆')+'</span></td>'+
-        '<td><input type="number" style="width:80px" value="'+(cfg.margen_override!=null?cfg.margen_override:'')+'" placeholder="global"></td>'+
+      tr.innerHTML='<td data-label="Servicio" style="text-align:right">'+s.name+'</td><td data-label="Coste/1000">'+eur(parseFloat(s.rate))+'</td>'+
+        '<td data-label="Mostrar"><span class="switch">'+(cfg.activo!==false?'✅':'⬜')+'</span></td>'+
+        '<td data-label="Destacar"><span class="switch">'+(cfg.destacado?'⭐':'☆')+'</span></td>'+
+        '<td data-label="Margen %"><input type="number" style="width:80px" value="'+(cfg.margen_override!=null?cfg.margen_override:'')+'" placeholder="global"></td>'+
         '<td><button class="btn btn-ghost" style="padding:5px 10px">Guardar</button></td>';
       var sw=tr.querySelectorAll('.switch');
       var estado={activo:cfg.activo!==false, destacado:!!cfg.destacado};
