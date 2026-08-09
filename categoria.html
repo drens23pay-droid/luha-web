@@ -164,11 +164,13 @@
     <div class="pays">
       <button class="pay" id="payBizum">
         <span class="pic">🟢</span>
-        <span class="pt"><b>Pagar con Bizum</b><span>Haz el Bizum y envía el comprobante por WhatsApp</span></span>
+        <span class="pt"><b>Pagar con Bizum</b><span>Haz el Bizum y envía el comprobante por WhatsApp</span>
+          <span style="display:block;font-size:11px;font-weight:800;color:var(--ok);margin-top:3px">✅ Sin comisión adicional</span></span>
       </button>
       <button class="pay card" id="payCard">
         <span class="pic">💳</span>
-        <span class="pt"><b>Pagar con tarjeta</b><span>Pago seguro con Stripe, al instante</span></span>
+        <span class="pt"><b>Pagar con tarjeta</b><span>Pago seguro con Stripe, al instante</span>
+          <span id="cardFeeNote" style="display:none;font-size:11px;font-weight:800;color:#f5b942;margin-top:3px"></span></span>
       </button>
     </div>
   </div>
@@ -260,10 +262,19 @@
   // ---- CHECKOUT (Bizum / Tarjeta) ----
   var ov=document.getElementById('ov');
   var cur={nombre:'',total:0};
+  var FEECFG=null;
+  fetch('/api/config').then(function(r){return r.json()}).then(function(d){ FEECFG=d||{}; }).catch(function(){ FEECFG={}; });
   function abrirCheckout(nombre,total){
     cur={nombre:nombre,total:total};
     document.getElementById('mSvc').textContent=nombre;
     document.getElementById('mTot').textContent=eur(total);
+    var nota=document.getElementById('cardFeeNote');
+    if(FEECFG && FEECFG.cobrar_comision_cliente==='true'){
+      var pct=parseFloat(FEECFG.stripe_fee_pct||'1.5')/100, fijo=parseFloat(FEECFG.stripe_fee_fijo||'0.25');
+      var conFee=(total+fijo)/(1-pct);
+      nota.textContent='+'+eur(conFee-total)+' comisión — total '+eur(conFee);
+      nota.style.display='block';
+    } else if(nota){ nota.style.display='none'; }
     ov.classList.add('on');
   }
   document.getElementById('mClose').addEventListener('click',function(){ov.classList.remove('on')});
