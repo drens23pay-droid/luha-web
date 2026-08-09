@@ -48,17 +48,22 @@ module.exports = async (req, res) => {
         if (!admin) return res.status(401).json({ ok:false, motivo:'NO_AUTORIZADO' });
         let emailEnviado = false;
 
-        // Si el admin marca "pagado" un pedido Bizum con email del cliente y el producto
-        // tiene entrega automática, se envía el acceso por email y pasa a "entregado".
+        // Si el admin marca "pagado" o "entregado" un pedido con email del cliente, se avisa por
+        // correo: si el producto tiene entrega automática se manda el acceso (y pasa a "entregado"
+        // si no lo estaba ya); si no la tiene, se manda una confirmación según el estado elegido.
         try {
-          if (b.data && b.data.estado === 'pagado') {
+          const estadoDestino = b.data && b.data.estado;
+          if (estadoDestino === 'pagado' || estadoDestino === 'entregado') {
             const rp = await fetch(URL+'/rest/v1/pedidos?id=eq.'+encodeURIComponent(b.id)+'&select=*', { headers:H });
             const rows = await rp.json();
             const ped = Array.isArray(rows) && rows[0];
             const m = ped && ped.cliente ? String(ped.cliente).match(/\S+@\S+\.\S+/) : null;
             const email = m ? m[0] : null;
             const GMAIL_USER = process.env.GMAIL_USER, GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
-            if (ped && email && GMAIL_USER && GMAIL_PASS) {
+            // Evita reenviar el mismo aviso si el pedido ya estaba exactamente en ese estado (p.ej. clic repetido).
+            // pagado -> entregado SÍ debe avisar: son dos correos distintos (confirmación y completado).
+            const yaAvisado = ped && ped.estado === estadoDestino;
+            if (ped && email && GMAIL_USER && GMAIL_PASS && !yaAvisado) {
               const rprod = await fetch(URL+'/rest/v1/productos?nombre=eq.'+encodeURIComponent(ped.producto)+'&select=entrega', { headers:H });
               const prows = await rprod.json();
               const entrega = Array.isArray(prows) && prows[0] && prows[0].entrega;
@@ -80,8 +85,22 @@ module.exports = async (req, res) => {
                 });
                 b.data.estado = 'entregado';
                 emailEnviado = true;
+              } else if (estadoDestino === 'entregado') {
+                // Sin entrega automática, pero el admin lo marca como entregado (ej. ya se enviaron
+                // los seguidores/likes a mano): aviso de pedido completado.
+                await t.sendMail({
+                  from: 'LUHA <' + GMAIL_USER + '>',
+                  to: email,
+                  subject: '✅ Tu pedido está completo — ' + ped.producto + (ped.codigo ? ' (' + ped.codigo + ')' : ''),
+                  html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
+                    '<h2 style="color:#8B2FFF">¡Pedido completado!</h2>' +
+                    '<p>Tu pedido de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' ya ha sido entregado. ¡Gracias por tu compra!</p>' +
+                    '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
+                    '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
+                });
+                emailEnviado = true;
               } else {
-                // Sin entrega automática (ej. seguidores/likes, combos): confirmación genérica de pago.
+                // "pagado" sin entrega automática (ej. seguidores/likes, combos): confirmación genérica de pago.
                 await t.sendMail({
                   from: 'LUHA <' + GMAIL_USER + '>',
                   to: email,
