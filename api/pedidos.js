@@ -6,6 +6,15 @@ module.exports = async (req, res) => {
   const admin = req.headers['x-admin-token'] === process.env.ADMIN_TOKEN;
   try {
     if (req.method === 'GET') {
+      // Consulta pública LIMITADA: solo con el código exacto o la sesión de Stripe (para la página de gracias).
+      const codigo = req.query && req.query.codigo;
+      const session = req.query && req.query.session;
+      if (!admin && (codigo || session)) {
+        const filtro = codigo ? 'codigo=eq.'+encodeURIComponent(codigo) : 'stripe_session_id=eq.'+encodeURIComponent(session);
+        const r = await fetch(URL+'/rest/v1/pedidos?'+filtro+'&select=codigo,producto,precio,metodo,estado&limit=1', { headers:H });
+        const rows = await r.json();
+        return res.status(200).json(Array.isArray(rows) && rows[0] ? rows[0] : { ok:false, motivo:'NO_ENCONTRADO' });
+      }
       if (!admin) return res.status(401).json({ ok:false, motivo:'NO_AUTORIZADO' });
       const r = await fetch(URL+'/rest/v1/pedidos?select=*&order=creado.desc', { headers:H });
       return res.status(200).json(await r.json());
@@ -17,7 +26,9 @@ module.exports = async (req, res) => {
       // Crear pedido: público (lo dispara el checkout del cliente, Bizum o Tarjeta)
       if (acc === 'crear') {
         const data = b.data || {};
+        const codigo = 'LH-' + Math.floor(100000 + Math.random() * 900000);
         const payload = {
+          codigo: codigo,
           producto: String(data.producto || '').slice(0, 200),
           precio: parseFloat(data.precio) || 0,
           metodo: (data.metodo === 'tarjeta') ? 'tarjeta' : 'bizum',
@@ -28,7 +39,7 @@ module.exports = async (req, res) => {
         if (!payload.producto || payload.precio <= 0) return res.status(200).json({ ok:false, motivo:'DATOS_INVALIDOS' });
         const r = await fetch(URL+'/rest/v1/pedidos', { method:'POST', headers:Object.assign({},H,{Prefer:'return=representation'}), body:JSON.stringify(payload) });
         const rows = await r.json();
-        return res.status(200).json({ ok:true, data: rows });
+        return res.status(200).json({ ok:true, codigo: codigo, data: rows });
       }
 
       // Editar / borrar: solo admin
