@@ -62,9 +62,10 @@ module.exports = async (req, res) => {
               const rprod = await fetch(URL+'/rest/v1/productos?nombre=eq.'+encodeURIComponent(ped.producto)+'&select=entrega', { headers:H });
               const prows = await rprod.json();
               const entrega = Array.isArray(prows) && prows[0] && prows[0].entrega;
+              const nodemailer = require('nodemailer');
+              const t = nodemailer.createTransport({ service:'gmail', auth:{ user:GMAIL_USER, pass:String(GMAIL_PASS).replace(/\s/g,'') } });
               if (entrega) {
-                const nodemailer = require('nodemailer');
-                const t = nodemailer.createTransport({ service:'gmail', auth:{ user:GMAIL_USER, pass:String(GMAIL_PASS).replace(/\s/g,'') } });
+                // Producto con acceso automático (usuario/contraseña, link, curso...)
                 const htmlEntrega = String(entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
                 await t.sendMail({
                   from: 'LUHA <' + GMAIL_USER + '>',
@@ -78,6 +79,20 @@ module.exports = async (req, res) => {
                     '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
                 });
                 b.data.estado = 'entregado';
+                emailEnviado = true;
+              } else {
+                // Sin entrega automática (ej. seguidores/likes, combos): confirmación genérica de pago.
+                await t.sendMail({
+                  from: 'LUHA <' + GMAIL_USER + '>',
+                  to: email,
+                  subject: '✅ Hemos recibido tu pago — ' + ped.producto + (ped.codigo ? ' (' + ped.codigo + ')' : ''),
+                  html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
+                    '<h2 style="color:#8B2FFF">¡Pago confirmado!</h2>' +
+                    '<p>Hemos recibido tu pago de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' por un total de ' + Number(ped.precio||0).toFixed(2).replace('.',',') + ' €.</p>' +
+                    '<p>Tu pedido ya está en proceso y lo iremos completando en breve. Te avisaremos si necesitamos algo más.</p>' +
+                    '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
+                    '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
+                });
                 emailEnviado = true;
               }
             }
