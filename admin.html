@@ -122,9 +122,12 @@
           <span class="chipf" data-f="cancelado">🔴 Cancelados</span>
           <button class="btn btn-ghost" style="margin-left:auto;padding:6px 12px" onclick="cargarPedidos()">🔄 Actualizar</button>
         </div>
+        <div style="margin-top:12px">
+          <input id="ped_busca" placeholder="🔍 Buscar por código (LH-...), producto o cliente..." oninput="pintarPedidos()">
+        </div>
       </div>
       <div class="panel">
-        <table><thead><tr><th>Fecha</th><th>Producto</th><th>Método</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+        <table><thead><tr><th>Código</th><th>Fecha</th><th>Producto</th><th>Método</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
           <tbody id="ped_body"></tbody></table>
         <div id="ped_vacio" class="muted" style="padding:14px 0"></div>
       </div>
@@ -368,7 +371,13 @@
   function pintarPedidos(){
     var body=document.getElementById('ped_body'), vacio=document.getElementById('ped_vacio');
     var lista = FILTRO_PED==='todos' ? PEDIDOS : PEDIDOS.filter(function(p){return p.estado===FILTRO_PED});
-    if(!lista.length){ body.innerHTML=''; vacio.textContent='No hay pedidos'+(FILTRO_PED==='todos'?'':' con este filtro')+' todavía.'; return; }
+    var q=(document.getElementById('ped_busca').value||'').toLowerCase().trim();
+    if(q){
+      lista = lista.filter(function(p){
+        return ((p.codigo||'')+' '+(p.producto||'')+' '+(p.cliente||'')+' '+(p.detalle||'')).toLowerCase().indexOf(q)>-1;
+      });
+    }
+    if(!lista.length){ body.innerHTML=''; vacio.textContent='No hay pedidos'+(q?' que coincidan con "'+q+'"':(FILTRO_PED==='todos'?'':' con este filtro'))+' todavía.'; return; }
     vacio.textContent=''; body.innerHTML='';
     var ICONO={pendiente:'🟡',pagado:'🟢',entregado:'✅',cancelado:'🔴'};
     lista.forEach(function(p){
@@ -376,7 +385,8 @@
       var extra='';
       if(p.detalle && p.detalle!==p.producto) extra+='<br><span class="muted">📝 '+p.detalle+'</span>';
       if(p.cliente) extra+='<br><span class="muted">👤 '+p.cliente+'</span>';
-      tr.innerHTML='<td>'+fechaCorta(p.creado)+'</td>'+
+      tr.innerHTML='<td><b style="color:var(--cyan)">'+(p.codigo||'—')+'</b></td>'+
+        '<td>'+fechaCorta(p.creado)+'</td>'+
         '<td><b>'+(p.producto||'')+'</b>'+extra+'</td>'+
         '<td>'+(p.metodo==='tarjeta'?'💳 Tarjeta':'🟢 Bizum')+'</td>'+
         '<td>'+eur(p.precio)+'</td>'+
