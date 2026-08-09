@@ -48,12 +48,12 @@ module.exports = async (req, res) => {
         if (!admin) return res.status(401).json({ ok:false, motivo:'NO_AUTORIZADO' });
         let emailEnviado = false;
 
-        // Si el admin marca "pagado" o "entregado" un pedido con email del cliente, se avisa por
-        // correo: si el producto tiene entrega automática se manda el acceso (y pasa a "entregado"
-        // si no lo estaba ya); si no la tiene, se manda una confirmación según el estado elegido.
+        // Si el admin marca "pagado", "entregado" o "cancelado" un pedido con email del cliente, se
+        // avisa por correo: si el producto tiene entrega automática se manda el acceso (y pasa a
+        // "entregado" si no lo estaba ya); si no la tiene, se manda una confirmación según el estado.
         try {
           const estadoDestino = b.data && b.data.estado;
-          if (estadoDestino === 'pagado' || estadoDestino === 'entregado') {
+          if (estadoDestino === 'pagado' || estadoDestino === 'entregado' || estadoDestino === 'cancelado') {
             const rp = await fetch(URL+'/rest/v1/pedidos?id=eq.'+encodeURIComponent(b.id)+'&select=*', { headers:H });
             const rows = await rp.json();
             const ped = Array.isArray(rows) && rows[0];
@@ -63,7 +63,22 @@ module.exports = async (req, res) => {
             // Evita reenviar el mismo aviso si el pedido ya estaba exactamente en ese estado (p.ej. clic repetido).
             // pagado -> entregado SÍ debe avisar: son dos correos distintos (confirmación y completado).
             const yaAvisado = ped && ped.estado === estadoDestino;
-            if (ped && email && GMAIL_USER && GMAIL_PASS && !yaAvisado) {
+            if (ped && email && GMAIL_USER && GMAIL_PASS && !yaAvisado && estadoDestino === 'cancelado') {
+              // Cancelado: no hace falta mirar la entrega, solo avisar de la cancelación.
+              const nodemailer = require('nodemailer');
+              const t = nodemailer.createTransport({ service:'gmail', auth:{ user:GMAIL_USER, pass:String(GMAIL_PASS).replace(/\s/g,'') } });
+              await t.sendMail({
+                from: 'LUHA <' + GMAIL_USER + '>',
+                to: email,
+                subject: '❌ Tu pedido ha sido cancelado — ' + ped.producto + (ped.codigo ? ' (' + ped.codigo + ')' : ''),
+                html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
+                  '<h2 style="color:#ff5c7a">Pedido cancelado</h2>' +
+                  '<p>Tu pedido de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' por ' + Number(ped.precio||0).toFixed(2).replace('.',',') + ' € ha sido cancelado.</p>' +
+                  '<p>Si crees que es un error o ya habías pagado, escríbenos por WhatsApp y lo resolvemos: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
+                  '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
+              });
+              emailEnviado = true;
+            } else if (ped && email && GMAIL_USER && GMAIL_PASS && !yaAvisado) {
               const rprod = await fetch(URL+'/rest/v1/productos?nombre=eq.'+encodeURIComponent(ped.producto)+'&select=entrega', { headers:H });
               const prows = await rprod.json();
               const entrega = Array.isArray(prows) && prows[0] && prows[0].entrega;
