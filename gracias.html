@@ -54,9 +54,9 @@
 
   <div class="box">
     <div class="logo">LU<span style="color:#fff">HA</span></div>
-    <div class="check">&#10003;</div>
-    <h1>¡Gracias por tu compra!</h1>
-    <p class="lead">Tu pago se ha realizado correctamente. Ya estamos preparando tu pedido.</p>
+    <div class="check" id="gIcon">&#10003;</div>
+    <h1 id="gTitulo">¡Gracias por tu compra!</h1>
+    <p class="lead" id="gLead">Tu pago se ha realizado correctamente. Ya estamos preparando tu pedido.</p>
 
     <div class="summary">
       <div class="row"><span class="k">Producto</span><span id="gProd">—</span></div>
@@ -84,16 +84,27 @@
     }
     setWa('');
 
-    // Cargar los datos reales del pedido con la sesión de Stripe
-    var sid = new URLSearchParams(location.search).get('session_id');
-    if(sid){
-      fetch('/api/pedidos?session='+encodeURIComponent(sid)).then(function(r){return r.json()}).then(function(p){
+    // Cargar los datos reales del pedido: por sesión de Stripe (tarjeta) o por código (Bizum)
+    var params = new URLSearchParams(location.search);
+    var sid = params.get('session_id');
+    var cod = params.get('codigo');
+    var consulta = sid ? ('session='+encodeURIComponent(sid)) : (cod ? ('codigo='+encodeURIComponent(cod)) : null);
+    if(consulta){
+      fetch('/api/pedidos?'+consulta).then(function(r){return r.json()}).then(function(p){
         if(!p || !p.producto) return;
         document.getElementById('gProd').textContent = p.producto;
         document.getElementById('gCod').textContent = '#'+(p.codigo||'—');
         document.getElementById('gMet').textContent = p.metodo==='tarjeta' ? 'Tarjeta (Stripe)' : 'Bizum';
         document.getElementById('gTot').textContent = eur(p.precio);
         setWa('#'+(p.codigo||''));
+        if(p.metodo==='bizum' && p.estado==='pendiente'){
+          document.getElementById('gIcon').innerHTML='&#8987;';
+          document.getElementById('gIcon').style.background='linear-gradient(135deg,#f5b942,#FF3DAE)';
+          document.getElementById('gIcon').style.boxShadow='0 0 30px rgba(245,185,66,.5)';
+          document.getElementById('gTitulo').textContent='¡Pedido registrado!';
+          document.getElementById('gLead').textContent='Tu pedido está reservado. Completa el Bizum al 641 564 952 y envíanos el comprobante por WhatsApp para confirmarlo.';
+          document.querySelector('.summary .row.total span:first-child').textContent='Total a pagar';
+        }
       }).catch(function(){});
     }
   </script>
