@@ -207,12 +207,14 @@
   document.getElementById('mClose').addEventListener('click',function(){ov.classList.remove('on')});
   ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('on')});
   document.getElementById('payBizum').addEventListener('click',function(){
-    var msg='Hola LUHA 👋 quiero PAGAR CON BIZUM:\n• Producto: '+cur.nombre+'\n• Total: '+eur(cur.total)+
-      '\n\nHaré el Bizum al '+BIZUM+' y te envío el comprobante por aquí. 📎';
-    var ir=function(){ location.href='https://wa.me/'+WA+'?text='+encodeURIComponent(msg); };
+    function ir(codigo){
+      var msg='Hola LUHA 👋 quiero PAGAR CON BIZUM:\n'+(codigo?'• Pedido: '+codigo+'\n':'')+'• Producto: '+cur.nombre+'\n• Total: '+eur(cur.total)+
+        '\n\nHaré el Bizum al '+BIZUM+' y te envío el comprobante por aquí. 📎';
+      location.href='https://wa.me/'+WA+'?text='+encodeURIComponent(msg);
+    }
     fetch('/api/pedidos',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'crear',data:{producto:cur.nombre,precio:cur.total,metodo:'bizum',estado:'pendiente',detalle:cur.nombre}})
-    }).then(ir).catch(ir);
+    }).then(function(r){return r.json()}).then(function(d){ ir(d&&d.codigo); }).catch(function(){ ir(null); });
   });
   document.getElementById('payCard').addEventListener('click',function(){
     var btn=this; btn.style.opacity=.6; btn.querySelector('.pt b').textContent='Redirigiendo…';
