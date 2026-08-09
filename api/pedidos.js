@@ -34,6 +34,7 @@ module.exports = async (req, res) => {
           metodo: (data.metodo === 'tarjeta') ? 'tarjeta' : 'bizum',
           estado: data.estado || 'pendiente',
           detalle: String(data.detalle || '').slice(0, 500),
+          cliente: String(data.cliente || '').slice(0, 200) || null,
           stripe_session_id: data.stripe_session_id || null
         };
         if (!payload.producto || payload.precio <= 0) return res.status(200).json({ ok:false, motivo:'DATOS_INVALIDOS' });
@@ -45,8 +46,46 @@ module.exports = async (req, res) => {
       // Editar / borrar: solo admin
       if (acc === 'editar') {
         if (!admin) return res.status(401).json({ ok:false, motivo:'NO_AUTORIZADO' });
+        let emailEnviado = false;
+
+        // Si el admin marca "pagado" un pedido Bizum con email del cliente y el producto
+        // tiene entrega automática, se envía el acceso por email y pasa a "entregado".
+        try {
+          if (b.data && b.data.estado === 'pagado') {
+            const rp = await fetch(URL+'/rest/v1/pedidos?id=eq.'+encodeURIComponent(b.id)+'&select=*', { headers:H });
+            const rows = await rp.json();
+            const ped = Array.isArray(rows) && rows[0];
+            const m = ped && ped.cliente ? String(ped.cliente).match(/\S+@\S+\.\S+/) : null;
+            const email = m ? m[0] : null;
+            const GMAIL_USER = process.env.GMAIL_USER, GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
+            if (ped && email && GMAIL_USER && GMAIL_PASS) {
+              const rprod = await fetch(URL+'/rest/v1/productos?nombre=eq.'+encodeURIComponent(ped.producto)+'&select=entrega', { headers:H });
+              const prows = await rprod.json();
+              const entrega = Array.isArray(prows) && prows[0] && prows[0].entrega;
+              if (entrega) {
+                const nodemailer = require('nodemailer');
+                const t = nodemailer.createTransport({ service:'gmail', auth:{ user:GMAIL_USER, pass:String(GMAIL_PASS).replace(/\s/g,'') } });
+                const htmlEntrega = String(entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+                await t.sendMail({
+                  from: 'LUHA <' + GMAIL_USER + '>',
+                  to: email,
+                  subject: '🎉 Tu compra en LUHA — ' + ped.producto + (ped.codigo ? ' (' + ped.codigo + ')' : ''),
+                  html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
+                    '<h2 style="color:#8B2FFF">¡Pago confirmado!</h2>' +
+                    '<p>Tu pago de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' se ha confirmado. Aquí tienes tu acceso:</p>' +
+                    '<div style="background:#f4f2fb;border-radius:12px;padding:16px;font-size:15px">' + htmlEntrega + '</div>' +
+                    '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
+                    '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
+                });
+                b.data.estado = 'entregado';
+                emailEnviado = true;
+              }
+            }
+          }
+        } catch(e){ console.error('LUHA email bizum error:', e && e.message ? e.message : e); }
+
         const r = await fetch(URL+'/rest/v1/pedidos?id=eq.'+encodeURIComponent(b.id), { method:'PATCH', headers:Object.assign({},H,{Prefer:'return=representation'}), body:JSON.stringify(b.data||{}) });
-        return res.status(200).json({ ok:true, data:await r.json() });
+        return res.status(200).json({ ok:true, email_enviado: emailEnviado, estado_final: (b.data&&b.data.estado)||null, data:await r.json() });
       }
       if (acc === 'borrar') {
         if (!admin) return res.status(401).json({ ok:false, motivo:'NO_AUTORIZADO' });
