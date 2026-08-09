@@ -184,8 +184,13 @@
     <div class="pays">
       <button class="pay" id="payBizum">
         <span class="pic">🟢</span>
-        <span class="pt"><b>Pagar con Bizum</b><span>Haz el Bizum y envía el comprobante por WhatsApp</span>
+        <span class="pt"><b>Bizum manual</b><span>Haz el Bizum y envía el comprobante por WhatsApp</span>
           <span style="display:block;font-size:11px;font-weight:800;color:var(--ok);margin-top:3px">✅ Sin comisión adicional</span></span>
+      </button>
+      <button class="pay" id="payBizumAuto">
+        <span class="pic">⚡</span>
+        <span class="pt"><b>Bizum automático</b><span>Confirmación al instante, sin WhatsApp</span>
+          <span id="bizumAutoFeeNote" style="display:none;font-size:11px;font-weight:800;color:#f5b942;margin-top:3px"></span></span>
       </button>
       <button class="pay card" id="payCard">
         <span class="pic">💳</span>
@@ -211,13 +216,15 @@
     cur={nombre:nombre,total:total};
     document.getElementById('mSvc').textContent=nombre;
     document.getElementById('mTot').textContent=eur(total);
-    var nota=document.getElementById('cardFeeNote');
-    if(FEECFG && FEECFG.cobrar_comision_cliente==='true'){
-      var pct=parseFloat(FEECFG.stripe_fee_pct||'1.5')/100, fijo=parseFloat(FEECFG.stripe_fee_fijo||'0.25');
-      var conFee=(total+fijo)/(1-pct);
-      nota.textContent='+'+eur(conFee-total)+' comisión — total '+eur(conFee);
-      nota.style.display='block';
-    } else if(nota){ nota.style.display='none'; }
+    [document.getElementById('cardFeeNote'), document.getElementById('bizumAutoFeeNote')].forEach(function(nota){
+      if(!nota) return;
+      if(FEECFG && FEECFG.cobrar_comision_cliente==='true'){
+        var pct=parseFloat(FEECFG.stripe_fee_pct||'1.5')/100, fijo=parseFloat(FEECFG.stripe_fee_fijo||'0.25');
+        var conFee=(total+fijo)/(1-pct);
+        nota.textContent='+'+eur(conFee-total)+' comisión — total '+eur(conFee);
+        nota.style.display='block';
+      } else { nota.style.display='none'; }
+    });
     ov.classList.add('on');
   }
   document.getElementById('mClose').addEventListener('click',function(){ov.classList.remove('on')});
@@ -242,6 +249,15 @@
       if(d && d.ok && d.url){ location.href=d.url; }
       else { alert('El pago con tarjeta aún no está activo. Usa Bizum o inténtalo más tarde.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; }
     }).catch(function(){ alert('No se pudo iniciar el pago con tarjeta. Usa Bizum por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta'; });
+  });
+  document.getElementById('payBizumAuto').addEventListener('click',function(){
+    var btn=this; btn.style.opacity=.6; btn.querySelector('.pt b').textContent='Redirigiendo…';
+    fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nombre:cur.nombre, total:cur.total, detalle:cur.nombre, metodo:'bizum'})
+    }).then(function(r){return r.json()}).then(function(d){
+      if(d && d.ok && d.url){ location.href=d.url; }
+      else { alert('El Bizum automático aún no está activo. Usa el Bizum manual o inténtalo más tarde.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Bizum automático'; }
+    }).catch(function(){ alert('No se pudo iniciar el Bizum automático. Usa el Bizum manual por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Bizum automático'; });
   });
 
   // ---- Cargar el producto real según ?id= ----
