@@ -555,21 +555,30 @@
     if(!v) return;
     location.href='categoria.html?cat=Todos&q='+encodeURIComponent(v);
   }
-  var SEARCH_DATA=[];
+  var SEARCH_DATA=[];   // productos + paquetes reales (se actualiza solo con lo que agregues en el admin)
+  var CATS_DATA=[];     // categorías reales (también se actualiza sola si agregas categorías nuevas)
   Promise.all([
     fetch('/api/productos').then(function(r){return r.json()}).catch(function(){return [];}),
-    fetch('/api/paquetes').then(function(r){return r.json()}).catch(function(){return [];})
+    fetch('/api/paquetes').then(function(r){return r.json()}).catch(function(){return [];}),
+    fetch('/api/categorias').then(function(r){return r.json()}).catch(function(){return [];})
   ]).then(function(res){
     var productos = Array.isArray(res[0]) ? res[0].filter(function(p){return p.activo!==false}) : [];
     var paquetes = Array.isArray(res[1]) ? res[1].filter(function(p){return p.activo!==false}) : [];
+    var categorias = Array.isArray(res[2]) ? res[2].filter(function(c){return c.activa!==false}) : [];
     SEARCH_DATA = productos.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'producto.html?id='+encodeURIComponent(p.id)}; })
       .concat(paquetes.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'seguidores.html'}; }));
+    CATS_DATA = categorias.map(function(c){ return {nombre:c.nombre, href:'categoria.html?cat='+encodeURIComponent(c.nombre)}; });
   });
-  // Enlaces fijos: para que "seguidores", "likes", "tiktok"... lleven directo a la página de servicios,
-  // aunque no exista un producto con ese nombre exacto en el catálogo de precio fijo.
+  // Secciones fijas de la web (no viven en una tabla, así que las buscamos por palabras clave habituales).
+  // Si agregas categorías o productos nuevos desde el admin, esos se suman solos arriba en SEARCH_DATA/CATS_DATA.
   var STATIC_LINKS=[
     { nombre:'Seguidores y Likes (redes sociales)', href:'seguidores.html',
-      alias:['seguidor','segui','like','tiktok','instagram','youtube','facebook','twitter',' x ','spotify','telegram','whatsapp','twitch','trafico'] }
+      alias:['seguidor','segui','like','tiktok','instagram','youtube','facebook','twitter',' x ','spotify','telegram','whatsapp','twitch','trafico'] },
+    { nombre:'Cursos', href:'#cursos', alias:['curso','formacion','aprender','clase'] },
+    { nombre:'Streaming', href:'categoria.html?cat=Streaming', alias:['netflix','hbo','disney','pelicula','serie','stream'] },
+    { nombre:'Software', href:'categoria.html?cat=Software', alias:['canva','photoshop','office','diseño','edicion'] },
+    { nombre:'IA', href:'categoria.html?cat=IA', alias:['chatgpt','inteligencia artificial','ia ','midjourney'] },
+    { nombre:'VPN', href:'categoria.html?cat=VPN', alias:['vpn','privacidad','proxy'] }
   ];
   function buscarEnVivo(){
     var v=(document.getElementById('searchInput').value||'').trim().toLowerCase();
@@ -577,10 +586,12 @@
     if(v.length<2){ drop.style.display='none'; drop.innerHTML=''; return; }
     var fijos = STATIC_LINKS.filter(function(s){
       if(s.nombre.toLowerCase().indexOf(v)>-1) return true;
-      return s.alias.some(function(a){ return a.indexOf(v)>-1; });
+      return s.alias.some(function(a){ return a.indexOf(v)>-1 || v.indexOf(a)>-1; });
     }).map(function(s){ return {nombre:s.nombre, href:s.href, precio:null}; });
+    var cats = CATS_DATA.filter(function(c){ return (c.nombre||'').toLowerCase().indexOf(v)>-1; })
+      .map(function(c){ return {nombre:'Categoría: '+c.nombre, href:c.href, precio:null}; });
     var reales = SEARCH_DATA.filter(function(p){ return (p.nombre||'').toLowerCase().indexOf(v)>-1; });
-    var todos = fijos.concat(reales).slice(0,6);
+    var todos = fijos.concat(cats).concat(reales).slice(0,7);
     if(!todos.length){
       drop.innerHTML='<div class="sdItem sdEmpty">Sin resultados — pulsa Enter para buscar en todo</div>';
       drop.style.display='block'; return;
