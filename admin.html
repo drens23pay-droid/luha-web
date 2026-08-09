@@ -398,7 +398,11 @@
       sel.onchange=function(){
         fetch('/api/pedidos',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:p.id,data:{estado:sel.value}})})
           .then(function(r){return r.json()}).then(function(res){
-            if(res.ok){ p.estado=sel.value; toast('✅ Estado actualizado'); } else { toast('❌ '+(res.motivo||'error')); }
+            if(res.ok){
+              p.estado=res.estado_final||sel.value;
+              if(res.email_enviado){ toast('📧 Acceso enviado por email — pedido entregado'); cargarPedidos(); }
+              else { toast('✅ Estado actualizado'); }
+            } else { toast('❌ '+(res.motivo||'error')); }
           });
       };
       tr.querySelector('button').onclick=function(){
