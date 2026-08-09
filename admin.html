@@ -293,7 +293,16 @@
           </select>
         </div>
         <div class="muted" style="margin:4px 0 12px;font-size:12px">Con "Ocultos" solo se mostrará en tu tienda lo que actives manualmente aquí — ideal si tienes miles de servicios y quieres elegir solo unos pocos, en vez de ocultar uno por uno.</div>
-        <div class="row"><input id="sv_busca" placeholder="Buscar servicio..." oninput="svBuscar()"></div>
+        <div class="row" style="gap:16px;flex-wrap:wrap;align-items:center">
+          <input id="sv_busca" placeholder="Buscar servicio..." oninput="svBuscar()" style="flex:1;min-width:180px">
+          <label style="margin:0;white-space:nowrap">Ver:</label>
+          <select id="sv_filtro" onchange="svBuscar()" style="width:auto">
+            <option value="todos">Todos</option>
+            <option value="mostrados">✅ Solo mostrados</option>
+            <option value="ocultos">⬜ Solo ocultos</option>
+            <option value="destacados">⭐ Solo destacados</option>
+          </select>
+        </div>
         <div class="muted" style="margin:8px 0" id="sv_info"></div>
         <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <button class="btn btn-ghost" onclick="svMasivoMostrar(true)">✅ Mostrar seleccionados</button>
@@ -816,19 +825,30 @@
   function svPagSig(){ SV_PAGE++; renderServicios(); }
   function renderServicios(){
     var q=(document.getElementById('sv_busca').value||'').toLowerCase();
+    var filtro=document.getElementById('sv_filtro').value;
     var pageSize = parseInt(document.getElementById('sv_pagesize').value||'80');
-    var filtrados = CATALOGO.filter(function(s){ return !q || (s.name||'').toLowerCase().indexOf(q)>-1; });
+    var defActivo = (CONFIG.servicios_default_activo !== 'false');
+    var filtrados = CATALOGO.filter(function(s){
+      if(q && (s.name||'').toLowerCase().indexOf(q)===-1) return false;
+      if(filtro==='todos') return true;
+      var cfg=SVCFG[s.service];
+      var activo = cfg ? (cfg.activo!==false) : defActivo;
+      var destacado = cfg ? !!cfg.destacado : false;
+      if(filtro==='mostrados') return activo;
+      if(filtro==='ocultos') return !activo;
+      if(filtro==='destacados') return destacado;
+      return true;
+    });
     var totalPag = Math.max(1, Math.ceil(filtrados.length/pageSize));
     if(SV_PAGE>=totalPag) SV_PAGE=totalPag-1;
     if(SV_PAGE<0) SV_PAGE=0;
     var desde=SV_PAGE*pageSize, hasta=Math.min(desde+pageSize, filtrados.length);
     var list = filtrados.slice(desde, hasta);
-    document.getElementById('sv_info').textContent = CATALOGO.length+' servicios en total · '+filtrados.length+' coinciden con la búsqueda · mostrando '+(desde+1)+'-'+hasta;
+    document.getElementById('sv_info').textContent = CATALOGO.length+' servicios en total · '+filtrados.length+' coinciden con el filtro · mostrando '+(desde+1)+'-'+hasta;
     document.getElementById('sv_pag_info').textContent = 'Página '+(SV_PAGE+1)+' de '+totalPag;
     var body=document.getElementById('sv_body'); body.innerHTML='';
     document.getElementById('sv_selall').checked=false;
     SV_FILAS={};
-    var defActivo = (CONFIG.servicios_default_activo !== 'false');
     list.forEach(function(s){
       var cfg=SVCFG[s.service]||{activo:defActivo,destacado:false,margen_override:null};
       var tr=document.createElement('tr');
