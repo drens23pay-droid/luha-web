@@ -285,6 +285,14 @@
       <h1>Servicios del catálogo (API)</h1>
       <div class="sub">Elige qué mostrar, destaca los mejores y ajusta el margen por servicio si quieres.</div>
       <div class="panel">
+        <div class="row" style="align-items:center;gap:10px;flex-wrap:wrap">
+          <label style="margin:0;white-space:nowrap">Servicios nuevos (sin tocar) empiezan:</label>
+          <select id="sv_default" onchange="svGuardarDefault()" style="width:auto">
+            <option value="true">✅ Visibles</option>
+            <option value="false">⬜ Ocultos (modo curado)</option>
+          </select>
+        </div>
+        <div class="muted" style="margin:4px 0 12px;font-size:12px">Con "Ocultos" solo se mostrará en tu tienda lo que actives manualmente aquí — ideal si tienes miles de servicios y quieres elegir solo unos pocos, en vez de ocultar uno por uno.</div>
         <div class="row"><input id="sv_busca" placeholder="Buscar servicio..." oninput="svBuscar()"></div>
         <div class="muted" style="margin:8px 0" id="sv_info"></div>
         <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px">
@@ -588,7 +596,16 @@
       document.getElementById('c_fee_pct').value = d.stripe_fee_pct||'1.5';
       document.getElementById('c_fee_fijo').value = d.stripe_fee_fijo||'0.25';
       document.getElementById('c_cobrar').checked = (d.cobrar_comision_cliente==='true');
+      document.getElementById('sv_default').value = (d.servicios_default_activo==='false') ? 'false' : 'true';
       calcPaquete();
+      if(CATALOGO && CATALOGO.length){ renderServicios(); }
+    });
+  }
+  function svGuardarDefault(){
+    var val = document.getElementById('sv_default').value;
+    fetch('/api/config',{method:'POST',headers:H(),body:JSON.stringify({servicios_default_activo:val})}).then(function(r){return r.json()}).then(function(d){
+      if(d.ok){ CONFIG.servicios_default_activo=val; toast(val==='false'?'⬜ Modo curado activado — solo se ve lo que actives':'✅ Ahora los servicios nuevos se muestran por defecto'); renderServicios(); }
+      else { toast('❌ '+(d.motivo||'error')); }
     });
   }
   function guardarConfig(){
@@ -811,8 +828,9 @@
     var body=document.getElementById('sv_body'); body.innerHTML='';
     document.getElementById('sv_selall').checked=false;
     SV_FILAS={};
+    var defActivo = (CONFIG.servicios_default_activo !== 'false');
     list.forEach(function(s){
-      var cfg=SVCFG[s.service]||{activo:true,destacado:false,margen_override:null};
+      var cfg=SVCFG[s.service]||{activo:defActivo,destacado:false,margen_override:null};
       var tr=document.createElement('tr');
       tr.innerHTML='<td data-label=""><input type="checkbox" class="sv_chk"></td>'+
         '<td data-label="Servicio" style="text-align:right">'+s.name+'</td><td data-label="Coste/1000">'+eur(parseFloat(s.rate))+'</td>'+
