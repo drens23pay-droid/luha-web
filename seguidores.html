@@ -350,13 +350,25 @@
     }).catch(function(){ alert('No se pudo iniciar el Bizum automático. Usa el Bizum manual por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Bizum automático'; });
   });
 
-  // Cargar catálogo real (o DEMO de respaldo)
-  fetch('/api/servicios').then(function(r){return r.json()}).then(function(d){
+  // Cargar catálogo real (o DEMO de respaldo) + config del admin (mostrar/ocultar, margen por servicio)
+  Promise.all([
+    fetch('/api/servicios').then(function(r){return r.json()}).catch(function(){return null}),
+    fetch('/api/servicios-config').then(function(r){return r.json()}).catch(function(){return []})
+  ]).then(function(res){
+    var d=res[0], cfgList=Array.isArray(res[1])?res[1]:[];
+    var CFG={}; cfgList.forEach(function(c){ CFG[String(c.service_id)]=c; });
     if(!Array.isArray(d)||!d.length) throw 0;
-    var list=d.filter(function(s){return !esBasura(s)}).map(function(s){return {
-      p:mapPlat(s), n:s.name, rate:parseFloat(s.rate)*MARGIN,
-      min:parseInt(s.min)||100, max:parseInt(s.max)||10000, id:s.service
-    }});
+    var list=d.filter(function(s){
+      if(esBasura(s)) return false;
+      var cfg=CFG[String(s.service)];
+      if(cfg && cfg.activo===false) return false; // oculto desde el admin
+      return true;
+    }).map(function(s){
+      var cfg=CFG[String(s.service)];
+      var m = (cfg && cfg.margen_override!=null && cfg.margen_override!=='') ? (1+parseFloat(cfg.margen_override)/100) : MARGIN;
+      return { p:mapPlat(s), n:s.name, rate:parseFloat(s.rate)*m,
+        min:parseInt(s.min)||100, max:parseInt(s.max)||10000, id:s.service };
+    });
     if(!list.length) throw 0;
     build(list);
   }).catch(function(){ build(DEMO); });
