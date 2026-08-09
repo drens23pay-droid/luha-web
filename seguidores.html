@@ -240,10 +240,15 @@
 
   function build(list){
     DATA=list;
+    var tabs=document.getElementById('tabs');tabs.innerHTML='';
+    if(!list.length){
+      document.getElementById('info').textContent='Aún no hay servicios activos. Actívalos desde el panel de administración (Servicios API → Mostrar).';
+      document.getElementById('grid').innerHTML='';
+      return;
+    }
     var plats=[];
     DATA.forEach(function(s){if(plats.indexOf(s.p)<0)plats.push(s.p)});
     plats.sort(function(a,b){var ia=ORDER.indexOf(a),ib=ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)});
-    var tabs=document.getElementById('tabs');tabs.innerHTML='';
     plats.forEach(function(p,i){
       var el=document.createElement('span');
       el.className='tab'+(i===0?' on':'');
@@ -371,8 +376,7 @@
       return { p:mapPlat(s), n:s.name, rate:parseFloat(s.rate)*m,
         min:parseInt(s.min)||100, max:parseInt(s.max)||10000, id:s.service };
     });
-    if(!list.length) throw 0;
-    build(list);
+    build(list); // si está vacío (p.ej. modo curado sin nada activado aún), se muestra vacío, no el DEMO
   }).catch(function(){ build(DEMO); });
 </script>
 </body>
