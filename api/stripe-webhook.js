@@ -34,17 +34,17 @@ module.exports = async (req, res) => {
       // Entrega automática: si el producto tiene contenido de entrega y el cliente dejó email, se lo enviamos.
       try {
         const nombreProducto = (session.metadata && session.metadata.producto) || '';
-        const GMAIL_USER = process.env.GMAIL_USER, GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
-        if (SUPABASE_URL && SUPABASE_KEY && nombreProducto && cd.email && GMAIL_USER && GMAIL_PASS) {
+        const EMAIL_USER = process.env.EMAIL_USER, EMAIL_PASS = process.env.EMAIL_PASS;
+        if (SUPABASE_URL && SUPABASE_KEY && nombreProducto && cd.email && EMAIL_USER && EMAIL_PASS) {
           const rp = await fetch(SUPABASE_URL + '/rest/v1/productos?nombre=eq.' + encodeURIComponent(nombreProducto) + '&select=entrega', { headers: SH });
           const rows = await rp.json();
           const entrega = Array.isArray(rows) && rows[0] && rows[0].entrega;
           const nodemailer = require('nodemailer');
-          const t = nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: String(GMAIL_PASS).replace(/\s/g, '') } });
+          const t = nodemailer.createTransport({ host:'smtp.dondominio.com', port:465, secure:true, auth: { user: EMAIL_USER, pass: String(EMAIL_PASS).replace(/\s/g, '') } });
           if (entrega) {
             const htmlEntrega = String(entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
             await t.sendMail({
-              from: 'LUHA <' + GMAIL_USER + '>',
+              from: 'LUHA <' + EMAIL_USER + '>',
               to: cd.email,
               subject: '🎉 Tu compra en LUHA — ' + nombreProducto,
               html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
@@ -59,7 +59,7 @@ module.exports = async (req, res) => {
             // Sin entrega automática (seguidores/likes, combos, etc.): confirmación genérica de pago.
             const total = ((session.amount_total || 0) / 100).toFixed(2).replace('.', ',');
             await t.sendMail({
-              from: 'LUHA <' + GMAIL_USER + '>',
+              from: 'LUHA <' + EMAIL_USER + '>',
               to: cd.email,
               subject: '✅ Hemos recibido tu pago — ' + nombreProducto,
               html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
