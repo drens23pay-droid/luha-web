@@ -160,6 +160,7 @@
       <a data-s="productos">🛍️ Productos</a>
       <a data-s="categorias">🏷️ Categorías</a>
       <a data-s="banners">🖼️ Banners del home</a>
+      <a data-s="posters">🎬 Portadas de categorías</a>
       <a href="index.html">👁️ Ver tienda</a>
       <a onclick="salir()">🚪 Salir</a>
     </div>
@@ -452,6 +453,66 @@
       </div>
     </div>
 
+    <!-- PORTADAS DE CATEGORÍAS -->
+    <div class="section" id="s-posters">
+      <h1>Portadas de categorías</h1>
+      <div class="sub">La fila de tarjetas tipo "portadas" que se desliza sola debajo del banner. Puedes usar una foto, o dejar sin foto y se muestra con ícono/emoji sobre un color.</div>
+      <div class="panel">
+        <h2 id="pos_titulo">Nueva portada</h2>
+        <input type="hidden" id="pos_id">
+        <label>Foto (opcional — si no subes ninguna, se usa el ícono + color)</label>
+        <div class="drop" id="posDropZone">
+          <i>📷</i>
+          <p>Arrastra una imagen aquí o haz clic para elegirla (recomendado 500×650px, formato vertical tipo portada)</p>
+          <input type="file" id="pos_file" accept="image/*" style="display:none">
+        </div>
+        <div class="uploading" id="posUploadingMsg">Subiendo imagen…</div>
+        <div class="preview" id="pos_preview">
+          <img id="pos_preview_img" alt="preview">
+          <button class="rm" id="pos_preview_rm" type="button">✕</button>
+        </div>
+        <input type="hidden" id="pos_img">
+
+        <div class="two" style="margin-top:12px">
+          <div><label>Título</label><input id="pos_titulo_txt" placeholder="Ej. Streaming"></div>
+          <div><label>Descripción corta</label><input id="pos_sub" placeholder="Ej. Netflix, HBO, Disney+, Spotify"></div>
+        </div>
+        <div class="two" style="margin-top:12px">
+          <div><label>Etiqueta pequeña (opcional)</label><input id="pos_badge" placeholder="Ej. 🔥 Popular"></div>
+          <div><label>Ícono / emoji (si no subes foto)</label><input id="pos_icono" placeholder="Ej. 🎬"></div>
+        </div>
+        <div class="two" style="margin-top:12px">
+          <div><label>Color de fondo (si no subes foto)</label>
+            <select id="pos_color">
+              <option value="rojo">Rojo</option>
+              <option value="morado">Morado</option>
+              <option value="naranja">Naranja</option>
+              <option value="verdeazul">Verde azulado</option>
+              <option value="azul">Azul</option>
+              <option value="verde">Verde</option>
+            </select>
+          </div>
+          <div><label>Al hacer clic, lleva a...</label>
+            <input id="pos_link" placeholder="Ej. categoria.html?cat=Streaming o seguidores.html">
+          </div>
+        </div>
+        <label style="margin:10px 0 0"><input type="checkbox" id="pos_activo" checked style="width:auto;margin-right:8px">Visible en la web</label>
+
+        <div style="margin-top:16px" class="row">
+          <button class="btn btn-neon" onclick="guardarPoster()">Guardar portada</button>
+          <button class="btn btn-ghost" onclick="resetPoster()">Limpiar</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin-bottom:0">Tus portadas (en este orden se muestran)</h2>
+          <button class="btn btn-ghost" style="padding:5px 12px" onclick="cargarPosters()">🔄 Actualizar</button>
+        </div>
+        <div id="listaPosters" style="margin-top:12px"><div class="muted">Cargando…</div></div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -520,7 +581,7 @@
   }
 
   function iniciar(){
-    cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias(); cargarPedidos(); cargarBanners();
+    cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias(); cargarPedidos(); cargarBanners(); cargarPosters();
   }
 
   // ---------- PEDIDOS ----------
@@ -764,6 +825,129 @@
       if(f) subirArchivoBan(f);
     });
     document.getElementById('ban_preview_rm').addEventListener('click',function(e){ e.stopPropagation(); mostrarPreviewBan(''); input.value=''; });
+  })();
+
+  // ---------- PORTADAS DE CATEGORÍAS ----------
+  var POS_COLOR_LABEL = { rojo:'Rojo', morado:'Morado', naranja:'Naranja', verdeazul:'Verde azulado', azul:'Azul', verde:'Verde' };
+  function cargarPosters(){
+    var box=document.getElementById('listaPosters');
+    box.innerHTML='<div class="muted">Cargando…</div>';
+    fetch('/api/banners?tabla=posters',{headers:H()}).then(function(r){return r.json()}).then(function(d){
+      if(!Array.isArray(d)){
+        box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo leer la tabla de portadas ('+(d&&d.motivo?d.motivo:'error')+'). Puede que la tabla "posters" no exista todavía en Supabase — revisa la guía de instalación.</div>';
+        return;
+      }
+      if(!d.length){ box.innerHTML='<div class="muted">Aún no hay portadas propias — la web está mostrando 6 portadas de ejemplo con tus colores. Crea la primera arriba ⬆️ y las reemplaza.</div>'; return; }
+      d.sort(function(a,b){return (a.orden||0)-(b.orden||0)});
+      box.innerHTML='';
+      d.forEach(function(p,i){
+        var el=document.createElement('div'); el.className='item';
+        var thumb = p.imagen_url ? '<img src="'+p.imagen_url+'" style="width:44px;height:56px;object-fit:cover;border-radius:6px" onerror="this.style.display=\'none\'">' : '<span style="width:44px;text-align:center;font-size:20px">'+(p.icono||'🖼️')+'</span>';
+        el.innerHTML=thumb+
+          '<span class="switch" title="Mostrar/ocultar">'+(p.activo!==false?'✅':'⬜')+'</span>'+
+          '<span>'+(p.titulo||'(sin título)')+' <span class="muted" style="font-size:12px">— '+(POS_COLOR_LABEL[p.color]||'')+'</span></span>'+
+          '<button class="btn btn-ghost" style="margin-left:auto;padding:4px 8px">↑</button>'+
+          '<button class="btn btn-ghost" style="padding:4px 8px">↓</button>'+
+          '<button class="btn btn-ghost" style="padding:4px 10px">Editar</button>'+
+          '<button class="btn btn-danger" style="padding:4px 10px">Borrar</button>';
+        var sw=el.querySelector('.switch'), btns=el.querySelectorAll('button');
+        sw.onclick=function(){
+          var nuevo = p.activo===false;
+          fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify({tabla:'posters',action:'editar',id:p.id,data:{activo:nuevo}})})
+            .then(function(r){return r.json()}).then(function(res){ if(res.ok){ p.activo=nuevo; sw.textContent=nuevo?'✅':'⬜'; toast('✅ Actualizado'); } });
+        };
+        btns[0].onclick=function(){ moverPoster(d,i,-1); };
+        btns[1].onclick=function(){ moverPoster(d,i,1); };
+        btns[2].onclick=function(){ editarPoster(p); };
+        btns[3].onclick=function(){ if(confirm('¿Borrar esta portada?')){
+          fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify({tabla:'posters',action:'borrar',id:p.id})}).then(function(){cargarPosters()});
+        }};
+        box.appendChild(el);
+      });
+    }).catch(function(){
+      box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo conectar con el servidor.</div>';
+    });
+  }
+  function moverPoster(lista,i,dir){
+    var j=i+dir; if(j<0||j>=lista.length) return;
+    var a=lista[i], b=lista[j];
+    var oa=a.orden||0, ob=b.orden||0;
+    Promise.all([
+      fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify({tabla:'posters',action:'editar',id:a.id,data:{orden:ob}})}),
+      fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify({tabla:'posters',action:'editar',id:b.id,data:{orden:oa}})})
+    ]).then(function(){ cargarPosters(); });
+  }
+  function editarPoster(p){
+    document.getElementById('pos_titulo').textContent='Editar portada';
+    document.getElementById('pos_id').value=p.id;
+    document.getElementById('pos_titulo_txt').value=p.titulo||'';
+    document.getElementById('pos_sub').value=p.subtitulo||'';
+    document.getElementById('pos_badge').value=p.badge||'';
+    document.getElementById('pos_icono').value=p.icono||'';
+    document.getElementById('pos_color').value=p.color||'morado';
+    document.getElementById('pos_link').value=p.enlace||'';
+    document.getElementById('pos_activo').checked=p.activo!==false;
+    mostrarPreviewPos(p.imagen_url||'');
+    window.scrollTo(0,0);
+  }
+  function resetPoster(){
+    document.getElementById('pos_titulo').textContent='Nueva portada';
+    document.getElementById('pos_id').value='';
+    document.getElementById('pos_titulo_txt').value=''; document.getElementById('pos_sub').value='';
+    document.getElementById('pos_badge').value=''; document.getElementById('pos_icono').value='';
+    document.getElementById('pos_color').value='morado'; document.getElementById('pos_link').value='';
+    document.getElementById('pos_activo').checked=true;
+    mostrarPreviewPos(''); document.getElementById('pos_file').value='';
+  }
+  function guardarPoster(){
+    var titulo=document.getElementById('pos_titulo_txt').value.trim();
+    if(!titulo){ toast('Escribe un título'); return; }
+    var data={ titulo:titulo, subtitulo:document.getElementById('pos_sub').value.trim(),
+      badge:document.getElementById('pos_badge').value.trim(),
+      icono:document.getElementById('pos_icono').value.trim(),
+      color:document.getElementById('pos_color').value,
+      imagen_url:document.getElementById('pos_img').value,
+      enlace:document.getElementById('pos_link').value.trim()||'index.html',
+      activo:document.getElementById('pos_activo').checked };
+    var id=document.getElementById('pos_id').value;
+    var payload = id ? {tabla:'posters',action:'editar',id:id,data:data} : {tabla:'posters',action:'crear',data:Object.assign({orden:999},data)};
+    fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify(payload)}).then(function(r){return r.json()}).then(function(d){
+      if(d.ok){ toast('✅ Portada guardada'); resetPoster(); cargarPosters(); } else { toast('❌ '+(d.motivo||'error')); }
+    });
+  }
+  function mostrarPreviewPos(url){
+    document.getElementById('pos_img').value=url||'';
+    var box=document.getElementById('pos_preview'), img=document.getElementById('pos_preview_img');
+    if(url){ img.src=url; box.style.display='block'; } else { img.src=''; box.style.display='none'; }
+  }
+  function subirArchivoPos(file){
+    if(!file) return;
+    if(!/^image\//.test(file.type)){ toast('Solo se admiten imágenes'); return; }
+    if(file.size > 5*1024*1024){ toast('Máximo 5MB'); return; }
+    var reader=new FileReader();
+    document.getElementById('posUploadingMsg').style.display='block';
+    reader.onload=function(){
+      var base64=reader.result.split(',')[1];
+      fetch('/api/upload',{method:'POST',headers:H(),body:JSON.stringify({filename:file.name,contentType:file.type,dataBase64:base64})})
+        .then(function(r){return r.json()}).then(function(d){
+          document.getElementById('posUploadingMsg').style.display='none';
+          if(d.ok){ mostrarPreviewPos(d.url); toast('✅ Imagen subida'); }
+          else { toast('❌ '+(d.motivo||'error al subir')); }
+        }).catch(function(){ document.getElementById('posUploadingMsg').style.display='none'; toast('❌ Error al subir'); });
+    };
+    reader.readAsDataURL(file);
+  }
+  (function(){
+    var zone=document.getElementById('posDropZone'), input=document.getElementById('pos_file');
+    zone.addEventListener('click',function(){ input.click(); });
+    input.addEventListener('change',function(){ if(input.files[0]) subirArchivoPos(input.files[0]); });
+    ['dragenter','dragover'].forEach(function(ev){ zone.addEventListener(ev,function(e){ e.preventDefault(); zone.classList.add('over'); }); });
+    ['dragleave','drop'].forEach(function(ev){ zone.addEventListener(ev,function(e){ e.preventDefault(); zone.classList.remove('over'); }); });
+    zone.addEventListener('drop',function(e){
+      var f=e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) subirArchivoPos(f);
+    });
+    document.getElementById('pos_preview_rm').addEventListener('click',function(e){ e.stopPropagation(); mostrarPreviewPos(''); input.value=''; });
   })();
 
   // ---------- CONFIG ----------
