@@ -338,14 +338,18 @@
         <div class="two">
           <div><label>Nombre</label><input id="prod_nombre" placeholder="Netflix Premium 1 mes"></div>
           <div><label>Categoría</label>
-            <select id="prod_cat"><option>Streaming</option><option>Música</option><option>IA</option><option>Software</option><option>Cursos</option><option>VPN</option></select>
+            <select id="prod_cat"><option>Streaming</option><option>Música</option><option>IA</option><option>Software</option><option>Cursos</option><option>VPN</option><option>Creativos</option></select>
           </div>
         </div>
         <div class="three">
-          <div><label>Precio (€)</label><input id="prod_precio" type="number" step="0.01"></div>
+          <div><label>Precio (€) <span style="font-weight:400;color:var(--muted,#8a8398)">— si es "Por cotización", este es opcional (se muestra como "Desde X€")</span></label><input id="prod_precio" type="number" step="0.01"></div>
           <div><label>Precio anterior (€)</label><input id="prod_old" type="number" step="0.01"></div>
           <div><label>Stock</label><select id="prod_stock"><option>En stock</option><option>Agotado</option></select></div>
         </div>
+        <label style="margin-top:6px">
+          <input type="checkbox" id="prod_cotizacion" style="width:auto;margin-right:8px">
+          Por cotización (sin precio fijo — el botón manda WhatsApp para cerrar precio en vez de cobrar directo)
+        </label>
         <label>Descripción</label>
         <textarea id="prod_desc" rows="2"></textarea>
         <label>🚀 Entrega automática (opcional) — esto se envía por email al cliente en cuanto paga con tarjeta</label>
@@ -1275,7 +1279,8 @@
       box.innerHTML='';
       d.forEach(function(p){
         var el=document.createElement('div'); el.className='item';
-        el.innerHTML='<span><b>'+p.nombre+'</b> — '+eur(p.precio)+' <span class="muted">('+(p.categoria||'')+')</span>'+(p.activo?'':' <span class="tag off">oculto</span>')+'</span>';
+        var precioTxt = p.cotizacion ? ('Cotización'+(p.precio?(' (desde '+eur(p.precio)+')'):'')) : eur(p.precio);
+        el.innerHTML='<span><b>'+p.nombre+'</b> — '+precioTxt+' <span class="muted">('+(p.categoria||'')+')</span>'+(p.activo?'':' <span class="tag off">oculto</span>')+'</span>';
         var star=document.createElement('span'); star.className='switch'; star.style.marginLeft='auto';
         star.title='Destacado en el home (Más vendidos)';
         star.textContent = p.destacado ? '⭐' : '☆';
@@ -1308,12 +1313,14 @@
     mostrarPreview(p.imagen_url||'');
     document.getElementById('prod_stripe').value=p.stripe_link||'';
     document.getElementById('prod_dest').checked=!!p.destacado;
+    document.getElementById('prod_cotizacion').checked=!!p.cotizacion;
     window.scrollTo(0,0);
   }
   function resetProducto(){
     document.getElementById('prod_titulo').textContent='Nuevo producto';
     ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_entrega','prod_stripe'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('prod_dest').checked=false;
+    document.getElementById('prod_cotizacion').checked=false;
     mostrarPreview('');
     document.getElementById('prod_file').value='';
   }
@@ -1358,14 +1365,15 @@
     var errBox=document.getElementById('prod_err'); errBox.style.display='none';
     var nombre=document.getElementById('prod_nombre').value.trim();
     var precio=parseFloat(document.getElementById('prod_precio').value)||0;
-    if(!nombre || precio<=0){ toast('Completa nombre y precio'); return; }
+    var esCotizacion=document.getElementById('prod_cotizacion').checked;
+    if(!nombre || (!esCotizacion && precio<=0)){ toast(esCotizacion?'Escribe un nombre':'Completa nombre y precio'); return; }
     if(!TOKEN){ errBox.textContent='⚠️ No has iniciado sesión correctamente. Sal y vuelve a entrar con tu ADMIN_TOKEN.'; errBox.style.display='block'; return; }
     var data={ nombre:nombre, categoria:document.getElementById('prod_cat').value,
-      precio:precio, precio_anterior:parseFloat(document.getElementById('prod_old').value)||null,
+      precio:precio||null, precio_anterior:parseFloat(document.getElementById('prod_old').value)||null,
       stock:document.getElementById('prod_stock').value, descripcion:document.getElementById('prod_desc').value,
       entrega:document.getElementById('prod_entrega').value,
       imagen_url:document.getElementById('prod_img').value, stripe_link:document.getElementById('prod_stripe').value,
-      destacado:document.getElementById('prod_dest').checked, activo:true };
+      destacado:document.getElementById('prod_dest').checked, cotizacion:esCotizacion, activo:true };
     var id=document.getElementById('prod_id').value;
     var payload = id ? {action:'editar',id:id,data:data} : {action:'crear',data:data};
     fetch('/api/productos',{method:'POST',headers:H(),body:JSON.stringify(payload)}).then(function(r){return r.json()}).then(function(d){
