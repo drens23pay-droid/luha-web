@@ -22,6 +22,13 @@
   .bar nav{display:flex;gap:18px;margin-left:10px;font-size:14px;color:var(--txt-mut)}
   .bar nav a:hover{color:var(--lila)}
   .wa{margin-left:auto;background:#1f2a1f;border:1px solid #2b5c33;color:#7ee59a;padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px}
+  .navToggle{display:none;background:transparent;border:1px solid var(--line);color:#fff;width:40px;height:40px;
+    border-radius:10px;font-size:18px;align-items:center;justify-content:center;cursor:pointer}
+  .mobileNav{display:none;position:fixed;top:66px;left:0;right:0;bottom:0;background:var(--bg2);z-index:150;padding:20px;overflow-y:auto}
+  .mobileNav.open{display:block}
+  .mobileNav a{display:block;padding:15px 16px;font-size:17px;font-weight:700;color:var(--txt);
+    border-bottom:1px solid rgba(168,85,247,.12);border-radius:10px}
+  .mobileNav a:active{background:rgba(168,85,247,.12)}
   .hero{text-align:center;padding:44px 0 20px}
   .hero .kick{display:inline-block;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);border:1px solid var(--line);padding:6px 14px;border-radius:30px;margin-bottom:16px}
   .hero h1{font-size:40px;font-weight:800}
@@ -92,7 +99,7 @@
   .pay.card{background:linear-gradient(90deg,rgba(255,61,174,.15),rgba(34,225,214,.12));border-color:var(--neon)}
   .close{background:transparent;border:none;color:var(--txt-mut);font-size:22px;cursor:pointer;float:right;line-height:1}
   .close:hover{color:#fff}
-  @media(max-width:760px){.bar nav{display:none}.hero h1{font-size:30px}}
+  @media(max-width:760px){.bar nav{display:none}.navToggle{display:flex}.hero h1{font-size:30px}}
 </style>
 </head>
 <body>
@@ -111,8 +118,16 @@
     <a class="logo" href="index.html">LU<span>HA</span></a>
     <nav><a href="index.html">Inicio</a><a href="categoria.html">Streaming</a><a href="seguidores.html">Seguidores</a><a href="index.html#cursos">Cursos</a></nav>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
+    <button class="navToggle" id="navToggle" aria-label="Menú" type="button">☰</button>
   </div>
 </header>
+
+<div class="mobileNav" id="mobileNav">
+  <a href="index.html">Inicio</a>
+  <a href="categoria.html">Streaming</a>
+  <a href="seguidores.html">Seguidores</a>
+  <a href="index.html#cursos">Cursos</a>
+</div>
 
 <div class="wrap">
   <div class="hero">
@@ -176,6 +191,19 @@
   var BIZUM='641 564 952'; // número/teléfono para Bizum (edítalo si es otro)
   function wa(t){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(t)}
   document.querySelectorAll('.wa,.fab').forEach(function(a){a.setAttribute('href',wa('Hola LUHA 👋 quiero información sobre seguidores.'))});
+
+  // ---- Menú móvil (hamburguesa) ----
+  (function(){
+    var toggle=document.getElementById('navToggle'), menu=document.getElementById('mobileNav');
+    if(!toggle||!menu) return;
+    toggle.addEventListener('click', function(){
+      menu.classList.toggle('open');
+      toggle.textContent = menu.classList.contains('open') ? '✕' : '☰';
+    });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ menu.classList.remove('open'); toggle.textContent='☰'; });
+    });
+  })();
 
   var ICON={Instagram:'📸',TikTok:'🎵',YouTube:'▶️',Facebook:'👍',X:'🐦',Spotify:'🎧',Telegram:'✈️',WhatsApp:'💬',Twitch:'🎮','Tráfico web':'🌐',Otros:'✨'};
   var ORDER=['Instagram','TikTok','YouTube','Facebook','X','Spotify','Telegram','WhatsApp','Twitch','Tráfico web','Otros'];
