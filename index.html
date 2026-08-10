@@ -485,10 +485,10 @@
           <a href="categoria.html?cat=IA">🤖 IA</a>
           <a href="categoria.html?cat=VPN">🔒 VPN</a>
           <a href="categoria.html?cat=Creativos">🎨 Creativos</a>
+          <a href="#cursos">🎓 Cursos</a>
         </div>
       </div>
       <a href="seguidores.html">Seguidores</a>
-      <a href="#cursos">Cursos</a>
     </nav>
     <div class="search"><i>&#128269;</i><input id="searchInput" placeholder="Buscar producto..." autocomplete="off" oninput="buscarEnVivo()" onkeydown="if(event.key==='Enter')buscarGlobal()"><div class="searchDrop" id="searchDrop"></div></div>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
@@ -505,9 +505,9 @@
   <a href="categoria.html?cat=IA">🤖 IA</a>
   <a href="categoria.html?cat=VPN">🔒 VPN</a>
   <a href="categoria.html?cat=Creativos">🎨 Creativos</a>
+  <a href="#cursos">🎓 Cursos</a>
   </div>
   <a href="seguidores.html">📈 Seguidores</a>
-  <a href="#cursos">🎓 Cursos</a>
   <a class="wa" href="#">&#9993; +34 641 564 952</a>
   <button class="btn btn-ghost">Entrar</button>
 </div>
@@ -1004,19 +1004,22 @@
   var ICONO_CAT = { 'Streaming':'🎬','Software':'💻','IA':'🤖','VPN':'🔒','Creativos':'🎨','Música':'🎵','Cursos':'🎓','Juegos':'🎮' };
   function pintarMenuCategorias(cats){
     if(!Array.isArray(cats) || !cats.length) return;
+    // "Cursos" no es una categoría de la tabla (vive como sección fija en esta misma página),
+    // así que se agrega siempre al final de estas listas para no perderla al repintar.
+    var cursosLink = '<a href="#cursos">🎓 Cursos</a>';
     var drop=document.getElementById('dropMenu');
     if(drop){
       drop.innerHTML = cats.map(function(c){
         var ic = ICONO_CAT[c.nombre] || '🏷️';
         return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+ic+' '+c.nombre+'</a>';
-      }).join('');
+      }).join('') + cursosLink;
     }
     var mob=document.getElementById('mobileCatLinks');
     if(mob){
       mob.innerHTML = cats.map(function(c){
         var ic = ICONO_CAT[c.nombre] || '🏷️';
         return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+ic+' '+c.nombre+'</a>';
-      }).join('');
+      }).join('') + cursosLink;
     }
     var foot=document.getElementById('footerCatLinks');
     if(foot){
