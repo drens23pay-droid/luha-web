@@ -7,7 +7,7 @@ module.exports = async (req, res) => {
   try {
     if (req.method === 'GET') {
       // El campo "entrega" (credenciales/enlaces) NUNCA se expone al público, solo al admin.
-      var cols = 'id,nombre,categoria,precio,precio_anterior,stock,descripcion,imagen_url,stripe_link,destacado,activo,creado';
+      var cols = 'id,nombre,categoria,precio,precio_anterior,stock,descripcion,imagen_url,stripe_link,destacado,activo,creado,cotizacion';
       var q = admin ? '?select=*&order=creado.desc' : '?select='+cols+'&activo=eq.true&order=destacado.desc,creado.desc';
       const r = await fetch(URL+'/rest/v1/productos'+q, { headers:H });
       return res.status(200).json(await r.json());
