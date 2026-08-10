@@ -53,8 +53,10 @@
     background:conic-gradient(from var(--ang),transparent 0deg,var(--cyan) 45deg,var(--neon) 110deg,var(--pink) 175deg,transparent 235deg);
     -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
     opacity:0;transition:opacity .35s;animation:spin 3s linear infinite;pointer-events:none}
-  .card:hover::after{opacity:1}
-  .card:hover{transform:translateY(-4px)}
+  @media(hover:hover) and (pointer:fine){
+    .card:hover::after{opacity:1}
+    .card:hover{transform:translateY(-4px)}
+  }
   .th{height:130px;border-radius:16px 16px 0 0;background:linear-gradient(135deg,#1c1430,#241a3d);display:flex;align-items:center;justify-content:center;font-size:42px;position:relative;overflow:hidden}
   .th img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
   .badge{position:absolute;top:10px;left:10px;background:linear-gradient(90deg,var(--pink),var(--neon2));color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px}
