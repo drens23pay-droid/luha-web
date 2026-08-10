@@ -8,15 +8,15 @@ module.exports = async (req, res) => {
     return res.status(401).json({ ok:false, motivo:'NO_AUTORIZADO', ayuda:'Añade ?token=TU_ADMIN_TOKEN a la URL' });
   }
 
-  const user = process.env.GMAIL_USER || '';
-  const pass = process.env.GMAIL_APP_PASSWORD || '';
+  const user = process.env.EMAIL_USER || '';
+  const pass = process.env.EMAIL_PASS || '';
 
   const diagnostico = {
-    GMAIL_USER_definido: !!user,
-    GMAIL_USER_parece_email: /@/.test(user),
-    GMAIL_APP_PASSWORD_definido: !!pass,
-    GMAIL_APP_PASSWORD_longitud: pass.length,
-    GMAIL_APP_PASSWORD_tiene_espacios: /\s/.test(pass),
+    EMAIL_USER_definido: !!user,
+    EMAIL_USER_parece_email: /@/.test(user),
+    EMAIL_PASS_definido: !!pass,
+    EMAIL_PASS_longitud: pass.length,
+    EMAIL_PASS_tiene_espacios: /\s/.test(pass),
     nodemailer_instalado: true
   };
   try { require('nodemailer'); } catch (e) { diagnostico.nodemailer_instalado = false; }
@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
 
   try {
     const nodemailer = require('nodemailer');
-    const t = nodemailer.createTransport({ service:'gmail', auth:{ user:user, pass:pass.replace(/\s/g,'') } });
+    const t = nodemailer.createTransport({ host:'smtp.dondominio.com', port:465, secure:true, auth:{ user:user, pass:pass.replace(/\s/g,'') } });
     const info = await t.sendMail({
       from: 'LUHA <' + user + '>',
       to: user,
