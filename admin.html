@@ -1369,7 +1369,7 @@
     if(!nombre || (!esCotizacion && precio<=0)){ toast(esCotizacion?'Escribe un nombre':'Completa nombre y precio'); return; }
     if(!TOKEN){ errBox.textContent='⚠️ No has iniciado sesión correctamente. Sal y vuelve a entrar con tu ADMIN_TOKEN.'; errBox.style.display='block'; return; }
     var data={ nombre:nombre, categoria:document.getElementById('prod_cat').value,
-      precio:precio||null, precio_anterior:parseFloat(document.getElementById('prod_old').value)||null,
+      precio:precio, precio_anterior:parseFloat(document.getElementById('prod_old').value)||null,
       stock:document.getElementById('prod_stock').value, descripcion:document.getElementById('prod_desc').value,
       entrega:document.getElementById('prod_entrega').value,
       imagen_url:document.getElementById('prod_img').value, stripe_link:document.getElementById('prod_stripe').value,
