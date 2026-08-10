@@ -75,7 +75,7 @@ module.exports = async (req, res) => {
                   '<h2 style="color:#ff5c7a">Pedido cancelado</h2>' +
                   '<p>Tu pedido de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' por ' + Number(ped.precio||0).toFixed(2).replace('.',',') + ' € ha sido cancelado.</p>' +
                   '<p>Si crees que es un error o ya habías pagado, escríbenos por WhatsApp y lo resolvemos: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
-                  '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
+                  '<p style="color:#999;font-size:12px">LUHA · luhashop.es</p></div>'
               });
               emailEnviado = true;
             } else if (ped && email && EMAIL_USER && EMAIL_PASS && !yaAvisado) {
@@ -96,7 +96,7 @@ module.exports = async (req, res) => {
                     '<p>Tu pago de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' se ha confirmado. Aquí tienes tu acceso:</p>' +
                     '<div style="background:#f4f2fb;border-radius:12px;padding:16px;font-size:15px">' + htmlEntrega + '</div>' +
                     '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
-                    '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
+                    '<p style="color:#999;font-size:12px">LUHA · luhashop.es</p></div>'
                 });
                 b.data.estado = 'entregado';
                 emailEnviado = true;
@@ -111,7 +111,7 @@ module.exports = async (req, res) => {
                     '<h2 style="color:#8B2FFF">¡Pedido completado!</h2>' +
                     '<p>Tu pedido de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' ya ha sido entregado. ¡Gracias por tu compra!</p>' +
                     '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
-                    '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
+                    '<p style="color:#999;font-size:12px">LUHA · luhashop.es</p></div>'
                 });
                 emailEnviado = true;
               } else {
@@ -125,7 +125,7 @@ module.exports = async (req, res) => {
                     '<p>Hemos recibido tu pago de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' por un total de ' + Number(ped.precio||0).toFixed(2).replace('.',',') + ' €.</p>' +
                     '<p>Tu pedido ya está en proceso y lo iremos completando en breve. Te avisaremos si necesitamos algo más.</p>' +
                     '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
-                    '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
+                    '<p style="color:#999;font-size:12px">LUHA · luhashop.es</p></div>'
                 });
                 emailEnviado = true;
               }
