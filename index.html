@@ -160,8 +160,17 @@
     background:linear-gradient(0deg,rgba(0,0,0,.7),rgba(0,0,0,0) 85%)}
   .bKick{display:inline-block;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#fff;
     border:1px solid rgba(255,255,255,.35);padding:6px 14px;border-radius:30px;margin-bottom:16px}
-  .bText h3{font-size:32px;font-weight:800;margin-bottom:10px;color:#fff;line-height:1.15}
-  .bText p{color:rgba(255,255,255,.8);margin-bottom:20px;font-size:15px}
+  .bText h3{font-size:32px;font-weight:800;margin-bottom:10px;color:#fff;line-height:1.15;
+    text-shadow:0 2px 10px rgba(0,0,0,.6)}
+  .bText p{color:rgba(255,255,255,.85);margin-bottom:16px;font-size:15px;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+  .bCta{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;color:#fff;
+    background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));padding:9px 18px;border-radius:30px;
+    box-shadow:0 0 18px rgba(168,85,247,.5)}
+  @media(max-width:820px){
+    .bSlide.img .bText{padding:18px 22px 16px}
+    .bText h3{font-size:20px}
+    .bCta{font-size:13px;padding:8px 14px}
+  }
   .bArrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.35);
     border:1px solid rgba(255,255,255,.3);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;
     font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);z-index:2}
@@ -597,8 +606,12 @@
     fetch('/api/banners').then(function(r){return r.json()}).then(function(d){
       if(!Array.isArray(d) || !d.length){ iniciarCarrusel(); return; } // sin banners propios: se quedan los 3 de ejemplo
       track.innerHTML = d.map(function(bn){
-        var overlay = (bn.kick || bn.subtitulo) ?
-          ('<div class="bText">'+(bn.kick?'<span class="bKick">'+bn.kick+'</span>':'')+(bn.subtitulo?'<p>'+bn.subtitulo+'</p>':'')+'</div>') : '';
+        var overlay = '<div class="bText">'+
+          (bn.kick?'<span class="bKick">'+bn.kick+'</span>':'')+
+          (bn.titulo?'<h3>'+bn.titulo+'</h3>':'')+
+          (bn.subtitulo?'<p>'+bn.subtitulo+'</p>':'')+
+          '<span class="bCta">Ver más &rarr;</span>'+
+          '</div>';
         var fondo = bn.imagen_url ? ("url('"+bn.imagen_url+"') center/cover no-repeat") : 'linear-gradient(120deg,#2d0140,#5b0f8a 55%,#0b0b0f)';
         return '<a class="bSlide img" href="'+(bn.enlace||'index.html')+'" style="background:'+fondo+';align-items:flex-end;text-decoration:none">'+overlay+'</a>';
       }).join('');
