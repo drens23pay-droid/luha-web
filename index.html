@@ -164,6 +164,22 @@
   .hero-cta{display:flex;gap:14px;justify-content:center}
   .hero-cta .btn{padding:13px 26px;font-size:15px}
 
+  /* FRANJA DE CONFIANZA — pagos y entrega, texto fijo debajo del header, con más presencia */
+  .trustBar{background:linear-gradient(90deg,rgba(255,61,174,.14),rgba(139,47,255,.20),rgba(34,225,214,.14));
+    border-bottom:1px solid var(--neon);
+    padding:11px 16px;text-align:center;font-size:13.5px;color:var(--txt);font-weight:600;
+    display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;
+    box-shadow:0 4px 22px rgba(139,47,255,.2)}
+  .trustBar span:not(.tSep){background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+    padding:6px 14px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+  .trustBar b{color:var(--cyan);font-weight:800}
+  .trustBar .tSep{opacity:.35;align-self:center}
+  @media(max-width:760px){
+    .trustBar{font-size:11.5px;padding:9px 10px;gap:6px 8px}
+    .trustBar span:not(.tSep){padding:5px 10px}
+    .trustBar .tSep{display:none}
+  }
+
   /* BANNER CARRUSEL */
   .bannerFrame{position:relative;margin:28px 0 30px}
   .bannerFrame::before{content:'';position:absolute;inset:-6px;padding:6px;border-radius:26px;
@@ -488,6 +504,14 @@
   <a href="#cursos">🎓 Cursos</a>
   <a class="wa" href="#">&#9993; +34 641 564 952</a>
   <button class="btn btn-ghost">Entrar</button>
+</div>
+
+<div class="trustBar">
+  <span>💳 Pago con <b>Bizum</b>, Bizum automático o tarjeta</span>
+  <span class="tSep">•</span>
+  <span>⚡ Entrega rápida</span>
+  <span class="tSep">•</span>
+  <span>💬 Soporte por WhatsApp</span>
 </div>
 
 <main class="wrap">
