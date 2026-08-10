@@ -291,8 +291,25 @@
   .fab:hover{transform:scale(1.05)}
   .note{position:fixed;left:22px;bottom:22px;background:var(--card2);border:1px solid var(--line);
     color:var(--txt-mut);font-size:12px;padding:8px 14px;border-radius:10px;z-index:60}
+  /* MENÚ MÓVIL */
+  .navToggle{display:none;background:transparent;border:1px solid var(--line);color:#fff;width:42px;height:42px;
+    border-radius:10px;font-size:19px;align-items:center;justify-content:center;cursor:pointer;margin-left:auto}
+  .mobileNav{display:none;position:fixed;top:70px;left:0;right:0;bottom:0;background:var(--bg2);z-index:150;
+    padding:20px;overflow-y:auto}
+  .mobileNav.open{display:block}
+  .mobileNav a{display:block;padding:15px 16px;font-size:17px;font-weight:700;color:var(--txt);
+    border-bottom:1px solid rgba(168,85,247,.12);border-radius:10px;text-decoration:none}
+  .mobileNav a:active{background:rgba(168,85,247,.12)}
+  .mobileNav .wa{width:100%;justify-content:center;margin-top:14px;padding:14px;border-radius:10px}
+  .mobileNav .btn{width:100%;margin-top:12px;padding:14px;font-size:15px}
+  .mSearch{position:relative;margin-bottom:16px}
+  .mSearch input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);
+    padding:13px 16px 13px 42px;border-radius:10px;font-size:16px;outline:none;box-sizing:border-box}
+  .mSearch i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--lila)}
+
   @media(max-width:760px){
-    nav.top,.search{display:none}
+    nav.top,.search,.bar .wa,.bar>.btn{display:none}
+    .navToggle{display:flex}
     .hero h1{font-size:36px}
     .fgrid{grid-template-columns:1fr}
   }
@@ -374,8 +391,21 @@
     <div class="search"><i>&#128269;</i><input id="searchInput" placeholder="Buscar producto..." autocomplete="off" oninput="buscarEnVivo()" onkeydown="if(event.key==='Enter')buscarGlobal()"><div class="searchDrop" id="searchDrop"></div></div>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
     <button class="btn btn-ghost">Entrar</button>
+    <button class="navToggle" id="navToggle" aria-label="Menú" type="button">☰</button>
   </div>
 </header>
+
+<div class="mobileNav" id="mobileNav">
+  <div class="mSearch"><i>&#128269;</i><input id="searchInputM" placeholder="Buscar producto..." autocomplete="off" onkeydown="if(event.key==='Enter')buscarGlobal('searchInputM')"></div>
+  <a href="categoria.html?cat=Streaming">🎬 Streaming</a>
+  <a href="categoria.html?cat=Software">💻 Software</a>
+  <a href="categoria.html?cat=IA">🤖 IA</a>
+  <a href="categoria.html?cat=VPN">🔒 VPN</a>
+  <a href="seguidores.html">📈 Seguidores</a>
+  <a href="#cursos">🎓 Cursos</a>
+  <a class="wa" href="#">&#9993; +34 641 564 952</a>
+  <button class="btn btn-ghost">Entrar</button>
+</div>
 
 <main class="wrap">
 
@@ -662,11 +692,23 @@
   });
 
   // ---- Buscador del header: búsqueda global entre todos los productos ----
-  function buscarGlobal(){
-    var v=(document.getElementById('searchInput').value||'').trim();
+  function buscarGlobal(id){
+    var v=(document.getElementById(id||'searchInput').value||'').trim();
     if(!v) return;
     location.href='categoria.html?cat=Todos&q='+encodeURIComponent(v);
   }
+  // ---- Menú móvil (hamburguesa) ----
+  (function(){
+    var toggle=document.getElementById('navToggle'), menu=document.getElementById('mobileNav');
+    if(!toggle||!menu) return;
+    toggle.addEventListener('click', function(){
+      menu.classList.toggle('open');
+      toggle.textContent = menu.classList.contains('open') ? '✕' : '☰';
+    });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ menu.classList.remove('open'); toggle.textContent='☰'; });
+    });
+  })();
   var SEARCH_DATA=[];   // productos + paquetes reales (se actualiza solo con lo que agregues en el admin)
   var CATS_DATA=[];     // categorías reales (también se actualiza sola si agregas categorías nuevas)
   Promise.all([
