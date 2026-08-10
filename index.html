@@ -700,10 +700,16 @@
       requestAnimationFrame(tick);
     }
     function armar(piezasHtml){
-      // repite el set varias veces para que siempre haya de sobra y el bucle no se note, sea 1 tarjeta o 20
-      var copia=''; for(var i=0;i<5;i++){ copia+=piezasHtml; }
+      // mide cuánto ocupa UNA vuelta completa de tarjetas...
+      row.innerHTML=piezasHtml;
+      var setWidth = row.scrollWidth || 200;
+      // ...y calcula cuántas veces repetirla para que siempre cubra de sobra el ancho de la pantalla
+      // (si solo hay 1 o 2 portadas, en monitores anchos había un hueco vacío a la derecha — esto lo evita)
+      var minTotal = Math.max(wrap.clientWidth*2.2, 1400);
+      var repes = Math.max(3, Math.ceil(minTotal/setWidth)+1);
+      var copia=''; for(var i=0;i<repes;i++){ copia+=piezasHtml; }
       row.innerHTML=copia;
-      var setWidth = row.scrollWidth/5;
+      setWidth = row.scrollWidth/repes;
       iniciarAutoScroll(setWidth);
     }
     fetch('/api/banners?tabla=posters').then(function(r){return r.json()}).then(function(d){
