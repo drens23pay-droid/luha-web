@@ -478,8 +478,8 @@
     <div class="logo">LU<span>HA</span></div>
     <nav class="top">
       <div class="navdrop">
-        <a href="categoria.html?cat=Streaming">Productos <span class="care">&#9662;</span></a>
-        <div class="dropmenu">
+        <a href="categoria.html?cat=Todos">Productos <span class="care">&#9662;</span></a>
+        <div class="dropmenu" id="dropMenu">
           <a href="categoria.html?cat=Streaming">🎬 Streaming</a>
           <a href="categoria.html?cat=Software">💻 Software</a>
           <a href="categoria.html?cat=IA">🤖 IA</a>
@@ -499,11 +499,13 @@
 
 <div class="mobileNav" id="mobileNav">
   <div class="mSearch"><i>&#128269;</i><input id="searchInputM" placeholder="Buscar producto..." autocomplete="off" onkeydown="if(event.key==='Enter')buscarGlobal('searchInputM')"></div>
+  <div id="mobileCatLinks">
   <a href="categoria.html?cat=Streaming">🎬 Streaming</a>
   <a href="categoria.html?cat=Software">💻 Software</a>
   <a href="categoria.html?cat=IA">🤖 IA</a>
   <a href="categoria.html?cat=VPN">🔒 VPN</a>
   <a href="categoria.html?cat=Creativos">🎨 Creativos</a>
+  </div>
   <a href="seguidores.html">📈 Seguidores</a>
   <a href="#cursos">🎓 Cursos</a>
   <a class="wa" href="#">&#9993; +34 641 564 952</a>
@@ -635,7 +637,7 @@
       </div>
       <div>
         <h5>Tienda</h5>
-        <a href="categoria.html?cat=Streaming">Streaming</a><a href="categoria.html?cat=Software">Software</a><a href="categoria.html?cat=IA">IA</a><a href="#cursos">Cursos</a>
+        <span id="footerCatLinks"><a href="categoria.html?cat=Streaming">Streaming</a><a href="categoria.html?cat=Software">Software</a><a href="categoria.html?cat=IA">IA</a></span><a href="#cursos">Cursos</a>
       </div>
       <div>
         <h5>Legal</h5>
@@ -974,8 +976,10 @@
       menu.classList.toggle('open');
       toggle.textContent = menu.classList.contains('open') ? '✕' : '☰';
     });
-    menu.querySelectorAll('a').forEach(function(a){
-      a.addEventListener('click', function(){ menu.classList.remove('open'); toggle.textContent='☰'; });
+    // Delegado (no querySelectorAll+forEach fijo): así también cierra el menú al tocar
+    // categorías que se agregan dinámicamente después de cargar (ver pintarMenuCategorias).
+    menu.addEventListener('click', function(e){
+      if(e.target.closest('a')){ menu.classList.remove('open'); toggle.textContent='☰'; }
     });
   })();
   var SEARCH_DATA=[];   // productos + paquetes reales (se actualiza solo con lo que agregues en el admin)
@@ -988,10 +992,39 @@
     var productos = Array.isArray(res[0]) ? res[0].filter(function(p){return p.activo!==false}) : [];
     var paquetes = Array.isArray(res[1]) ? res[1].filter(function(p){return p.activo!==false}) : [];
     var categorias = Array.isArray(res[2]) ? res[2].filter(function(c){return c.activa!==false}) : [];
+    categorias.sort(function(a,b){ return (a.orden||0)-(b.orden||0); });
     SEARCH_DATA = productos.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'producto.html?id='+encodeURIComponent(p.id)}; })
       .concat(paquetes.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'seguidores.html'}; }));
     CATS_DATA = categorias.map(function(c){ return {nombre:c.nombre, href:'categoria.html?cat='+encodeURIComponent(c.nombre)}; });
+    pintarMenuCategorias(categorias);
   });
+  // ---- Menús de categorías (dropdown del header, menú móvil y pie de página) se arman
+  // solos con lo que tengas activo en el admin — así cualquier categoría que agregues
+  // (o renombres) aparece automáticamente en toda la web, no solo en el sidebar. ----
+  var ICONO_CAT = { 'Streaming':'🎬','Software':'💻','IA':'🤖','VPN':'🔒','Creativos':'🎨','Música':'🎵','Cursos':'🎓','Juegos':'🎮' };
+  function pintarMenuCategorias(cats){
+    if(!Array.isArray(cats) || !cats.length) return;
+    var drop=document.getElementById('dropMenu');
+    if(drop){
+      drop.innerHTML = cats.map(function(c){
+        var ic = ICONO_CAT[c.nombre] || '🏷️';
+        return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+ic+' '+c.nombre+'</a>';
+      }).join('');
+    }
+    var mob=document.getElementById('mobileCatLinks');
+    if(mob){
+      mob.innerHTML = cats.map(function(c){
+        var ic = ICONO_CAT[c.nombre] || '🏷️';
+        return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+ic+' '+c.nombre+'</a>';
+      }).join('');
+    }
+    var foot=document.getElementById('footerCatLinks');
+    if(foot){
+      foot.innerHTML = cats.map(function(c){
+        return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+c.nombre+'</a>';
+      }).join('');
+    }
+  }
   // Secciones fijas de la web (no viven en una tabla, así que las buscamos por palabras clave habituales).
   // Si agregas categorías o productos nuevos desde el admin, esos se suman solos arriba en SEARCH_DATA/CATS_DATA.
   var STATIC_LINKS=[
