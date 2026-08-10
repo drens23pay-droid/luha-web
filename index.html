@@ -226,8 +226,11 @@
   }
 
   /* POSTER ROW (estilo Netflix: hover que agranda y acerca la portada) */
-  .posterWrap{overflow:hidden;padding:14px 6px 36px}
-  .posterRow{display:flex;gap:16px;width:max-content;will-change:transform}
+  .posterWrap{overflow-x:auto;overflow-y:hidden;padding:14px 6px 36px;cursor:grab;
+    scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
+  .posterWrap::-webkit-scrollbar{display:none}
+  .posterWrap.grabbing{cursor:grabbing}
+  .posterRow{display:flex;gap:16px;width:max-content}
   .poster{position:relative;min-width:172px;height:224px;border-radius:16px;flex:0 0 auto;overflow:hidden;
     text-decoration:none;display:block;border:1px solid var(--line);
     transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s,filter .4s}
@@ -772,17 +775,56 @@
       azul:'linear-gradient(160deg,#031a33,#0f4c75 55%,#0b0b0f)',
       verde:'linear-gradient(160deg,#111a08,#3f5c0f 55%,#0b0b0f)'
     };
+    // Avance automático + control manual: se puede arrastrar con el mouse, deslizar con el
+    // dedo (scroll táctil nativo) o usar la rueda del mouse — y se detiene mientras el usuario
+    // interactúa, retomando solo (moviéndose) unos segundos después de soltar.
+    var paused=false, resumeTimer=null;
+    function pausar(ms){
+      paused=true;
+      clearTimeout(resumeTimer);
+      if(ms){ resumeTimer=setTimeout(function(){ paused=false; }, ms); }
+    }
+    wrap.addEventListener('mouseenter',function(){ pausar(0); });
+    wrap.addEventListener('mouseleave',function(){ if(!isDown) paused=false; });
+    wrap.addEventListener('touchstart',function(){ pausar(0); },{passive:true});
+    wrap.addEventListener('touchend',function(){ pausar(2500); });
+    wrap.addEventListener('wheel',function(e){
+      if(Math.abs(e.deltaY) > Math.abs(e.deltaX)){ wrap.scrollLeft += e.deltaY; e.preventDefault(); }
+      pausar(1800);
+    },{passive:false});
+
+    // Arrastrar con el mouse (como una tarjeta física) para desplazar la fila.
+    var isDown=false, startX=0, startScroll=0, dragged=false;
+    wrap.addEventListener('mousedown',function(e){
+      isDown=true; dragged=false; pausar(0);
+      wrap.classList.add('grabbing');
+      startX=e.pageX; startScroll=wrap.scrollLeft;
+    });
+    window.addEventListener('mousemove',function(e){
+      if(!isDown) return;
+      var dx=e.pageX-startX;
+      if(Math.abs(dx)>5) dragged=true;
+      wrap.scrollLeft=startScroll-dx;
+    });
+    window.addEventListener('mouseup',function(){
+      if(!isDown) return;
+      isDown=false; wrap.classList.remove('grabbing');
+      pausar(1500);
+    });
+    // Si acaba de arrastrar, que no dispare el link de la portada al soltar.
+    wrap.addEventListener('click',function(e){
+      if(dragged){ e.preventDefault(); e.stopPropagation(); dragged=false; }
+    },true);
+
     function iniciarAutoScroll(setWidth){
-      var pos=0, paused=false;
-      wrap.addEventListener('mouseenter',function(){paused=true});
-      wrap.addEventListener('mouseleave',function(){paused=false});
-      wrap.addEventListener('touchstart',function(){paused=true},{passive:true});
-      wrap.addEventListener('touchend',function(){setTimeout(function(){paused=false},2500)});
+      var pos=wrap.scrollLeft;
       function tick(){
-        if(!paused && setWidth>2){
+        if(!paused && !isDown && setWidth>2){
           pos+=0.4;
           if(pos>=setWidth) pos-=setWidth;
-          row.style.transform='translateX(-'+pos+'px)';
+          wrap.scrollLeft=pos;
+        } else if(setWidth>2){
+          pos=wrap.scrollLeft % setWidth; // si el usuario movió la fila a mano, seguimos desde ahí
         }
         requestAnimationFrame(tick);
       }
