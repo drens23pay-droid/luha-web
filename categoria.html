@@ -115,7 +115,7 @@
 <header>
   <div class="wrap bar">
     <a class="logo" href="index.html">LU<span>HA</span></a>
-    <nav><a href="index.html">Inicio</a><a href="categoria.html">Streaming</a><a href="seguidores.html">Seguidores</a><a href="index.html#cursos">Cursos</a></nav>
+    <nav><a href="index.html">Inicio</a><a href="seguidores.html">Seguidores</a><a href="index.html#cursos">Cursos</a></nav>
     <div class="search"><input id="q" placeholder="Buscar producto..."></div>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
     <button class="navToggle" id="navToggle" aria-label="Menú" type="button">☰</button>
@@ -124,7 +124,6 @@
 
 <div class="mobileNav" id="mobileNav">
   <a href="index.html">Inicio</a>
-  <a href="categoria.html">Streaming</a>
   <a href="seguidores.html">Seguidores</a>
   <a href="index.html#cursos">Cursos</a>
 </div>
@@ -242,15 +241,6 @@
   document.getElementById('catSub').textContent = ESBUSQUEDA ? ('Mostrando resultados para "'+Q0+'" en todo el catálogo') : (DESCR[CAT] || 'Todo lo que necesitas, al mejor precio · entrega rápida');
 
   // ---- Catálogo (demo + productos reales del admin), filtrado por categoría (o todo, si es búsqueda) ----
-  var DEMO_ALL=[
-    {nombre:'Netflix Premium · 1 mes',categoria:'Streaming',precio:4.99,precio_anterior:7.99,stock:'En stock',icono:'🎬',destacado:true},
-    {nombre:'HBO Max · 1 mes',categoria:'Streaming',precio:3.99,precio_anterior:5.99,stock:'En stock',icono:'🎭',destacado:false},
-    {nombre:'Disney+ · 1 mes',categoria:'Streaming',precio:3.49,precio_anterior:5.99,stock:'En stock',icono:'📺',destacado:false},
-    {nombre:'Prime Video · 1 mes',categoria:'Streaming',precio:3.29,precio_anterior:4.59,stock:'En stock',icono:'🎞️',destacado:false},
-    {nombre:'Crunchyroll · 1 mes',categoria:'Streaming',precio:2.99,precio_anterior:3.99,stock:'En stock',icono:'🌀',destacado:false},
-    {nombre:'DAZN · 1 mes',categoria:'Streaming',precio:9.99,precio_anterior:12.99,stock:'Agotado',icono:'⚽',destacado:false}
-  ];
-  var DEMO = ESBUSQUEDA ? DEMO_ALL.slice() : DEMO_ALL.filter(function(p){ return p.categoria===CAT; });
   var TODOS=[];
 
   function cardHTML(p){
@@ -403,22 +393,25 @@
     });
   }
 
-  // ---- Cargar catálogo: demo + tus productos reales del admin, filtrado por categoría ----
+  // ---- Cargar catálogo: solo tus productos reales del admin, filtrado por categoría.
+  // (Antes se mezclaban con productos de ejemplo — como los editas en el admin y no en el
+  // código, quedaban invisibles ahí y la gente podía intentar "comprarlos". Ya no.) ----
   if(Q0){ document.getElementById('q').value = Q0; }
-  TODOS = DEMO.slice();
-  if(Q0){ aplicar(); } else { pintar(TODOS); }
+  document.getElementById('grid').innerHTML = '<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">Cargando productos…</div>';
   pintarCategorias();
   fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
-    if(Array.isArray(d) && d.length){
-      var reales = d.filter(function(p){ return ESBUSQUEDA || (p.categoria||'')===CAT; }).map(function(p){ return {
-        id:p.id, nombre:p.nombre, categoria:p.categoria, precio:p.precio, precio_anterior:p.precio_anterior,
-        stock:p.stock, imagen_url:p.imagen_url, destacado:p.destacado, cotizacion:p.cotizacion
-      };});
-      TODOS = reales.concat(DEMO);
-      aplicar();
-      if(!ESBUSQUEDA) pintarCategorias();
-    }
-  }).catch(function(){});
+    var reales = Array.isArray(d) ? d.filter(function(p){ return ESBUSQUEDA || (p.categoria||'')===CAT; }).map(function(p){ return {
+      id:p.id, nombre:p.nombre, categoria:p.categoria, precio:p.precio, precio_anterior:p.precio_anterior,
+      stock:p.stock, imagen_url:p.imagen_url, destacado:p.destacado, cotizacion:p.cotizacion
+    };}) : [];
+    TODOS = reales;
+    aplicar();
+    if(!ESBUSQUEDA) pintarCategorias();
+  }).catch(function(){
+    TODOS = [];
+    aplicar();
+    document.getElementById('empty').textContent = 'No se pudo cargar el catálogo. Intenta de nuevo en un momento.';
+  });
 </script>
 </body>
 </html>
