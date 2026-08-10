@@ -59,16 +59,16 @@ module.exports = async (req, res) => {
             const ped = Array.isArray(rows) && rows[0];
             const m = ped && ped.cliente ? String(ped.cliente).match(/\S+@\S+\.\S+/) : null;
             const email = m ? m[0] : null;
-            const GMAIL_USER = process.env.GMAIL_USER, GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
+            const EMAIL_USER = process.env.EMAIL_USER, EMAIL_PASS = process.env.EMAIL_PASS;
             // Evita reenviar el mismo aviso si el pedido ya estaba exactamente en ese estado (p.ej. clic repetido).
             // pagado -> entregado SÍ debe avisar: son dos correos distintos (confirmación y completado).
             const yaAvisado = ped && ped.estado === estadoDestino;
-            if (ped && email && GMAIL_USER && GMAIL_PASS && !yaAvisado && estadoDestino === 'cancelado') {
+            if (ped && email && EMAIL_USER && EMAIL_PASS && !yaAvisado && estadoDestino === 'cancelado') {
               // Cancelado: no hace falta mirar la entrega, solo avisar de la cancelación.
               const nodemailer = require('nodemailer');
-              const t = nodemailer.createTransport({ service:'gmail', auth:{ user:GMAIL_USER, pass:String(GMAIL_PASS).replace(/\s/g,'') } });
+              const t = nodemailer.createTransport({ host:'smtp.dondominio.com', port:465, secure:true, auth:{ user:EMAIL_USER, pass:String(EMAIL_PASS).replace(/\s/g,'') } });
               await t.sendMail({
-                from: 'LUHA <' + GMAIL_USER + '>',
+                from: 'LUHA <' + EMAIL_USER + '>',
                 to: email,
                 subject: '❌ Tu pedido ha sido cancelado — ' + ped.producto + (ped.codigo ? ' (' + ped.codigo + ')' : ''),
                 html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
@@ -78,17 +78,17 @@ module.exports = async (req, res) => {
                   '<p style="color:#999;font-size:12px">LUHA · luha-web.vercel.app</p></div>'
               });
               emailEnviado = true;
-            } else if (ped && email && GMAIL_USER && GMAIL_PASS && !yaAvisado) {
+            } else if (ped && email && EMAIL_USER && EMAIL_PASS && !yaAvisado) {
               const rprod = await fetch(URL+'/rest/v1/productos?nombre=eq.'+encodeURIComponent(ped.producto)+'&select=entrega', { headers:H });
               const prows = await rprod.json();
               const entrega = Array.isArray(prows) && prows[0] && prows[0].entrega;
               const nodemailer = require('nodemailer');
-              const t = nodemailer.createTransport({ service:'gmail', auth:{ user:GMAIL_USER, pass:String(GMAIL_PASS).replace(/\s/g,'') } });
+              const t = nodemailer.createTransport({ host:'smtp.dondominio.com', port:465, secure:true, auth:{ user:EMAIL_USER, pass:String(EMAIL_PASS).replace(/\s/g,'') } });
               if (entrega) {
                 // Producto con acceso automático (usuario/contraseña, link, curso...)
                 const htmlEntrega = String(entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
                 await t.sendMail({
-                  from: 'LUHA <' + GMAIL_USER + '>',
+                  from: 'LUHA <' + EMAIL_USER + '>',
                   to: email,
                   subject: '🎉 Tu compra en LUHA — ' + ped.producto + (ped.codigo ? ' (' + ped.codigo + ')' : ''),
                   html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
@@ -104,7 +104,7 @@ module.exports = async (req, res) => {
                 // Sin entrega automática, pero el admin lo marca como entregado (ej. ya se enviaron
                 // los seguidores/likes a mano): aviso de pedido completado.
                 await t.sendMail({
-                  from: 'LUHA <' + GMAIL_USER + '>',
+                  from: 'LUHA <' + EMAIL_USER + '>',
                   to: email,
                   subject: '✅ Tu pedido está completo — ' + ped.producto + (ped.codigo ? ' (' + ped.codigo + ')' : ''),
                   html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
@@ -117,7 +117,7 @@ module.exports = async (req, res) => {
               } else {
                 // "pagado" sin entrega automática (ej. seguidores/likes, combos): confirmación genérica de pago.
                 await t.sendMail({
-                  from: 'LUHA <' + GMAIL_USER + '>',
+                  from: 'LUHA <' + EMAIL_USER + '>',
                   to: email,
                   subject: '✅ Hemos recibido tu pago — ' + ped.producto + (ped.codigo ? ' (' + ped.codigo + ')' : ''),
                   html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
