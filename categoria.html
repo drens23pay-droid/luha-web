@@ -68,6 +68,7 @@
   .b .old{font-size:12px;color:var(--txt-mut);text-decoration:line-through}
   .buy{width:100%;padding:10px;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;
     background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));color:#fff}
+  .buy.cot{background:#1f2a1f;border:1px solid #2b5c33;color:#7ee59a}
   .fab{position:fixed;right:22px;bottom:22px;background:#25D366;color:#0b3d1e;font-weight:800;padding:14px 20px;border-radius:40px;box-shadow:0 8px 30px rgba(37,211,102,.45);z-index:30}
   footer{border-top:1px solid var(--line);padding:24px 0;color:var(--txt-mut);font-size:13px;text-align:center;background:var(--bg2)}
   @media(max-width:820px){
@@ -260,11 +261,16 @@
     var href = p.id ? ('producto.html?id='+encodeURIComponent(p.id)) : null;
     var open = href ? '<a href="'+href+'" style="display:block">' : '';
     var close = href ? '</a>' : '';
-    return '<div class="card" data-precio="'+p.precio+'" data-nombre="'+p.nombre.replace(/"/g,'')+'" data-oferta="'+(oferta?1:0)+'" data-stock="'+(enStock?1:0)+'" data-dest="'+(p.destacado?1:0)+'">'+
-      open+'<div class="th">'+img+(oferta?'<span class="badge">-'+pct+'%</span>':'')+'<span class="stock'+(enStock?'':' off')+'">'+(p.stock||'En stock')+'</span></div>'+
+    var cot = !!p.cotizacion;
+    var precioHTML = cot
+      ? '<div class="price"><span class="now">'+(p.precio?('Desde '+eur(p.precio)):'A cotizar')+'</span></div>'
+      : '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+(oferta?'<span class="old">'+eur(p.precio_anterior)+'</span>':'')+'</div>';
+    var btnHTML = cot ? '<button class="buy cot">Pedir cotización</button>' : '<button class="buy">Comprar</button>';
+    return '<div class="card" data-precio="'+p.precio+'" data-nombre="'+p.nombre.replace(/"/g,'')+'" data-oferta="'+(oferta?1:0)+'" data-stock="'+(enStock?1:0)+'" data-dest="'+(p.destacado?1:0)+'" data-cot="'+(cot?1:0)+'">'+
+      open+'<div class="th">'+img+(oferta&&!cot?'<span class="badge">-'+pct+'%</span>':'')+(cot?'<span class="badge">Cotización</span>':'')+'<span class="stock'+(enStock?'':' off')+'">'+(p.stock||'En stock')+'</span></div>'+
       '<div class="b"><div class="p">'+(p.categoria||'')+'</div><h3>'+p.nombre+'</h3>'+
-      '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+(oferta?'<span class="old">'+eur(p.precio_anterior)+'</span>':'')+'</div></div>'+close+
-      '<div class="b" style="padding-top:0"><button class="buy">Comprar</button></div></div>';
+      precioHTML+'</div>'+close+
+      '<div class="b" style="padding-top:0">'+btnHTML+'</div></div>';
   }
 
   function pintar(lista){
@@ -274,6 +280,11 @@
     grid.querySelectorAll('.buy').forEach(function(b){
       b.addEventListener('click',function(){
         var card=b.closest('.card');
+        if(card.dataset.cot==='1'){
+          var msg='Hola LUHA 👋 quiero pedir una cotización para: '+card.dataset.nombre+'. ¿Me pasas precio y detalles?';
+          window.open(wa(msg),'_blank');
+          return;
+        }
         abrirCheckout(card.dataset.nombre, parseFloat(card.dataset.precio));
       });
     });
@@ -401,7 +412,7 @@
     if(Array.isArray(d) && d.length){
       var reales = d.filter(function(p){ return ESBUSQUEDA || (p.categoria||'')===CAT; }).map(function(p){ return {
         id:p.id, nombre:p.nombre, categoria:p.categoria, precio:p.precio, precio_anterior:p.precio_anterior,
-        stock:p.stock, imagen_url:p.imagen_url, destacado:p.destacado
+        stock:p.stock, imagen_url:p.imagen_url, destacado:p.destacado, cotizacion:p.cotizacion
       };});
       TODOS = reales.concat(DEMO);
       aplicar();
