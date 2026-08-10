@@ -51,21 +51,26 @@
   /* ANIMATED EFFECTS */
   @property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
   @keyframes spin{to{--ang:360deg}}
+  @keyframes rotateLight{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
   @keyframes floaty{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-30px) scale(1.1)}}
   @keyframes pulse{0%,100%{box-shadow:0 0 18px rgba(168,85,247,.5)}50%{box-shadow:0 0 36px rgba(168,85,247,.95)}}
   .blob{position:fixed;border-radius:50%;filter:blur(90px);z-index:0;opacity:.55;pointer-events:none}
   .blob.b1{width:440px;height:440px;background:rgba(139,47,255,.4);top:-140px;right:-90px;animation:floaty 14s ease-in-out infinite}
   .blob.b2{width:380px;height:380px;background:rgba(255,61,174,.22);bottom:8%;left:-120px;animation:floaty 18s ease-in-out infinite reverse}
   .blob.b3{width:320px;height:320px;background:rgba(34,225,214,.18);top:45%;right:-80px;animation:floaty 20s ease-in-out infinite}
-  /* FONDO — puntitos tipo grid muy tenues + líneas diagonales, para dar textura sin distraer */
+  /* FONDO — puntitos tipo grid + líneas diagonales + iconos flotando muy tenues, para dar textura sin distraer */
   .bgGrid{position:fixed;inset:0;z-index:0;pointer-events:none;
-    background-image:radial-gradient(rgba(199,125,255,.5) 1px, transparent 1.6px);
-    background-size:36px 36px;
-    -webkit-mask-image:radial-gradient(ellipse 75% 55% at 50% 0%, #000 35%, transparent 88%);
-    mask-image:radial-gradient(ellipse 75% 55% at 50% 0%, #000 35%, transparent 88%);
-    opacity:.4}
-  .bgLines{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.35;
-    background-image:repeating-linear-gradient(115deg, rgba(34,225,214,.05) 0 2px, transparent 2px 90px);}
+    background-image:radial-gradient(rgba(199,125,255,.65) 1.2px, transparent 1.8px);
+    background-size:34px 34px;
+    -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, #000 45%, transparent 92%);
+    mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, #000 45%, transparent 92%);
+    opacity:.6}
+  .bgIcons{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .bgIcons span{position:absolute;font-size:40px;opacity:.13;filter:grayscale(.4);
+    animation-name:floaty;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+  @media(max-width:760px){.bgIcons span{font-size:26px}}
+  .bgLines{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:repeating-linear-gradient(115deg, rgba(34,225,214,.09) 0 2px, transparent 2px 90px);}
   .ring{position:relative}
   .ring::after{content:'';position:absolute;inset:-2px;border-radius:inherit;padding:2px;
     background:conic-gradient(from var(--ang),transparent 0deg,var(--cyan) 45deg,var(--neon) 110deg,var(--pink) 175deg,transparent 235deg);
@@ -162,10 +167,10 @@
   /* BANNER CARRUSEL */
   .bannerFrame{position:relative;margin:28px 0 30px}
   .bannerFrame::before{content:'';position:absolute;inset:-6px;padding:6px;border-radius:26px;
-    background:conic-gradient(from var(--ang),transparent 0deg,var(--cyan) 35deg,var(--neon) 90deg,var(--pink) 140deg,transparent 200deg,transparent 360deg);
+    background:conic-gradient(from 0deg,transparent 0deg,var(--cyan) 35deg,var(--neon) 90deg,var(--pink) 140deg,transparent 200deg,transparent 360deg);
     -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
     -webkit-mask-composite:xor;mask-composite:exclude;
-    animation:spin 4s linear infinite;pointer-events:none;
+    animation:rotateLight 4s linear infinite;pointer-events:none;transform-origin:50% 50%;
     box-shadow:0 0 26px rgba(168,85,247,.45),0 0 50px rgba(34,225,214,.2)}
   @media (prefers-reduced-motion: reduce){.bannerFrame::before{animation:none}}
   @media(max-width:760px){.bannerFrame::before{inset:-4px;padding:4px;border-radius:22px}}
@@ -417,10 +422,10 @@
   /* MARCO LED — un borde de luz que recorre todo el contorno de la pantalla, tipo setup gamer */
   .ledFrame{position:fixed;inset:0;z-index:300;pointer-events:none}
   .ledFrame::before{content:'';position:absolute;inset:0;padding:3px;
-    background:conic-gradient(from var(--ang),transparent 0deg,var(--cyan) 30deg,var(--neon) 80deg,var(--pink) 125deg,transparent 180deg,transparent 360deg);
+    background:conic-gradient(from 0deg,transparent 0deg,var(--cyan) 30deg,var(--neon) 80deg,var(--pink) 125deg,transparent 180deg,transparent 360deg);
     -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
     -webkit-mask-composite:xor;mask-composite:exclude;
-    animation:spin 6s linear infinite;opacity:.75}
+    animation:rotateLight 6s linear infinite;opacity:.75;transform-origin:50% 50%}
   .ledFrame::after{content:'';position:absolute;inset:0;animation:ledPulse 5s ease-in-out infinite}
   @keyframes ledPulse{
     0%,100%{box-shadow:inset 0 0 40px rgba(168,85,247,.20),inset 0 0 90px rgba(34,225,214,.08)}
@@ -438,6 +443,16 @@
 
 <div class="bgLines"></div>
 <div class="bgGrid"></div>
+<div class="bgIcons" aria-hidden="true">
+  <span style="top:9%;left:6%;animation-duration:16s">🎬</span>
+  <span style="top:18%;left:85%;animation-duration:20s;animation-delay:-4s">🎧</span>
+  <span style="top:42%;left:14%;animation-duration:18s;animation-delay:-8s">⚡</span>
+  <span style="top:60%;left:75%;animation-duration:22s;animation-delay:-2s">❤️</span>
+  <span style="top:76%;left:28%;animation-duration:19s;animation-delay:-10s">🎓</span>
+  <span style="top:33%;left:52%;animation-duration:24s;animation-delay:-6s">🔒</span>
+  <span style="top:88%;left:88%;animation-duration:17s;animation-delay:-12s">🤖</span>
+  <span style="top:6%;left:45%;animation-duration:21s;animation-delay:-14s">📈</span>
+</div>
 <div class="blob b1"></div>
 <div class="blob b2"></div>
 <div class="blob b3"></div>
