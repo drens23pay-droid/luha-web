@@ -188,8 +188,8 @@
   }
 
   /* POSTER ROW (estilo Netflix: hover que agranda y acerca la portada) */
-  .posterRow{display:flex;gap:16px;overflow-x:auto;padding:14px 6px 36px;scrollbar-width:none}
-  .posterRow::-webkit-scrollbar{display:none}
+  .posterWrap{overflow:hidden;padding:14px 6px 36px}
+  .posterRow{display:flex;gap:16px;width:max-content;will-change:transform}
   .poster{position:relative;min-width:172px;height:224px;border-radius:16px;flex:0 0 auto;overflow:hidden;
     text-decoration:none;display:block;border:1px solid var(--line);
     transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s,filter .4s}
@@ -482,28 +482,30 @@
   <div class="shead reveal" style="margin-top:10px">
     <h2>Explora por <b>categoría</b></h2>
   </div>
-  <div class="posterRow" id="posterRow">
-    <a class="poster" href="categoria.html?cat=Streaming" style="background:linear-gradient(160deg,#3a0417,#7a0930 55%,#120005)">
-      <span class="pBadge">🔥 Popular</span>
-      <div class="pInfo"><span class="pIcon">🎬</span><h4>Streaming</h4><p>Netflix, HBO, Disney+, Spotify</p></div>
-    </a>
-    <a class="poster" href="seguidores.html" style="background:linear-gradient(160deg,#3a0140,#7a0f8a 55%,#0b0b0f)">
-      <span class="pBadge">⚡ Al instante</span>
-      <div class="pInfo"><span class="pIcon">📈</span><h4>Seguidores &amp; Likes</h4><p>Instagram, TikTok, YouTube</p></div>
-    </a>
-    <a class="poster" href="#cursos" style="background:linear-gradient(160deg,#331500,#8a3f0f 55%,#0b0b0f)">
-      <div class="pInfo"><span class="pIcon">🎓</span><h4>Cursos</h4><p>Formación digital premium</p></div>
-    </a>
-    <a class="poster" href="categoria.html?cat=IA" style="background:linear-gradient(160deg,#012622,#0f8a75 55%,#0b0b0f)">
-      <span class="pBadge">✨ Nuevo</span>
-      <div class="pInfo"><span class="pIcon">🤖</span><h4>Inteligencia Artificial</h4><p>ChatGPT, Midjourney y más</p></div>
-    </a>
-    <a class="poster" href="categoria.html?cat=Software" style="background:linear-gradient(160deg,#031a33,#0f4c75 55%,#0b0b0f)">
-      <div class="pInfo"><span class="pIcon">💻</span><h4>Software</h4><p>Canva, Office, diseño y edición</p></div>
-    </a>
-    <a class="poster" href="categoria.html?cat=VPN" style="background:linear-gradient(160deg,#111a08,#3f5c0f 55%,#0b0b0f)">
-      <div class="pInfo"><span class="pIcon">🔒</span><h4>VPN</h4><p>Privacidad y acceso seguro</p></div>
-    </a>
+  <div class="posterWrap">
+    <div class="posterRow" id="posterRow">
+      <a class="poster" href="categoria.html?cat=Streaming" style="background:linear-gradient(160deg,#3a0417,#7a0930 55%,#120005)">
+        <span class="pBadge">🔥 Popular</span>
+        <div class="pInfo"><span class="pIcon">🎬</span><h4>Streaming</h4><p>Netflix, HBO, Disney+, Spotify</p></div>
+      </a>
+      <a class="poster" href="seguidores.html" style="background:linear-gradient(160deg,#3a0140,#7a0f8a 55%,#0b0b0f)">
+        <span class="pBadge">⚡ Al instante</span>
+        <div class="pInfo"><span class="pIcon">📈</span><h4>Seguidores &amp; Likes</h4><p>Instagram, TikTok, YouTube</p></div>
+      </a>
+      <a class="poster" href="#cursos" style="background:linear-gradient(160deg,#331500,#8a3f0f 55%,#0b0b0f)">
+        <div class="pInfo"><span class="pIcon">🎓</span><h4>Cursos</h4><p>Formación digital premium</p></div>
+      </a>
+      <a class="poster" href="categoria.html?cat=IA" style="background:linear-gradient(160deg,#012622,#0f8a75 55%,#0b0b0f)">
+        <span class="pBadge">✨ Nuevo</span>
+        <div class="pInfo"><span class="pIcon">🤖</span><h4>Inteligencia Artificial</h4><p>ChatGPT, Midjourney y más</p></div>
+      </a>
+      <a class="poster" href="categoria.html?cat=Software" style="background:linear-gradient(160deg,#031a33,#0f4c75 55%,#0b0b0f)">
+        <div class="pInfo"><span class="pIcon">💻</span><h4>Software</h4><p>Canva, Office, diseño y edición</p></div>
+      </a>
+      <a class="poster" href="categoria.html?cat=VPN" style="background:linear-gradient(160deg,#111a08,#3f5c0f 55%,#0b0b0f)">
+        <div class="pInfo"><span class="pIcon">🔒</span><h4>VPN</h4><p>Privacidad y acceso seguro</p></div>
+      </a>
+    </div>
   </div>
 
   <div class="chips" id="chipsNav">
@@ -668,10 +670,11 @@
     }).catch(function(){ iniciarCarrusel(); });
   })();
 
-  // ---- Fila de portadas (categorías): usa tus portadas del admin si existen; si no, deja las 6 de ejemplo. Se desliza sola. ----
+  // ---- Fila de portadas (categorías): usa tus portadas del admin si existen; si no, deja las 6 de ejemplo. Se desliza sola hacia la izquierda, sin parar, y se pausa al pasar el cursor. ----
   (function(){
+    var wrap=document.querySelector('.posterWrap');
     var row=document.getElementById('posterRow');
-    if(!row) return;
+    if(!row||!wrap) return;
     var COLORES={
       rojo:'linear-gradient(160deg,#3a0417,#7a0930 55%,#120005)',
       morado:'linear-gradient(160deg,#3a0140,#7a0f8a 55%,#0b0b0f)',
@@ -680,26 +683,32 @@
       azul:'linear-gradient(160deg,#031a33,#0f4c75 55%,#0b0b0f)',
       verde:'linear-gradient(160deg,#111a08,#3f5c0f 55%,#0b0b0f)'
     };
-    function iniciarAutoScroll(){
-      var half=row.scrollWidth/2, paused=false;
-      row.addEventListener('mouseenter',function(){paused=true});
-      row.addEventListener('mouseleave',function(){paused=false});
-      row.addEventListener('touchstart',function(){paused=true},{passive:true});
-      row.addEventListener('touchend',function(){setTimeout(function(){paused=false},2500)});
-      row.addEventListener('pointerdown',function(){paused=true});
-      window.addEventListener('pointerup',function(){setTimeout(function(){paused=false},2000)});
+    function iniciarAutoScroll(setWidth){
+      var pos=0, paused=false;
+      wrap.addEventListener('mouseenter',function(){paused=true});
+      wrap.addEventListener('mouseleave',function(){paused=false});
+      wrap.addEventListener('touchstart',function(){paused=true},{passive:true});
+      wrap.addEventListener('touchend',function(){setTimeout(function(){paused=false},2500)});
       function tick(){
-        if(!paused && half>2){
-          row.scrollLeft+=0.4;
-          if(row.scrollLeft>=half) row.scrollLeft-=half;
+        if(!paused && setWidth>2){
+          pos+=0.4;
+          if(pos>=setWidth) pos-=setWidth;
+          row.style.transform='translateX(-'+pos+'px)';
         }
         requestAnimationFrame(tick);
       }
       requestAnimationFrame(tick);
     }
+    function armar(piezasHtml){
+      // repite el set varias veces para que siempre haya de sobra y el bucle no se note, sea 1 tarjeta o 20
+      var copia=''; for(var i=0;i<5;i++){ copia+=piezasHtml; }
+      row.innerHTML=copia;
+      var setWidth = row.scrollWidth/5;
+      iniciarAutoScroll(setWidth);
+    }
     fetch('/api/banners?tabla=posters').then(function(r){return r.json()}).then(function(d){
       if(Array.isArray(d) && d.length){
-        row.innerHTML = d.map(function(p){
+        var html = d.map(function(p){
           var fondo = p.imagen_url ? ("url('"+p.imagen_url+"') center/cover no-repeat") : (COLORES[p.color]||COLORES.morado);
           return '<a class="poster" href="'+(p.enlace||'index.html')+'" style="background:'+fondo+'">'+
             (p.badge?'<span class="pBadge">'+p.badge+'</span>':'')+
@@ -708,12 +717,12 @@
             (p.subtitulo?'<p>'+p.subtitulo+'</p>':'')+
             '</div></a>';
         }).join('');
+        armar(html);
+      } else {
+        armar(row.innerHTML); // sin portadas propias: repite las 6 de ejemplo que ya están en el HTML
       }
-      row.innerHTML += row.innerHTML; // duplica para que el deslizado sea infinito y no se note el salto
-      iniciarAutoScroll();
     }).catch(function(){
-      row.innerHTML += row.innerHTML;
-      iniciarAutoScroll();
+      armar(row.innerHTML);
     });
   })();
 
