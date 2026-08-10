@@ -659,6 +659,15 @@
   });
 
   // ---------- CATEGORÍAS ----------
+  // Mantiene el <select> de categoría del formulario de "Productos fijos" sincronizado con
+  // las categorías reales que administras — así lo que agregues/renombres ahí aparece solo aquí.
+  function actualizarSelectCategorias(cats){
+    var sel=document.getElementById('prod_cat'); if(!sel || !Array.isArray(cats) || !cats.length) return;
+    var actual=sel.value;
+    var nombres=cats.slice().sort(function(a,b){return (a.orden||0)-(b.orden||0)}).map(function(c){return c.nombre});
+    sel.innerHTML = nombres.map(function(n){return '<option>'+n+'</option>';}).join('');
+    if(actual && nombres.indexOf(actual)>-1){ sel.value=actual; }
+  }
   function cargarCategorias(){
     var box=document.getElementById('listaCategorias');
     box.innerHTML='<div class="muted">Cargando…</div>';
@@ -667,17 +676,19 @@
         box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo leer la tabla de categorías ('+(d&&d.motivo?d.motivo:(d&&d.message?d.message:'error'))+'). Es posible que la tabla "categorias" no exista todavía en Supabase — revisa la consola SQL de tu proyecto.</div>';
         return;
       }
+      actualizarSelectCategorias(d);
       if(!d.length){ box.innerHTML='<div class="muted">Aún no hay categorías. Crea la primera arriba ⬆️</div>'; return; }
       d.sort(function(a,b){return (a.orden||0)-(b.orden||0)});
       box.innerHTML='';
       d.forEach(function(c,i){
         var el=document.createElement('div'); el.className='item';
         el.innerHTML='<span class="switch" title="Mostrar/ocultar">'+(c.activa!==false?'✅':'⬜')+'</span>'+
-          '<span>'+c.nombre+'</span>'+
+          '<span class="catNombre">'+c.nombre+'</span>'+
           '<button class="btn btn-ghost" style="margin-left:auto;padding:4px 8px">↑</button>'+
           '<button class="btn btn-ghost" style="padding:4px 8px">↓</button>'+
+          '<button class="btn btn-ghost" style="padding:4px 10px">Editar</button>'+
           '<button class="btn btn-danger" style="padding:4px 10px">Borrar</button>';
-        var sw=el.querySelector('.switch'), btns=el.querySelectorAll('button');
+        var sw=el.querySelector('.switch'), btns=el.querySelectorAll('button'), nombreEl=el.querySelector('.catNombre');
         sw.onclick=function(){
           var nuevo = c.activa===false;
           fetch('/api/categorias',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:c.id,data:{activa:nuevo}})})
@@ -685,7 +696,18 @@
         };
         btns[0].onclick=function(){ moverCategoria(d,i,-1); };
         btns[1].onclick=function(){ moverCategoria(d,i,1); };
-        btns[2].onclick=function(){ if(confirm('¿Borrar categoría "'+c.nombre+'"?')){
+        btns[2].onclick=function(){
+          var nuevoNombre=prompt('Nuevo nombre para esta categoría:', c.nombre);
+          if(nuevoNombre===null) return;
+          nuevoNombre=nuevoNombre.trim();
+          if(!nuevoNombre || nuevoNombre===c.nombre) return;
+          fetch('/api/categorias',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:c.id,data:{nombre:nuevoNombre}})})
+            .then(function(r){return r.json()}).then(function(res){
+              if(res.ok){ c.nombre=nuevoNombre; nombreEl.textContent=nuevoNombre; toast('✅ Renombrado'); }
+              else { toast('❌ '+(res.motivo||'error')); }
+            });
+        };
+        btns[3].onclick=function(){ if(confirm('¿Borrar categoría "'+c.nombre+'"?')){
           fetch('/api/categorias',{method:'POST',headers:H(),body:JSON.stringify({action:'borrar',id:c.id})}).then(function(){cargarCategorias()});
         }};
         box.appendChild(el);
