@@ -64,12 +64,12 @@
     background-size:34px 34px;
     -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, #000 45%, transparent 92%);
     mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, #000 45%, transparent 92%);
-    opacity:.6}
+    opacity:.4}
   .bgIcons{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
   .bgIcons span{position:absolute;font-size:40px;opacity:.13;filter:grayscale(.4);
     animation-name:floaty;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
   @media(max-width:760px){.bgIcons span{font-size:26px}}
-  .bgLines{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  .bgLines{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.3;
     background-image:repeating-linear-gradient(115deg, rgba(34,225,214,.09) 0 2px, transparent 2px 90px);}
   .ring{position:relative}
   .ring::after{content:'';position:absolute;inset:-2px;border-radius:inherit;padding:2px;
@@ -443,8 +443,8 @@
     animation:spin 6s linear infinite;opacity:.75}
   .ledFrame::after{content:'';position:absolute;inset:0;animation:ledPulse 5s ease-in-out infinite}
   @keyframes ledPulse{
-    0%,100%{box-shadow:inset 0 0 40px rgba(168,85,247,.20),inset 0 0 90px rgba(34,225,214,.08)}
-    50%{box-shadow:inset 0 0 55px rgba(255,61,174,.30),inset 0 0 110px rgba(34,225,214,.16)}
+    0%,100%{box-shadow:inset 0 0 14px rgba(168,85,247,.12)}
+    50%{box-shadow:inset 0 0 22px rgba(255,61,174,.18)}
   }
   @media(max-width:760px){
     .ledFrame::before{padding:2px;opacity:.35}
