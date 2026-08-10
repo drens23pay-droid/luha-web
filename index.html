@@ -287,6 +287,8 @@
     background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));color:#fff;font-weight:700;
     border:none;cursor:pointer;box-shadow:0 0 16px rgba(168,85,247,.4)}
   .buy:hover{box-shadow:0 0 24px rgba(168,85,247,.75)}
+  .buy.cot{background:#1f2a1f;border:1px solid #2b5c33;color:#7ee59a;box-shadow:none}
+  .buy.cot:hover{box-shadow:0 0 16px rgba(61,230,160,.35)}
 
   /* COURSES (white block) */
   .courses{background:linear-gradient(180deg,#fff,#f4f2fb);color:#141018;
@@ -1123,7 +1125,7 @@
 
     var itemsProd = productos.filter(function(p){return p.destacado}).map(function(p){
       return { tipo:'producto', id:p.id, nombre:p.nombre, categoria:p.categoria, precio:p.precio,
-        precio_anterior:p.precio_anterior, stock:p.stock, imagen_url:p.imagen_url };
+        precio_anterior:p.precio_anterior, stock:p.stock, imagen_url:p.imagen_url, cotizacion:p.cotizacion };
     });
     var itemsPkg = paquetes.filter(function(p){return p.en_home}).map(function(p){
       return { tipo:'paquete', id:p.id, nombre:p.nombre, categoria:'Combo', precio:p.precio,
@@ -1140,17 +1142,27 @@
       var card=document.createElement('div'); card.className='card reveal';
       card.style.transitionDelay=((i%4)*80)+'ms';
       var img = p.imagen_url ? '<img src="'+p.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:16px 16px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : '✨';
-      var badge = p.precio_anterior && p.precio_anterior>p.precio ? '<span class="badge">-'+Math.round((1-p.precio/p.precio_anterior)*100)+'%</span>' : '';
-      var old = p.precio_anterior ? '<span class="old">'+eur(p.precio_anterior)+'</span>' : '';
+      var badge = p.cotizacion ? '<span class="badge">Cotización</span>' : (p.precio_anterior && p.precio_anterior>p.precio ? '<span class="badge">-'+Math.round((1-p.precio/p.precio_anterior)*100)+'%</span>' : '');
+      var old = (!p.cotizacion && p.precio_anterior) ? '<span class="old">'+eur(p.precio_anterior)+'</span>' : '';
+      var precioTxt = p.cotizacion ? (p.precio ? ('Desde '+eur(p.precio)) : 'A cotizar') : eur(p.precio);
       var href = p.tipo==='producto' ? ('producto.html?id='+encodeURIComponent(p.id)) : 'seguidores.html';
       var verMas = p.tipo==='producto' ? '<span class="verMas">Ver detalles &rarr;</span>' : '';
+      var btnTxt = p.cotizacion ? 'Pedir cotización' : 'Comprar ahora';
+      var btnCls = p.cotizacion ? 'buy cot' : 'buy';
       card.innerHTML='<a href="'+href+'" style="display:block"><div class="thumb">'+img+badge+verMas+'<span class="stock">'+(p.stock||'En stock')+'</span></div>'+
         '<div class="body"><div class="prov">'+(p.categoria||'')+'</div><h3>'+p.nombre+'</h3>'+
-        '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+old+'</div></a>'+
-        '<div class="body" style="padding-top:0"><button class="buy">Comprar ahora</button></div>';
+        '<div class="price"><span class="now">'+precioTxt+'</span>'+old+'</div></a>'+
+        '<div class="body" style="padding-top:0"><button class="'+btnCls+'">'+btnTxt+'</button></div>';
       grid.appendChild(card);
       obs.observe(card); wireTilt(card);
-      wireBuy(card.querySelector('.buy'), function(){return p.nombre;}, function(){return p.precio;});
+      if(p.cotizacion){
+        card.querySelector('.buy').addEventListener('click',function(){
+          playClick();
+          window.open(wa('Hola LUHA 👋 quiero pedir una cotización para: '+p.nombre+'. ¿Me pasas precio y detalles?'),'_blank');
+        });
+      } else {
+        wireBuy(card.querySelector('.buy'), function(){return p.nombre;}, function(){return p.precio;});
+      }
     });
   }).catch(function(){
     document.getElementById('masVendidosGrid').innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">No se pudieron cargar los productos.</div>';
