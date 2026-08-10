@@ -234,9 +234,6 @@
   .poster{position:relative;min-width:172px;height:224px;border-radius:16px;flex:0 0 auto;overflow:hidden;
     text-decoration:none;display:block;border:1px solid var(--line);
     transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s,filter .4s}
-  .posterRow:hover .poster{filter:brightness(.55) saturate(.75)}
-  .poster:hover{transform:scale(1.18) translateY(-16px);z-index:5;filter:brightness(1) saturate(1) !important;
-    box-shadow:0 26px 60px rgba(0,0,0,.65),0 0 0 2px var(--neon)}
   .pBadge{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);
     color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.25)}
   .pInfo{position:absolute;left:0;right:0;bottom:0;padding:16px 16px 14px;
@@ -244,9 +241,15 @@
   .pIcon{font-size:26px;display:block;margin-bottom:6px}
   .pInfo h4{color:#fff;font-size:16px;font-weight:800;margin-bottom:3px;text-shadow:0 2px 8px rgba(0,0,0,.6)}
   .pInfo p{color:rgba(255,255,255,.75);font-size:11.5px;line-height:1.3}
+  /* El agrandado tipo Netflix solo con mouse real — en táctil (tablet/móvil) el :hover se queda
+     "pegado" al tocar y la tarjeta se monta encima de las vecinas sin poder quitarlo. */
+  @media(hover:hover) and (pointer:fine){
+    .posterRow:hover .poster{filter:brightness(.55) saturate(.75)}
+    .poster:hover{transform:scale(1.18) translateY(-16px);z-index:5;filter:brightness(1) saturate(1) !important;
+      box-shadow:0 26px 60px rgba(0,0,0,.65),0 0 0 2px var(--neon)}
+  }
   @media(max-width:760px){
     .poster{min-width:132px;height:184px}
-    .poster:hover{transform:scale(1.1) translateY(-8px)}
     .pInfo h4{font-size:14px}
   }
 
@@ -268,13 +271,15 @@
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
     transition:.25s;position:relative}
-  .card:hover{transform:translateY(-4px);border-color:var(--neon);
-    box-shadow:0 10px 34px rgba(139,47,255,.28)}
   .thumb{height:210px;display:flex;align-items:center;justify-content:center;font-size:44px;
     background:linear-gradient(135deg,#1c1430,#241a3d);position:relative;border-radius:16px 16px 0 0;overflow:hidden}
   .thumb .verMas{position:absolute;inset:0;background:rgba(11,11,15,.55);display:flex;align-items:center;justify-content:center;
     color:#fff;font-weight:700;font-size:14px;opacity:0;transition:opacity .2s;letter-spacing:.3px}
-  .card:hover .thumb .verMas{opacity:1}
+  @media(hover:hover) and (pointer:fine){
+    .card:hover{transform:translateY(-4px);border-color:var(--neon);
+      box-shadow:0 10px 34px rgba(139,47,255,.28)}
+    .card:hover .thumb .verMas{opacity:1}
+  }
   .badge{position:absolute;top:10px;left:10px;background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));
     color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;
     box-shadow:0 0 12px rgba(168,85,247,.6)}
@@ -303,12 +308,14 @@
   .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
   .ccard{background:#fff;border:1px solid #e7e1f5;border-radius:18px;position:relative;
     box-shadow:0 6px 20px rgba(90,50,160,.08);transition:.25s}
-  .ccard:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(90,50,160,.16)}
   .ccard .top{height:190px;background:linear-gradient(135deg,#8B2FFF,#C77DFF);border-radius:18px 18px 0 0;
     display:flex;align-items:center;justify-content:center;font-size:38px;color:#fff;position:relative;overflow:hidden}
   .ccard .top .verMas{position:absolute;inset:0;background:rgba(20,16,24,.55);display:flex;align-items:center;justify-content:center;
     color:#fff;font-weight:700;font-size:14px;opacity:0;transition:opacity .2s}
-  .ccard:hover .top .verMas{opacity:1}
+  @media(hover:hover) and (pointer:fine){
+    .ccard:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(90,50,160,.16)}
+    .ccard:hover .top .verMas{opacity:1}
+  }
   .ccard .b{padding:16px 18px}
   .ccard h4{font-size:17px;font-weight:700;color:#1a1226;margin-bottom:6px}
   .ccard p{font-size:13px;color:#6a6280;margin-bottom:14px}
