@@ -893,6 +893,19 @@
   var AudioCtx = window.AudioContext || window.webkitAudioContext;
   var actx = null;
   function getActx(){ if(!actx && AudioCtx){ try{ actx = new AudioCtx(); }catch(e){} } return actx; }
+  // El navegador crea el audio "dormido" hasta que hay una acción real (clic/toque/tecla) —
+  // lo despertamos ahí mismo, así el primer sonido con solo pasar el cursor no llega tarde ni se corta.
+  function unlockAudio(){
+    var ctx=getActx();
+    if(ctx && ctx.state==='suspended'){ ctx.resume(); }
+  }
+  ['click','touchstart','keydown'].forEach(function(ev){
+    document.addEventListener(ev, unlockAudio, {passive:true});
+  });
+  // Si cambias de pestaña y vuelves, algunos navegadores vuelven a "dormir" el audio — lo revivimos.
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden && actx && actx.state==='suspended'){ actx.resume(); }
+  });
   function tone(freq, start, dur, vol, type){
     var ctx = getActx(); if(!ctx) return;
     if(ctx.state==='suspended'){ ctx.resume(); }
