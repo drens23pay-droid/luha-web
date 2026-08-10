@@ -21,6 +21,13 @@
   .bar nav{display:flex;gap:18px;margin-left:10px;font-size:14px;color:var(--txt-mut)}
   .bar nav a:hover{color:var(--lila)}
   .wa{margin-left:auto;background:#1f2a1f;border:1px solid #2b5c33;color:#7ee59a;padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px}
+  .navToggle{display:none;background:transparent;border:1px solid var(--line);color:#fff;width:40px;height:40px;
+    border-radius:10px;font-size:18px;align-items:center;justify-content:center;cursor:pointer}
+  .mobileNav{display:none;position:fixed;top:66px;left:0;right:0;bottom:0;background:var(--bg2);z-index:150;padding:20px;overflow-y:auto}
+  .mobileNav.open{display:block}
+  .mobileNav a{display:block;padding:15px 16px;font-size:17px;font-weight:700;color:var(--txt);
+    border-bottom:1px solid rgba(168,85,247,.12);border-radius:10px}
+  .mobileNav a:active{background:rgba(168,85,247,.12)}
   .crumb{color:var(--txt-mut);font-size:13px;padding:22px 0 6px}
   .crumb a:hover{color:var(--lila)}
   .prod{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:16px 0 40px}
@@ -73,7 +80,7 @@
   .card .b .pr{font-size:17px;font-weight:800;color:#fff}
   footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0;color:var(--txt-mut);font-size:13px;text-align:center;background:var(--bg2)}
   .note{position:fixed;left:22px;bottom:22px;background:#1C1C28;border:1px solid var(--line);color:var(--txt-mut);font-size:12px;padding:8px 14px;border-radius:10px}
-  @media(max-width:760px){.prod{grid-template-columns:1fr}.bar nav{display:none}}
+  @media(max-width:760px){.prod{grid-template-columns:1fr}.bar nav{display:none}.navToggle{display:flex}}
 
   /* MODAL CHECKOUT */
   .overlay{position:fixed;inset:0;background:rgba(5,5,9,.72);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
@@ -111,10 +118,18 @@
 <header>
   <div class="wrap bar">
     <a class="logo" href="index.html">LU<span>HA</span></a>
-    <nav><a href="index.html">Inicio</a><a href="#">Streaming</a><a href="#">Cursos</a><a href="index.html#seguidores">Seguidores</a></nav>
+    <nav><a href="index.html">Inicio</a><a href="categoria.html?cat=Streaming">Streaming</a><a href="index.html#cursos">Cursos</a><a href="seguidores.html">Seguidores</a></nav>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
+    <button class="navToggle" id="navToggle" aria-label="Menú" type="button">☰</button>
   </div>
 </header>
+
+<div class="mobileNav" id="mobileNav">
+  <a href="index.html">Inicio</a>
+  <a href="categoria.html?cat=Streaming">Streaming</a>
+  <a href="index.html#cursos">Cursos</a>
+  <a href="seguidores.html">Seguidores</a>
+</div>
 
 <div class="wrap">
   <div class="crumb"><a href="index.html">Inicio</a> / <a href="#" id="crumbCat">Tienda</a> / <span id="crumbNombre">Cargando…</span></div>
@@ -207,6 +222,19 @@
   function wa(txt){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(txt)}
   function eur(v){return (Math.round((v||0)*100)/100).toFixed(2).replace('.',',')+' €'}
   document.querySelectorAll('.wa').forEach(function(a){a.setAttribute('href',wa('Hola LUHA 👋 quiero información, por favor.'))});
+
+  // ---- Menú móvil (hamburguesa) ----
+  (function(){
+    var toggle=document.getElementById('navToggle'), menu=document.getElementById('mobileNav');
+    if(!toggle||!menu) return;
+    toggle.addEventListener('click', function(){
+      menu.classList.toggle('open');
+      toggle.textContent = menu.classList.contains('open') ? '✕' : '☰';
+    });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ menu.classList.remove('open'); toggle.textContent='☰'; });
+    });
+  })();
 
   var ov=document.getElementById('ov');
   var cur={nombre:'',total:0};
