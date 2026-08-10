@@ -1,6 +1,7 @@
 // LUHA — Diagnóstico del envío de email (temporal, puedes borrarlo cuando todo funcione).
 // Uso: abre en el navegador  /api/test-email?token=TU_ADMIN_TOKEN
-// Envía un correo de prueba a tu propio GMAIL_USER y muestra el resultado o el error exacto.
+// Por defecto se manda a sí mismo (pedidos@luhashop.es); añade &to=tu@gmail.com para probar
+// contra una bandeja EXTERNA de verdad (Gmail, Outlook...), que es la prueba real de spam.
 
 module.exports = async (req, res) => {
   const token = (req.query && req.query.token) || '';
@@ -27,13 +28,14 @@ module.exports = async (req, res) => {
   try {
     const nodemailer = require('nodemailer');
     const t = nodemailer.createTransport({ host:'smtp.dondominio.com', port:465, secure:true, auth:{ user:user, pass:pass.replace(/\s/g,'') } });
+    const destino = ((req.query && req.query.to) || user).trim();
     const info = await t.sendMail({
       from: 'LUHA <' + user + '>',
-      to: user,
+      to: destino,
       subject: '✅ Prueba de email LUHA',
       html: '<p>Si lees esto, el envío automático de correos de LUHA funciona correctamente. 🎉</p>'
     });
-    return res.status(200).json({ ok:true, mensaje:'Correo de prueba enviado a ' + user + ' — revisa tu bandeja (y Spam).', id: info.messageId, diagnostico });
+    return res.status(200).json({ ok:true, mensaje:'Correo de prueba enviado a ' + destino + ' — revisa esa bandeja (y Spam).', id: info.messageId, diagnostico });
   } catch (e) {
     return res.status(200).json({ ok:false, motivo:'ERROR_ENVIO', error: String(e && e.message ? e.message : e), diagnostico });
   }
