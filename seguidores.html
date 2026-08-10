@@ -166,6 +166,10 @@
     <input id="mLink" placeholder="instagram.com/tuusuario">
     <label style="margin-top:8px;color:var(--cyan);font-weight:700">📧 ¿Dónde te enviamos la confirmación?</label>
     <input id="mEmail" type="email" placeholder="tucorreo@ejemplo.com" style="border-color:var(--cyan)">
+    <label style="display:flex;align-items:flex-start;gap:9px;margin-top:14px;padding:11px 12px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.3);border-radius:10px;font-size:13px;color:var(--txt);cursor:pointer">
+      <input type="checkbox" id="mConfirm" style="width:18px;height:18px;min-width:18px;margin-top:1px;accent-color:var(--neon);cursor:pointer">
+      Confirmo que el servicio, cantidad y total de arriba son correctos
+    </label>
     <div class="pays">
       <button class="pay" id="payBizum">
         <span class="pic">🟢</span>
@@ -348,12 +352,24 @@
         btn.style.opacity=1; btn.style.pointerEvents='';
       }
     });
+    var mc=document.getElementById('mConfirm'); if(mc){ mc.checked=false; mc.closest('label').style.borderColor='rgba(168,85,247,.3)'; mc.closest('label').style.background='rgba(168,85,247,.07)'; }
     ov.classList.add('on');
+  }
+  function confirmado(){
+    var c=document.getElementById('mConfirm');
+    if(c && !c.checked){
+      var lbl=c.closest('label'); lbl.style.borderColor='#ff6b6b'; lbl.style.background='rgba(255,107,107,.12)';
+      lbl.scrollIntoView({behavior:'smooth',block:'nearest'});
+      alert('Marca la casilla de confirmación antes de continuar ✅');
+      return false;
+    }
+    return true;
   }
   document.getElementById('mClose').addEventListener('click',function(){ov.classList.remove('on')});
   ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('on')});
 
   document.getElementById('payBizum').addEventListener('click',function(){
+    if(!confirmado()) return;
     var link=document.getElementById('mLink').value||'(pendiente)';
     var email=(document.getElementById('mEmail').value||'').trim();
     var detalle=cur.svc+' x'+cur.qty.toLocaleString('es-ES')+' — enlace: '+link;
@@ -374,6 +390,7 @@
   });
 
   document.getElementById('payCard').addEventListener('click',function(){
+    if(!confirmado()) return;
     var btn=this; btn.style.opacity=.6; btn.querySelector('.pt b').textContent='Redirigiendo…';
     var link=document.getElementById('mLink').value||'';
     fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -388,6 +405,7 @@
   });
 
   document.getElementById('payBizumAuto').addEventListener('click',function(){
+    if(!confirmado()) return;
     var btn=this; btn.style.opacity=.6; btn.querySelector('.pt b').textContent='Redirigiendo…';
     var link=document.getElementById('mLink').value||'';
     fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},
