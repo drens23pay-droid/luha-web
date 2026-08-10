@@ -743,6 +743,19 @@
     var wrap=document.querySelector('.posterWrap');
     var row=document.getElementById('posterRow');
     if(!row||!wrap) return;
+
+    // Sonido "whoosh" al pasar el cursor por una tarjeta (delegado, así sigue funcionando
+    // aunque las tarjetas se reemplacen por las que subas desde el admin)
+    var posterHover=null;
+    wrap.addEventListener('mouseover',function(e){
+      var p=e.target.closest && e.target.closest('.poster');
+      if(p && p!==posterHover){ posterHover=p; if(typeof playWhooshThrottled==='function'){ playWhooshThrottled(); } }
+    });
+    wrap.addEventListener('mouseout',function(e){
+      var p=e.target.closest && e.target.closest('.poster');
+      if(p && p===posterHover && !p.contains(e.relatedTarget)){ posterHover=null; }
+    });
+
     var COLORES={
       rojo:'linear-gradient(160deg,#3a0417,#7a0930 55%,#120005)',
       morado:'linear-gradient(160deg,#3a0140,#7a0f8a 55%,#0b0b0f)',
@@ -894,6 +907,32 @@
   }
   function playClick(){ tone(720,0,0.09,0.06,'sine'); }
   function playSuccess(){ tone(660,0,0.12,0.07,'sine'); tone(990,0.1,0.18,0.07,'sine'); }
+  function playWhoosh(){
+    var ctx=getActx(); if(!ctx) return;
+    if(ctx.state==='suspended'){ ctx.resume(); }
+    var dur=0.26, size=Math.floor(ctx.sampleRate*dur);
+    var buffer=ctx.createBuffer(1,size,ctx.sampleRate), data=buffer.getChannelData(0);
+    for(var i=0;i<size;i++){ data[i]=Math.random()*2-1; }
+    var noise=ctx.createBufferSource(); noise.buffer=buffer;
+    var filt=ctx.createBiquadFilter(); filt.type='bandpass'; filt.Q.value=.9;
+    var t0=ctx.currentTime;
+    filt.frequency.setValueAtTime(450,t0);
+    filt.frequency.exponentialRampToValueAtTime(3000,t0+dur*0.5);
+    filt.frequency.exponentialRampToValueAtTime(600,t0+dur);
+    var gain=ctx.createGain();
+    gain.gain.setValueAtTime(0,t0);
+    gain.gain.linearRampToValueAtTime(.09,t0+.03);
+    gain.gain.exponentialRampToValueAtTime(.001,t0+dur);
+    noise.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
+    noise.start(t0); noise.stop(t0+dur+0.02);
+  }
+  var lastWhoosh=0;
+  function playWhooshThrottled(){
+    var now=Date.now();
+    if(now-lastWhoosh<220) return;
+    lastWhoosh=now;
+    playWhoosh();
+  }
 
   function wireBuy(btn, getName, getTotal){
     btn.addEventListener('click',function(){ playClick(); abrirCheckout(getName(), getTotal()); });
