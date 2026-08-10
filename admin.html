@@ -159,6 +159,7 @@
       <a data-s="servicios">📱 Servicios (API)</a>
       <a data-s="productos">🛍️ Productos</a>
       <a data-s="categorias">🏷️ Categorías</a>
+      <a data-s="banners">🖼️ Banners del home</a>
       <a href="index.html">👁️ Ver tienda</a>
       <a onclick="salir()">🚪 Salir</a>
     </div>
@@ -401,6 +402,56 @@
       </div>
     </div>
 
+    <!-- BANNERS -->
+    <div class="section" id="s-banners">
+      <h1>Banners del home</h1>
+      <div class="sub">El carrusel que se mueve solo arriba de "Más vendidos". Recomendado: imágenes de 1600×500px (o cualquier tamaño con esa proporción, ancha y no muy alta) — se recortan automáticamente para llenar el espacio.</div>
+      <div class="panel">
+        <h2 id="ban_titulo">Nuevo banner</h2>
+        <input type="hidden" id="ban_id">
+        <label>Foto del banner</label>
+        <div class="drop" id="banDropZone">
+          <i>📷</i>
+          <p>Arrastra una imagen aquí o haz clic para elegirla (recomendado 1600×500px)</p>
+          <input type="file" id="ban_file" accept="image/*" style="display:none">
+        </div>
+        <div class="uploading" id="banUploadingMsg">Subiendo imagen…</div>
+        <div class="preview" id="ban_preview">
+          <img id="ban_preview_img" alt="preview">
+          <button class="rm" id="ban_preview_rm" type="button">✕</button>
+        </div>
+        <input type="hidden" id="ban_img">
+
+        <div class="two" style="margin-top:12px">
+          <div><label>Etiqueta pequeña (opcional)</label><input id="ban_kick" placeholder="Ej. Oferta destacada"></div>
+          <div><label>Título</label><input id="ban_titulo_txt" placeholder="Ej. Streaming al mejor precio"></div>
+        </div>
+        <label>Texto corto (opcional)</label>
+        <input id="ban_sub" placeholder="Ej. Netflix, HBO Max, Disney+ y más al mejor precio">
+        <div class="two" style="margin-top:12px">
+          <div><label>Al hacer clic, lleva a...</label>
+            <input id="ban_link" placeholder="Ej. categoria.html?cat=Streaming o seguidores.html">
+          </div>
+          <div><label>&nbsp;</label>
+            <label style="margin:0 0 6px"><input type="checkbox" id="ban_activo" checked style="width:auto;margin-right:8px">Visible en la web</label>
+          </div>
+        </div>
+
+        <div style="margin-top:16px" class="row">
+          <button class="btn btn-neon" onclick="guardarBanner()">Guardar banner</button>
+          <button class="btn btn-ghost" onclick="resetBanner()">Limpiar</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin-bottom:0">Tus banners (en este orden se muestran)</h2>
+          <button class="btn btn-ghost" style="padding:5px 12px" onclick="cargarBanners()">🔄 Actualizar</button>
+        </div>
+        <div id="listaBanners" style="margin-top:12px"><div class="muted">Cargando…</div></div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -469,7 +520,7 @@
   }
 
   function iniciar(){
-    cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias(); cargarPedidos();
+    cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias(); cargarPedidos(); cargarBanners();
   }
 
   // ---------- PEDIDOS ----------
@@ -596,6 +647,124 @@
         else { toast('❌ '+(d.motivo||'error')); }
       });
   }
+
+  // ---------- BANNERS DEL HOME ----------
+  function cargarBanners(){
+    var box=document.getElementById('listaBanners');
+    box.innerHTML='<div class="muted">Cargando…</div>';
+    fetch('/api/banners',{headers:H()}).then(function(r){return r.json()}).then(function(d){
+      if(!Array.isArray(d)){
+        box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo leer la tabla de banners ('+(d&&d.motivo?d.motivo:'error')+'). Puede que la tabla "banners" no exista todavía en Supabase — revisa la guía de instalación.</div>';
+        return;
+      }
+      if(!d.length){ box.innerHTML='<div class="muted">Aún no hay banners propios — la web está mostrando 3 banners de ejemplo con tus colores. Crea el primero arriba ⬆️ y lo reemplaza.</div>'; return; }
+      d.sort(function(a,b){return (a.orden||0)-(b.orden||0)});
+      box.innerHTML='';
+      d.forEach(function(bn,i){
+        var el=document.createElement('div'); el.className='item';
+        var thumb = bn.imagen_url ? '<img src="'+bn.imagen_url+'" style="width:70px;height:40px;object-fit:cover;border-radius:6px" onerror="this.style.display=\'none\'">' : '<span style="width:70px;text-align:center">🖼️</span>';
+        el.innerHTML=thumb+
+          '<span class="switch" title="Mostrar/ocultar">'+(bn.activo!==false?'✅':'⬜')+'</span>'+
+          '<span>'+(bn.titulo||'(sin título)')+'</span>'+
+          '<button class="btn btn-ghost" style="margin-left:auto;padding:4px 8px">↑</button>'+
+          '<button class="btn btn-ghost" style="padding:4px 8px">↓</button>'+
+          '<button class="btn btn-ghost" style="padding:4px 10px">Editar</button>'+
+          '<button class="btn btn-danger" style="padding:4px 10px">Borrar</button>';
+        var sw=el.querySelector('.switch'), btns=el.querySelectorAll('button');
+        sw.onclick=function(){
+          var nuevo = bn.activo===false;
+          fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:bn.id,data:{activo:nuevo}})})
+            .then(function(r){return r.json()}).then(function(res){ if(res.ok){ bn.activo=nuevo; sw.textContent=nuevo?'✅':'⬜'; toast('✅ Actualizado'); } });
+        };
+        btns[0].onclick=function(){ moverBanner(d,i,-1); };
+        btns[1].onclick=function(){ moverBanner(d,i,1); };
+        btns[2].onclick=function(){ editarBanner(bn); };
+        btns[3].onclick=function(){ if(confirm('¿Borrar este banner?')){
+          fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify({action:'borrar',id:bn.id})}).then(function(){cargarBanners()});
+        }};
+        box.appendChild(el);
+      });
+    }).catch(function(){
+      box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo conectar con el servidor.</div>';
+    });
+  }
+  function moverBanner(lista,i,dir){
+    var j=i+dir; if(j<0||j>=lista.length) return;
+    var a=lista[i], b=lista[j];
+    var oa=a.orden||0, ob=b.orden||0;
+    Promise.all([
+      fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:a.id,data:{orden:ob}})}),
+      fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:b.id,data:{orden:oa}})})
+    ]).then(function(){ cargarBanners(); });
+  }
+  function editarBanner(bn){
+    document.getElementById('ban_titulo').textContent='Editar banner';
+    document.getElementById('ban_id').value=bn.id;
+    document.getElementById('ban_kick').value=bn.kick||'';
+    document.getElementById('ban_titulo_txt').value=bn.titulo||'';
+    document.getElementById('ban_sub').value=bn.subtitulo||'';
+    document.getElementById('ban_link').value=bn.enlace||'';
+    document.getElementById('ban_activo').checked=bn.activo!==false;
+    mostrarPreviewBan(bn.imagen_url||'');
+    window.scrollTo(0,0);
+  }
+  function resetBanner(){
+    document.getElementById('ban_titulo').textContent='Nuevo banner';
+    document.getElementById('ban_id').value='';
+    document.getElementById('ban_kick').value=''; document.getElementById('ban_titulo_txt').value='';
+    document.getElementById('ban_sub').value=''; document.getElementById('ban_link').value='';
+    document.getElementById('ban_activo').checked=true;
+    mostrarPreviewBan(''); document.getElementById('ban_file').value='';
+  }
+  function guardarBanner(){
+    var titulo=document.getElementById('ban_titulo_txt').value.trim();
+    var img=document.getElementById('ban_img').value;
+    if(!titulo){ toast('Escribe un título'); return; }
+    if(!img){ toast('Sube una foto para el banner'); return; }
+    var data={ kick:document.getElementById('ban_kick').value.trim(),
+      titulo:titulo, subtitulo:document.getElementById('ban_sub').value.trim(),
+      enlace:document.getElementById('ban_link').value.trim()||'index.html',
+      imagen_url:img, activo:document.getElementById('ban_activo').checked };
+    var id=document.getElementById('ban_id').value;
+    var payload = id ? {action:'editar',id:id,data:data} : {action:'crear',data:Object.assign({orden:999},data)};
+    fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify(payload)}).then(function(r){return r.json()}).then(function(d){
+      if(d.ok){ toast('✅ Banner guardado'); resetBanner(); cargarBanners(); } else { toast('❌ '+(d.motivo||'error')); }
+    });
+  }
+  function mostrarPreviewBan(url){
+    document.getElementById('ban_img').value=url||'';
+    var box=document.getElementById('ban_preview'), img=document.getElementById('ban_preview_img');
+    if(url){ img.src=url; box.style.display='block'; } else { img.src=''; box.style.display='none'; }
+  }
+  function subirArchivoBan(file){
+    if(!file) return;
+    if(!/^image\//.test(file.type)){ toast('Solo se admiten imágenes'); return; }
+    if(file.size > 5*1024*1024){ toast('Máximo 5MB'); return; }
+    var reader=new FileReader();
+    document.getElementById('banUploadingMsg').style.display='block';
+    reader.onload=function(){
+      var base64=reader.result.split(',')[1];
+      fetch('/api/upload',{method:'POST',headers:H(),body:JSON.stringify({filename:file.name,contentType:file.type,dataBase64:base64})})
+        .then(function(r){return r.json()}).then(function(d){
+          document.getElementById('banUploadingMsg').style.display='none';
+          if(d.ok){ mostrarPreviewBan(d.url); toast('✅ Imagen subida'); }
+          else { toast('❌ '+(d.motivo||'error al subir')); }
+        }).catch(function(){ document.getElementById('banUploadingMsg').style.display='none'; toast('❌ Error al subir'); });
+    };
+    reader.readAsDataURL(file);
+  }
+  (function(){
+    var zone=document.getElementById('banDropZone'), input=document.getElementById('ban_file');
+    zone.addEventListener('click',function(){ input.click(); });
+    input.addEventListener('change',function(){ if(input.files[0]) subirArchivoBan(input.files[0]); });
+    ['dragenter','dragover'].forEach(function(ev){ zone.addEventListener(ev,function(e){ e.preventDefault(); zone.classList.add('over'); }); });
+    ['dragleave','drop'].forEach(function(ev){ zone.addEventListener(ev,function(e){ e.preventDefault(); zone.classList.remove('over'); }); });
+    zone.addEventListener('drop',function(e){
+      var f=e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) subirArchivoBan(f);
+    });
+    document.getElementById('ban_preview_rm').addEventListener('click',function(e){ e.stopPropagation(); mostrarPreviewBan(''); input.value=''; });
+  })();
 
   // ---------- CONFIG ----------
   function cargarConfig(){
