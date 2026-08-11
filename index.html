@@ -131,6 +131,10 @@
   .dropmenu a{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:14px;
     font-weight:600;color:var(--txt-mut);white-space:nowrap}
   .dropmenu a:hover{background:rgba(168,85,247,.14);color:#fff}
+  .navMkt{background:linear-gradient(90deg,var(--pink),var(--neon2) 60%,var(--cyan));color:#fff!important;
+    padding:8px 16px!important;border-radius:999px;box-shadow:0 0 18px rgba(216,55,205,.4);font-weight:800!important}
+  .navMkt::after{display:none}
+  .navMkt:hover{filter:brightness(1.12);text-shadow:none!important;background:linear-gradient(90deg,var(--pink),var(--neon2) 60%,var(--cyan))!important}
   .search{margin-left:auto;position:relative;border-radius:12px;padding:2px;
     background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));
     background-size:200% 100%;transition:background-position .4s}
@@ -533,6 +537,7 @@
           <a href="categoria.html?cat=VPN">🔒 VPN</a>
         </div>
       </div>
+      <a class="navMkt" href="categoria.html?cat=Creativos">🎯 Marketing</a>
       <a href="seguidores.html">Seguidores</a>
     </nav>
     <div class="search"><i>&#128269;</i><input id="searchInput" placeholder="Buscar producto..." autocomplete="off" oninput="buscarEnVivo()" onkeydown="if(event.key==='Enter')buscarGlobal()"><div class="searchDrop" id="searchDrop"></div></div>
@@ -556,6 +561,7 @@
   <a href="categoria.html?cat=VPN">🔒 VPN</a>
   <a href="categoria.html?cat=Todos">Ver todo el catálogo →</a>
   </div>
+  <a class="navMkt" href="categoria.html?cat=Creativos" style="text-align:center;margin:4px 16px 8px">🎯 Marketing</a>
   <a href="seguidores.html">📈 Seguidores</a>
   <a class="wa" href="#">&#9993; +34 641 564 952</a>
   <button class="btn btn-ghost">Entrar</button>
