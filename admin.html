@@ -219,12 +219,7 @@
       <div class="panel">
         <h2 id="pkg_titulo">Nuevo paquete</h2>
         <input type="hidden" id="p_id">
-        <div class="two">
-          <div><label>Nombre</label><input id="p_nombre" placeholder="Combo Viral 10K + 2K likes"></div>
-          <div><label>Plataforma</label>
-            <select id="p_plat"><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>Facebook</option><option>Mixto</option></select>
-          </div>
-        </div>
+        <label>Nombre</label><input id="p_nombre" placeholder="Combo Viral 10K + 2K likes">
         <label>Descripción</label>
         <input id="p_desc" placeholder="10.000 seguidores + 2.000 likes reales">
 
@@ -1112,7 +1107,7 @@
     var precio=parseFloat(document.getElementById('p_precio').value)||0;
     if(!nombre || !itemsPaquete.length || precio<=0){ toast('Completa nombre, servicios y precio'); return; }
     var data={ nombre:nombre, descripcion:document.getElementById('p_desc').value,
-      plataforma:document.getElementById('p_plat').value, precio:precio,
+      precio:precio,
       items:itemsPaquete, destacado:document.getElementById('p_dest').checked,
       en_home:document.getElementById('p_home').checked,
       imagen_url:document.getElementById('p_img').value, activo:true };
@@ -1136,7 +1131,6 @@
     document.getElementById('p_id').value=p.id;
     document.getElementById('p_nombre').value=p.nombre||'';
     document.getElementById('p_desc').value=p.descripcion||'';
-    document.getElementById('p_plat').value=p.plataforma||'Instagram';
     document.getElementById('p_precio').value=p.precio||'';
     document.getElementById('p_dest').checked=!!p.destacado;
     document.getElementById('p_home').checked=!!p.en_home;
