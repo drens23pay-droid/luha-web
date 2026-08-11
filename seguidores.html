@@ -86,7 +86,8 @@
   .overlay{position:fixed;inset:0;background:rgba(5,5,9,.72);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
   @supports not (backdrop-filter: blur(1px)){ .overlay{background:rgba(5,5,9,.94)} }
   .overlay.on{display:flex}
-  .modal{background:var(--card);border:1px solid var(--neon);border-radius:20px;max-width:440px;width:100%;padding:26px;box-shadow:0 0 40px rgba(139,47,255,.35)}
+  .modal{background:var(--card);border:1px solid var(--neon);border-radius:20px;max-width:440px;width:100%;padding:26px;box-shadow:0 0 40px rgba(139,47,255,.35);
+    max-height:calc(100vh - 40px);overflow-y:auto;-webkit-overflow-scrolling:touch}
   .modal h2{font-size:20px;font-weight:800;margin-bottom:4px}
   .modal .msub{color:var(--txt-mut);font-size:13px;margin-bottom:16px}
   .rec{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px}
