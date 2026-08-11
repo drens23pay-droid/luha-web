@@ -24,8 +24,11 @@
     background:linear-gradient(90deg,var(--pink),var(--lila),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
   .logo-img{height:54px;width:auto;display:block;filter:drop-shadow(0 0 14px rgba(255,61,174,.25))}
   @media(max-width:760px){.logo-img{height:44px}}
-  .bar nav{display:flex;gap:18px;margin-left:10px;font-size:14px;color:var(--txt-mut)}
+  .bar nav{display:flex;align-items:center;gap:18px;margin-left:10px;font-size:14px;color:var(--txt-mut)}
   .bar nav a:hover{color:var(--lila)}
+  .navMkt{background:linear-gradient(90deg,#FF3DAE,#8B2FFF 60%,#22E1D6);color:#fff!important;
+    padding:7px 15px;border-radius:999px;font-weight:800;box-shadow:0 0 16px rgba(216,55,205,.4)}
+  .navMkt:hover{color:#fff!important;filter:brightness(1.12)}
   .search{margin-left:auto}
   .search input{background:var(--card);border:1px solid var(--line);color:var(--txt);padding:9px 14px;border-radius:10px;width:220px;font-size:14px;outline:none}
   .wa{background:#1f2a1f;border:1px solid #2b5c33;color:#7ee59a;padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px}
@@ -134,7 +137,7 @@
 <header>
   <div class="wrap bar">
     <a href="index.html" aria-label="LUHA — Inicio"><img class="logo-img" src="logo/luha-logo.png" alt="LUHA"></a>
-    <nav><a href="index.html">Inicio</a><a href="categoria.html?cat=Todos">Productos</a><a href="seguidores.html">Seguidores</a></nav>
+    <nav><a href="index.html">Inicio</a><a href="categoria.html?cat=Todos">Productos</a><a class="navMkt" href="categoria.html?cat=Creativos">🎯 Marketing</a><a href="seguidores.html">Seguidores</a></nav>
     <div class="search"><input id="q" placeholder="Buscar producto..."></div>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
     <button class="navToggle" id="navToggle" aria-label="Menú" type="button">☰</button>
@@ -144,6 +147,7 @@
 <div class="mobileNav" id="mobileNav">
   <a href="index.html">Inicio</a>
   <a href="categoria.html?cat=Todos">Productos</a>
+  <a class="navMkt" href="categoria.html?cat=Creativos" style="text-align:center;margin:4px 16px 8px;display:block">🎯 Marketing</a>
   <a href="seguidores.html">Seguidores</a>
 </div>
 
