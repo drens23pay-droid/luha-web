@@ -87,9 +87,10 @@
     .search input{width:100%}
     /* La lista de categorías pasa de vertical (apilada, ocupa media pantalla) a una fila
        horizontal de chips que se desliza con el dedo — así se ven los productos de inmediato. */
-    aside{background:transparent;border:none;padding:0 0 6px;margin-bottom:4px}
+    .layout{min-width:0}
+    aside{background:transparent;border:none;padding:0 0 6px;margin-bottom:4px;min-width:0;width:100%}
     aside h3{display:none}
-    #catList{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    #catList{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0;width:100%}
     #catList::-webkit-scrollbar{display:none}
     aside a{display:inline-flex;flex:none;white-space:nowrap;justify-content:center;gap:4px;
       padding:9px 16px;border-radius:999px;background:var(--card);border:1px solid var(--line);margin-bottom:0}
