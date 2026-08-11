@@ -146,11 +146,18 @@
   .searchDrop{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;background:#0d0d13;
     border:1px solid var(--line);border-radius:12px;overflow:hidden;z-index:80;
     box-shadow:0 12px 30px rgba(0,0,0,.5)}
-  .sdItem{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;
+  .sdItem{display:flex;align-items:center;gap:11px;padding:9px 14px;
     font-size:13px;color:var(--txt);border-bottom:1px solid rgba(168,85,247,.1)}
   a.sdItem:hover{background:rgba(168,85,247,.14)}
   .sdItem:last-child{border-bottom:none}
   .sdItem b{color:var(--cyan);white-space:nowrap}
+  .sdThumb{width:38px;height:38px;border-radius:9px;flex:none;object-fit:cover;background:var(--bg2)}
+  .sdIcon{width:38px;height:38px;border-radius:9px;flex:none;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:16px}
+  .sdInfo{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;overflow:hidden}
+  .sdName{color:var(--txt);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+  .sdName mark{background:none;color:var(--cyan);font-weight:800}
+  .sdCat{color:var(--txt-mut);font-size:10px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sdPrice{color:var(--cyan);white-space:nowrap;flex:none;font-weight:800}
   .sdEmpty{color:var(--txt-mut);justify-content:center}
   .sdAll{justify-content:center;color:var(--cyan);font-weight:600}
   .btn{border:none;cursor:pointer;font-weight:600;border-radius:10px;font-size:14px}
@@ -1058,8 +1065,8 @@
     var paquetes = Array.isArray(res[1]) ? res[1].filter(function(p){return p.activo!==false}) : [];
     var categorias = Array.isArray(res[2]) ? res[2].filter(function(c){return c.activa!==false}) : [];
     categorias.sort(function(a,b){ return (a.orden||0)-(b.orden||0); });
-    SEARCH_DATA = productos.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'producto.html?id='+encodeURIComponent(p.id)}; })
-      .concat(paquetes.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'seguidores.html'}; }));
+    SEARCH_DATA = productos.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'producto.html?id='+encodeURIComponent(p.id), imagen_url:p.imagen_url, categoria:p.categoria}; })
+      .concat(paquetes.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'seguidores.html', categoria:'Seguidores'}; }));
     CATS_DATA = categorias.map(function(c){ return {nombre:c.nombre, href:'categoria.html?cat='+encodeURIComponent(c.nombre)}; });
     pintarMenuCategorias(categorias);
   });
@@ -1103,6 +1110,21 @@
     { nombre:'VPN', href:'categoria.html?cat=VPN', alias:['vpn','privacidad','proxy'] },
     { nombre:'Creativos (webs, video, diseño...)', href:'categoria.html?cat=Creativos', alias:['video','carta digital','menu','web','pagina web','diseño','edicion','logo'] }
   ];
+  // Resalta la parte del nombre que coincide con lo buscado (case-insensitive, escapa HTML primero)
+  function resaltar(nombre,v){
+    var esc=String(nombre).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var i=esc.toLowerCase().indexOf(v.toLowerCase());
+    if(i<0) return esc;
+    return esc.slice(0,i)+'<mark>'+esc.slice(i,i+v.length)+'</mark>'+esc.slice(i+v.length);
+  }
+  function itemSearch(p,v){
+    var thumb = p.imagen_url
+      ? '<img class="sdThumb" src="'+p.imagen_url+'" loading="lazy" onerror="this.outerHTML=\'<span class=&quot;sdIcon&quot;>'+(p.icono||'🛍️')+'</span>\'">'
+      : '<span class="sdIcon">'+(p.icono||'🛍️')+'</span>';
+    return '<a class="sdItem" href="'+p.href+'">'+thumb+
+      '<span class="sdInfo"><b class="sdName">'+resaltar(p.nombre,v)+'</b>'+(p.categoria?'<small class="sdCat">'+p.categoria+'</small>':'')+'</span>'+
+      (p.precio!=null?'<b class="sdPrice">'+eur(p.precio)+'</b>':'')+'</a>';
+  }
   function buscarEnVivo(){
     var v=(document.getElementById('searchInput').value||'').trim().toLowerCase();
     var drop=document.getElementById('searchDrop');
@@ -1110,18 +1132,17 @@
     var fijos = STATIC_LINKS.filter(function(s){
       if(s.nombre.toLowerCase().indexOf(v)>-1) return true;
       return s.alias.some(function(a){ return a.indexOf(v)>-1 || v.indexOf(a)>-1; });
-    }).map(function(s){ return {nombre:s.nombre, href:s.href, precio:null}; });
+    }).map(function(s){ return {nombre:s.nombre, href:s.href, precio:null, icono:'🔎'}; });
     var cats = CATS_DATA.filter(function(c){ return (c.nombre||'').toLowerCase().indexOf(v)>-1; })
-      .map(function(c){ return {nombre:'Categoría: '+c.nombre, href:c.href, precio:null}; });
+      .map(function(c){ return {nombre:c.nombre, href:c.href, precio:null, categoria:'Categoría', icono:ICONO_CAT[c.nombre]||'🏷️'}; });
     var reales = SEARCH_DATA.filter(function(p){ return (p.nombre||'').toLowerCase().indexOf(v)>-1; });
     var todos = fijos.concat(cats).concat(reales).slice(0,7);
     if(!todos.length){
       drop.innerHTML='<div class="sdItem sdEmpty">Sin resultados — pulsa Enter para buscar en todo</div>';
       drop.style.display='block'; return;
     }
-    drop.innerHTML = todos.map(function(p){
-      return '<a class="sdItem" href="'+p.href+'"><span>'+p.nombre+'</span>'+(p.precio!=null?'<b>'+eur(p.precio)+'</b>':'')+'</a>';
-    }).join('') + '<a class="sdItem sdAll" href="categoria.html?cat=Todos&q='+encodeURIComponent(v)+'">Ver todos los resultados para "'+v+'" &rarr;</a>';
+    drop.innerHTML = todos.map(function(p){ return itemSearch(p,v); }).join('')
+      + '<a class="sdItem sdAll" href="categoria.html?cat=Todos&q='+encodeURIComponent(v)+'">Ver todos los resultados para "'+v+'" &rarr;</a>';
     drop.style.display='block';
   }
   document.addEventListener('click', function(e){
