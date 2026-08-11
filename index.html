@@ -658,7 +658,7 @@
       </div>
       <div>
         <h5>Tienda</h5>
-        <span id="footerCatLinks"><a href="categoria.html?cat=Streaming">Streaming</a><a href="categoria.html?cat=Software">Software</a><a href="categoria.html?cat=IA">IA</a></span><a href="#cursos">Cursos</a>
+        <span id="footerCatLinks"><a href="categoria.html?cat=Streaming">Streaming</a><a href="categoria.html?cat=Software">Software</a><a href="categoria.html?cat=IA">IA</a></span>
       </div>
       <div>
         <h5>Legal</h5>
@@ -1084,9 +1084,10 @@
     }
     var foot=document.getElementById('footerCatLinks');
     if(foot){
-      foot.innerHTML = cats.map(function(c){
+      // Solo las 5 primeras categorías para no saturar el pie de página; el resto se ve en "Productos" del menú.
+      foot.innerHTML = cats.slice(0,5).map(function(c){
         return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+c.nombre+'</a>';
-      }).join('');
+      }).join('') + '<a href="categoria.html?cat=Todos">Ver todas →</a>';
     }
   }
   // Secciones fijas de la web (no viven en una tabla, así que las buscamos por palabras clave habituales).
