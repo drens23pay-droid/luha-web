@@ -257,11 +257,15 @@
     'VPN':'Seguridad y privacidad online',
     'Juegos':'Videojuegos y suscripciones gaming'
   };
-  var ESBUSQUEDA = (CAT==='Todos');
-  document.title = (ESBUSQUEDA ? 'Buscar: '+Q0 : CAT) + ' — LUHA';
-  document.getElementById('catTitulo').textContent = ESBUSQUEDA ? 'Resultados de búsqueda' : CAT;
-  document.getElementById('catCrumb').textContent = ESBUSQUEDA ? ('"'+Q0+'"') : CAT;
-  document.getElementById('catSub').textContent = ESBUSQUEDA ? ('Mostrando resultados para "'+Q0+'" en todo el catálogo') : (DESCR[CAT] || 'Todo lo que necesitas, al mejor precio · entrega rápida');
+  // "Todos" cubre dos casos distintos: buscar texto (viene con ?q=...) o simplemente
+  // ver el catálogo completo (link "Productos" del menú, sin texto buscado) — antes se
+  // trataban igual y por eso salía una búsqueda vacía rarísima ('""').
+  var ESBUSQUEDA = (CAT==='Todos' && Q0!=='');
+  var VERTODOS = (CAT==='Todos' && Q0==='');
+  document.title = (ESBUSQUEDA ? 'Buscar: '+Q0 : (VERTODOS ? 'Todos los productos' : CAT)) + ' — LUHA';
+  document.getElementById('catTitulo').textContent = ESBUSQUEDA ? 'Resultados de búsqueda' : (VERTODOS ? 'Todos los productos' : CAT);
+  document.getElementById('catCrumb').textContent = ESBUSQUEDA ? ('"'+Q0+'"') : (VERTODOS ? 'Todos los productos' : CAT);
+  document.getElementById('catSub').textContent = ESBUSQUEDA ? ('Mostrando resultados para "'+Q0+'" en todo el catálogo') : (VERTODOS ? 'Todo nuestro catálogo, en un solo lugar' : (DESCR[CAT] || 'Todo lo que necesitas, al mejor precio · entrega rápida'));
 
   // ---- Catálogo (demo + productos reales del admin), filtrado por categoría (o todo, si es búsqueda) ----
   var TODOS=[];
@@ -444,7 +448,7 @@
   document.getElementById('grid').innerHTML = '<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">Cargando productos…</div>';
   pintarCategorias();
   fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
-    var reales = Array.isArray(d) ? d.filter(function(p){ return ESBUSQUEDA || (p.categoria||'')===CAT; }).map(function(p){ return {
+    var reales = Array.isArray(d) ? d.filter(function(p){ return ESBUSQUEDA || VERTODOS || (p.categoria||'')===CAT; }).map(function(p){ return {
       id:p.id, nombre:p.nombre, categoria:p.categoria, precio:p.precio, precio_anterior:p.precio_anterior,
       stock:p.stock, imagen_url:p.imagen_url, destacado:p.destacado, cotizacion:p.cotizacion
     };}) : [];
