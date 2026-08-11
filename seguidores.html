@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seguidores y likes — LUHA</title>
+<link rel="icon" type="image/x-icon" href="logo/favicon.ico">
+<link rel="icon" type="image/png" sizes="192x192" href="logo/icon-192.png">
+<link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
 <style>
   :root{--bg:#0B0B0F;--bg2:#111117;--card:#16161F;--neon:#A855F7;--neon2:#8B2FFF;--lila:#C77DFF;
     --cyan:#22E1D6;--pink:#FF3DAE;--txt:#EDEAF5;--txt-mut:#9A93B0;--line:rgba(168,85,247,.18);--ok:#3DE6A0}
@@ -19,6 +22,8 @@
   .bar{display:flex;align-items:center;gap:20px;height:66px}
   .logo{font-weight:800;font-size:20px;letter-spacing:1px;
     background:linear-gradient(90deg,var(--pink),var(--lila),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo-img{height:38px;width:auto;display:block;filter:drop-shadow(0 0 14px rgba(255,61,174,.25))}
+  @media(max-width:760px){.logo-img{height:30px}}
   .bar nav{display:flex;gap:18px;margin-left:10px;font-size:14px;color:var(--txt-mut)}
   .bar nav a:hover{color:var(--lila)}
   .wa{margin-left:auto;background:#1f2a1f;border:1px solid #2b5c33;color:#7ee59a;padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px}
@@ -115,7 +120,7 @@
 
 <header>
   <div class="wrap bar">
-    <a class="logo" href="index.html">LU<span>HA</span></a>
+    <a href="index.html" aria-label="LUHA — Inicio"><img class="logo-img" src="logo/luha-logo.png" alt="LUHA"></a>
     <nav><a href="index.html">Inicio</a><a href="categoria.html?cat=Todos">Productos</a><a href="seguidores.html">Seguidores</a></nav>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
     <button class="navToggle" id="navToggle" aria-label="Menú" type="button">☰</button>
