@@ -401,9 +401,12 @@
   .mobileNav a{display:block;padding:15px 16px;font-size:17px;font-weight:700;color:var(--txt);
     border-bottom:1px solid rgba(168,85,247,.12);border-radius:10px;text-decoration:none}
   .mobileNav a:active{background:rgba(168,85,247,.12)}
+  /* Las categorías van subordinadas a "Productos": más chicas, indentadas y menos separación entre ellas */
+  .mobileNav #mobileCatLinks{margin-bottom:6px}
+  .mobileNav #mobileCatLinks a{font-size:14px;font-weight:600;color:var(--txt-mut);padding:11px 16px 11px 30px}
   .mobileNav .wa{width:100%;justify-content:center;margin-top:14px;padding:14px;border-radius:10px}
   .mobileNav .btn{width:100%;margin-top:12px;padding:14px;font-size:15px}
-  .mSearch{position:relative;margin-bottom:16px}
+  .mSearch{position:relative;margin:10px 0 16px}
   .mSearch input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);
     padding:13px 16px 13px 42px;border-radius:10px;font-size:16px;outline:none;box-sizing:border-box}
   .mSearch i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--lila)}
@@ -529,13 +532,15 @@
 </header>
 
 <div class="mobileNav" id="mobileNav">
-  <div class="mSearch"><i>&#128269;</i><input id="searchInputM" placeholder="Buscar producto..." autocomplete="off" onkeydown="if(event.key==='Enter')buscarGlobal('searchInputM')"></div>
+  <a href="index.html">🏠 Inicio</a>
+  <a href="categoria.html?cat=Todos">🛍️ Productos</a>
   <div id="mobileCatLinks">
   <a href="categoria.html?cat=Streaming">🎬 Streaming</a>
   <a href="categoria.html?cat=Software">💻 Software</a>
   <a href="categoria.html?cat=IA">🤖 IA</a>
   <a href="categoria.html?cat=VPN">🔒 VPN</a>
   </div>
+  <div class="mSearch"><i>&#128269;</i><input id="searchInputM" placeholder="Buscar producto..." autocomplete="off" oninput="buscarEnVivo('searchInputM','searchDropM')" onkeydown="if(event.key==='Enter')buscarGlobal('searchInputM')"><div class="searchDrop" id="searchDropM"></div></div>
   <a href="seguidores.html">📈 Seguidores</a>
   <a class="wa" href="#">&#9993; +34 641 564 952</a>
   <button class="btn btn-ghost">Entrar</button>
@@ -1125,9 +1130,13 @@
       '<span class="sdInfo"><b class="sdName">'+resaltar(p.nombre,v)+'</b>'+(p.categoria?'<small class="sdCat">'+p.categoria+'</small>':'')+'</span>'+
       (p.precio!=null?'<b class="sdPrice">'+eur(p.precio)+'</b>':'')+'</a>';
   }
-  function buscarEnVivo(){
-    var v=(document.getElementById('searchInput').value||'').trim().toLowerCase();
-    var drop=document.getElementById('searchDrop');
+  // inputId/dropId permiten reusar la misma función para el buscador de escritorio y el del
+  // menú móvil — así ambos muestran los mismos resultados con foto, categoría y precio.
+  function buscarEnVivo(inputId,dropId){
+    inputId=inputId||'searchInput'; dropId=dropId||'searchDrop';
+    var v=(document.getElementById(inputId).value||'').trim().toLowerCase();
+    var drop=document.getElementById(dropId);
+    if(!drop) return;
     if(v.length<2){ drop.style.display='none'; drop.innerHTML=''; return; }
     var fijos = STATIC_LINKS.filter(function(s){
       if(s.nombre.toLowerCase().indexOf(v)>-1) return true;
@@ -1147,7 +1156,9 @@
   }
   document.addEventListener('click', function(e){
     var box=document.querySelector('.search');
-    if(box && !box.contains(e.target)){ document.getElementById('searchDrop').style.display='none'; }
+    if(box && !box.contains(e.target)){ var d=document.getElementById('searchDrop'); if(d) d.style.display='none'; }
+    var boxM=document.querySelector('.mSearch');
+    if(boxM && !boxM.contains(e.target)){ var dm=document.getElementById('searchDropM'); if(dm) dm.style.display='none'; }
   });
 
   // ---- Chips de marca: si existe el producto real, va directo a su ficha ----
