@@ -11,7 +11,7 @@
 //        ADMIN_HTTP_PASS  -> una contraseña fuerte, distinta de tu ADMIN_TOKEN
 //   2) Cambia ACTIVO a true aquí abajo y vuelve a subir este archivo.
 
-const ACTIVO = false;
+const ACTIVO = true;
 
 export const config = {
   matcher: ['/admin.html', '/admin'],
