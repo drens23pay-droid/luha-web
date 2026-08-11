@@ -1,21 +1,25 @@
-// LUHA — Candado extra para el panel de administración.
-// Antes de que el navegador cargue admin.html (o cualquier cosa dentro de /admin),
-// Vercel pide un usuario y contraseña aparte (autenticación HTTP). Si no la pones,
-// no se ve absolutamente nada de la página — ni la pantalla de login.
+// LUHA — Candado extra para el panel de administración (DESACTIVADO por ahora).
 //
-// Configura estas dos variables en Vercel → Settings → Environment Variables
-// (mismo lugar donde pusiste SUPABASE_URL, ADMIN_TOKEN, etc.) y vuelve a desplegar:
-//   ADMIN_HTTP_USER  -> el usuario que vas a escribir (ej: luha)
-//   ADMIN_HTTP_PASS  -> la contraseña que vas a escribir (usa una distinta a tu ADMIN_TOKEN)
+// Este archivo puede añadir un usuario/contraseña extra (autenticación HTTP) antes
+// de cargar admin.html. Está apagado ahora mismo para que /admin funcione directo,
+// igual que antes. Tu login normal del panel (con ADMIN_TOKEN) sigue protegiendo
+// las acciones igual que siempre — esto solo era una capa extra.
 //
-// Si no configuras ADMIN_HTTP_PASS, por seguridad se bloquea el acceso a admin.html
-// hasta que la configures (para no dejarlo abierto por descuido).
+// Si más adelante quieres reactivar esta capa extra:
+//   1) Configura en Vercel → Settings → Environment Variables:
+//        ADMIN_HTTP_USER  -> el usuario que vas a escribir (ej: luha)
+//        ADMIN_HTTP_PASS  -> una contraseña fuerte, distinta de tu ADMIN_TOKEN
+//   2) Cambia ACTIVO a true aquí abajo y vuelve a subir este archivo.
+
+const ACTIVO = false;
 
 export const config = {
   matcher: ['/admin.html', '/admin'],
 };
 
 export default function middleware(request) {
+  if (!ACTIVO) return; // candado apagado: deja pasar todo normal
+
   const expectedUser = process.env.ADMIN_HTTP_USER || 'luha';
   const expectedPass = process.env.ADMIN_HTTP_PASS || '';
 
