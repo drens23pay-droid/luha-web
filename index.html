@@ -398,11 +398,16 @@
   .mobileNav{display:none;position:fixed;top:70px;left:0;right:0;bottom:0;background:var(--bg2);z-index:150;
     padding:20px;overflow-y:auto}
   .mobileNav.open{display:block}
-  .mobileNav a{display:block;padding:15px 16px;font-size:17px;font-weight:700;color:var(--txt);
+  .mobileNav a,.mobileNav .mNavToggle{display:block;padding:15px 16px;font-size:17px;font-weight:700;color:var(--txt);
     border-bottom:1px solid rgba(168,85,247,.12);border-radius:10px;text-decoration:none}
-  .mobileNav a:active{background:rgba(168,85,247,.12)}
-  /* Las categorías van subordinadas a "Productos": más chicas, indentadas y menos separación entre ellas */
-  .mobileNav #mobileCatLinks{margin-bottom:6px}
+  .mobileNav a:active,.mobileNav .mNavToggle:active{background:rgba(168,85,247,.12)}
+  .mNavToggle{width:100%;background:transparent;border-bottom:1px solid rgba(168,85,247,.12);
+    text-align:left;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between}
+  .mNavToggle .mCare{font-size:12px;color:var(--txt-mut);transition:transform .2s}
+  .mNavToggle.open .mCare{transform:rotate(180deg)}
+  /* Las categorías van subordinadas a "Productos": ocultas hasta que tocas "Productos", más chicas e indentadas */
+  .mobileNav #mobileCatLinks{max-height:0;overflow:hidden;transition:max-height .25s ease;margin-bottom:0}
+  .mobileNav #mobileCatLinks.open{max-height:400px;margin-bottom:6px}
   .mobileNav #mobileCatLinks a{font-size:14px;font-weight:600;color:var(--txt-mut);padding:11px 16px 11px 30px}
   .mobileNav .wa{width:100%;justify-content:center;margin-top:14px;padding:14px;border-radius:10px}
   .mobileNav .btn{width:100%;margin-top:12px;padding:14px;font-size:15px}
@@ -411,9 +416,15 @@
     padding:13px 16px 13px 42px;border-radius:10px;font-size:16px;outline:none;box-sizing:border-box}
   .mSearch i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--lila)}
 
+  .searchToggleM{display:none;background:transparent;border:1px solid var(--line);color:#fff;width:42px;height:42px;
+    border-radius:10px;font-size:16px;align-items:center;justify-content:center;cursor:pointer}
+  .mHeaderSearch{display:none}
+  .mHeaderSearch.open{display:block;padding:0 22px 14px}
   @media(max-width:760px){
     nav.top,.search,.bar .wa,.bar>.btn{display:none}
+    .bar{justify-content:space-between}
     .navToggle{display:flex}
+    .searchToggleM{display:flex}
     .hero h1{font-size:36px}
     .fgrid{grid-template-columns:1fr}
   }
@@ -527,20 +538,24 @@
     <div class="search"><i>&#128269;</i><input id="searchInput" placeholder="Buscar producto..." autocomplete="off" oninput="buscarEnVivo()" onkeydown="if(event.key==='Enter')buscarGlobal()"><div class="searchDrop" id="searchDrop"></div></div>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
     <button class="btn btn-ghost">Entrar</button>
+    <button class="searchToggleM" id="searchToggleM" aria-label="Buscar" type="button">&#128269;</button>
     <button class="navToggle" id="navToggle" aria-label="Menú" type="button">☰</button>
+  </div>
+  <div class="mHeaderSearch" id="mHeaderSearch">
+    <div class="mSearch"><i>&#128269;</i><input id="searchInputMH" placeholder="Buscar producto..." autocomplete="off" oninput="buscarEnVivo('searchInputMH','searchDropMH')" onkeydown="if(event.key==='Enter')buscarGlobal('searchInputMH')"><div class="searchDrop" id="searchDropMH"></div></div>
   </div>
 </header>
 
 <div class="mobileNav" id="mobileNav">
   <a href="index.html">🏠 Inicio</a>
-  <a href="categoria.html?cat=Todos">🛍️ Productos</a>
+  <button type="button" class="mNavToggle" id="mProdToggle">🛍️ Productos <span class="mCare">&#9662;</span></button>
   <div id="mobileCatLinks">
   <a href="categoria.html?cat=Streaming">🎬 Streaming</a>
   <a href="categoria.html?cat=Software">💻 Software</a>
   <a href="categoria.html?cat=IA">🤖 IA</a>
   <a href="categoria.html?cat=VPN">🔒 VPN</a>
+  <a href="categoria.html?cat=Todos">Ver todo el catálogo →</a>
   </div>
-  <div class="mSearch"><i>&#128269;</i><input id="searchInputM" placeholder="Buscar producto..." autocomplete="off" oninput="buscarEnVivo('searchInputM','searchDropM')" onkeydown="if(event.key==='Enter')buscarGlobal('searchInputM')"><div class="searchDrop" id="searchDropM"></div></div>
   <a href="seguidores.html">📈 Seguidores</a>
   <a class="wa" href="#">&#9993; +34 641 564 952</a>
   <button class="btn btn-ghost">Entrar</button>
@@ -1048,16 +1063,37 @@
   // ---- Menú móvil (hamburguesa) ----
   (function(){
     var toggle=document.getElementById('navToggle'), menu=document.getElementById('mobileNav');
+    var searchToggleM=document.getElementById('searchToggleM'), headerSearch=document.getElementById('mHeaderSearch');
     if(!toggle||!menu) return;
     toggle.addEventListener('click', function(){
       menu.classList.toggle('open');
       toggle.textContent = menu.classList.contains('open') ? '✕' : '☰';
+      if(menu.classList.contains('open') && headerSearch) headerSearch.classList.remove('open');
     });
+    // Lupa del header (entre el logo y la hamburguesa): despliega el buscador ahí mismo,
+    // sin tener que abrir todo el menú — y cierra el menú si estaba abierto, para no pisarse.
+    if(searchToggleM && headerSearch){
+      searchToggleM.addEventListener('click', function(){
+        headerSearch.classList.toggle('open');
+        if(headerSearch.classList.contains('open')){
+          menu.classList.remove('open'); toggle.textContent='☰';
+          var inp=document.getElementById('searchInputMH'); if(inp) inp.focus();
+        }
+      });
+    }
     // Delegado (no querySelectorAll+forEach fijo): así también cierra el menú al tocar
     // categorías que se agregan dinámicamente después de cargar (ver pintarMenuCategorias).
     menu.addEventListener('click', function(e){
       if(e.target.closest('a')){ menu.classList.remove('open'); toggle.textContent='☰'; }
     });
+    // "Productos" abre/cierra su lista de categorías en vez de mostrarla siempre abierta
+    var prodBtn=document.getElementById('mProdToggle'), catBox=document.getElementById('mobileCatLinks');
+    if(prodBtn && catBox){
+      prodBtn.addEventListener('click', function(){
+        catBox.classList.toggle('open');
+        prodBtn.classList.toggle('open');
+      });
+    }
   })();
   var SEARCH_DATA=[];   // productos + paquetes reales (se actualiza solo con lo que agregues en el admin)
   var CATS_DATA=[];     // categorías reales (también se actualiza sola si agregas categorías nuevas)
@@ -1093,7 +1129,7 @@
       mob.innerHTML = cats.map(function(c){
         var ic = ICONO_CAT[c.nombre] || '🏷️';
         return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+ic+' '+c.nombre+'</a>';
-      }).join('');
+      }).join('') + '<a href="categoria.html?cat=Todos">Ver todo el catálogo →</a>';
     }
     var foot=document.getElementById('footerCatLinks');
     if(foot){
@@ -1157,8 +1193,10 @@
   document.addEventListener('click', function(e){
     var box=document.querySelector('.search');
     if(box && !box.contains(e.target)){ var d=document.getElementById('searchDrop'); if(d) d.style.display='none'; }
-    var boxM=document.querySelector('.mSearch');
-    if(boxM && !boxM.contains(e.target)){ var dm=document.getElementById('searchDropM'); if(dm) dm.style.display='none'; }
+    // Puede haber varios buscadores tipo .mSearch en la página (menú móvil, lupa del header) — cada uno se cierra por su cuenta.
+    document.querySelectorAll('.mSearch').forEach(function(ms){
+      if(!ms.contains(e.target)){ var dd=ms.querySelector('.searchDrop'); if(dd) dd.style.display='none'; }
+    });
   });
 
   // ---- Chips de marca: si existe el producto real, va directo a su ficha ----
