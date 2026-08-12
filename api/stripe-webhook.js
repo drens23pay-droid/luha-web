@@ -31,6 +31,51 @@ module.exports = async (req, res) => {
       const cliente = [cd.name, cd.email, cd.phone].filter(Boolean).join(' · ');
       let estadoFinal = 'pagado';
 
+      // --- CARRITO: varios productos en un mismo pedido. Mandamos un solo correo con la entrega
+      // de cada producto que la tenga (y un aviso para los que se completan a mano). ---
+      if (session.metadata && session.metadata.carrito === '1') {
+        try {
+          const SH0 = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
+          const EMAIL_USER = process.env.EMAIL_USER, EMAIL_PASS = process.env.EMAIL_PASS;
+          let itemsC = [];
+          try { itemsC = JSON.parse(session.metadata.items || '[]'); } catch (e) { itemsC = []; }
+          if (SUPABASE_URL && SUPABASE_KEY && itemsC.length && cd.email && EMAIL_USER && EMAIL_PASS) {
+            const ids = itemsC.map(function (i) { return parseInt(i.id, 10); }).filter(function (n) { return n > 0; });
+            const rp = await fetch(SUPABASE_URL + '/rest/v1/productos?id=in.(' + ids.join(',') + ')&select=id,entrega', { headers: SH0 });
+            const prows = await rp.json();
+            const entregaPorId = {};
+            (Array.isArray(prows) ? prows : []).forEach(function (p) { if (p.entrega) entregaPorId[p.id] = p.entrega; });
+            const bloques = [], sinEntrega = [];
+            itemsC.forEach(function (it) {
+              const e = entregaPorId[it.id];
+              if (e) {
+                const htmlEntrega = String(e).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+                bloques.push('<p style="margin:14px 0 4px"><b>' + it.nombre + (it.cantidad > 1 ? ' x' + it.cantidad : '') + '</b></p>' +
+                  '<div style="background:#f4f2fb;border-radius:12px;padding:16px;font-size:15px">' + htmlEntrega + '</div>');
+              } else {
+                sinEntrega.push(it.nombre + (it.cantidad > 1 ? ' x' + it.cantidad : ''));
+              }
+            });
+            const nodemailer = require('nodemailer');
+            const t = nodemailer.createTransport({ host: 'smtp.dondominio.com', port: 465, secure: true, auth: { user: EMAIL_USER, pass: String(EMAIL_PASS).replace(/\s/g, '') } });
+            const total = ((session.amount_total || 0) / 100).toFixed(2).replace('.', ',');
+            let extra = '';
+            if (sinEntrega.length) extra = '<p style="margin-top:14px">También compraste: <b>' + sinEntrega.join(', ') + '</b> — lo estamos preparando y te contactamos en breve.</p>';
+            await t.sendMail({
+              from: 'LUHA <' + EMAIL_USER + '>',
+              to: cd.email,
+              subject: '🎉 Tu compra en LUHA (' + itemsC.length + ' producto' + (itemsC.length > 1 ? 's' : '') + ')',
+              html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
+                '<h2 style="color:#8B2FFF">¡Gracias por tu compra!</h2>' +
+                '<p>Tu pago de <b>' + total + ' €</b> se ha confirmado. Aquí tienes tus accesos:</p>' +
+                bloques.join('') + extra +
+                '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
+                '<p style="color:#999;font-size:12px">LUHA · luhashop.es</p></div>'
+            });
+            estadoFinal = (bloques.length === itemsC.length) ? 'entregado' : 'pagado';
+          }
+        } catch (e) { console.error('LUHA email carrito error:', e && e.message ? e.message : e); }
+      } else
       // Entrega automática: si el producto tiene contenido de entrega y el cliente dejó email, se lo enviamos.
       try {
         const nombreProducto = (session.metadata && session.metadata.producto) || '';
