@@ -366,7 +366,7 @@
           <textarea id="prod_entrega" rows="3" placeholder="Ej.&#10;Usuario: cliente@luha.com&#10;Contraseña: abc123&#10;O un enlace de Drive / acceso al curso: https://..."></textarea>
         </div>
         <div id="bloque_prod_msg" style="display:none">
-          <label>✉️ Mensaje al pagar (pidiendo el dato que necesites) — se manda apenas paga, el pedido se queda "pagado" hasta que tú lo actives y lo marques "entregado"</label>
+          <label>✉️ Mensaje al pagar (pidiendo el dato que necesites) — se manda apenas paga, el pedido se queda "pagado" hasta que tú lo actives y lo marques "entregado". Usa <code>{cantidad}</code> donde quieras que aparezca el número de cuentas que compró.</label>
           <div class="two" style="align-items:end;margin-bottom:6px">
             <div>
               <label style="font-size:12px">📋 Plantilla guardada</label>
@@ -379,7 +379,7 @@
               <button type="button" class="btn btn-ghost" style="padding:8px 12px" onclick="borrarPlantillaSel()">🗑️ Borrar</button>
             </div>
           </div>
-          <textarea id="prod_msg_activacion" rows="3" placeholder="Ej. Para activar tu cuenta de Canva, respóndenos a este correo o escríbenos por WhatsApp con el/los correos que quieres activar (según la cantidad que compraste)."></textarea>
+          <textarea id="prod_msg_activacion" rows="3" placeholder="Ej. Para activar tu cuenta de Canva necesitamos {cantidad} correo(s) — mándanoslos por WhatsApp o respondiendo a este email."></textarea>
         </div>
         <div class="two">
           <div>
