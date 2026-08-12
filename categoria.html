@@ -440,15 +440,16 @@
   function carritoCantidadTotal(){ return carritoGet().reduce(function(s,i){return s+(i.cantidad||1);},0); }
   function carritoAdd(p){
     var items=carritoGet();
-    var ex=items.find(function(i){return i.id===p.id;});
+    var pid=String(p.id);
+    var ex=items.find(function(i){return String(i.id)===pid;});
     if(ex){ ex.cantidad=Math.min(99,(ex.cantidad||1)+1); }
-    else { items.push({id:p.id,nombre:p.nombre,precio:p.precio,imagen_url:p.imagen_url||'',cantidad:1}); }
+    else { items.push({id:pid,nombre:p.nombre,precio:p.precio,imagen_url:p.imagen_url||'',cantidad:1}); }
     carritoGuardar(items);
     carritoAbrir();
   }
-  function carritoQuitar(id){ carritoGuardar(carritoGet().filter(function(i){return i.id!==id;})); }
+  function carritoQuitar(id){ carritoGuardar(carritoGet().filter(function(i){return String(i.id)!==String(id);})); }
   function carritoCambiar(id,delta){
-    var items=carritoGet(); var it=items.find(function(i){return i.id===id;});
+    var items=carritoGet(); var it=items.find(function(i){return String(i.id)===String(id);});
     if(!it) return;
     it.cantidad=Math.max(1,Math.min(99,(it.cantidad||1)+delta));
     carritoGuardar(items);
