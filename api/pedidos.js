@@ -35,7 +35,8 @@ module.exports = async (req, res) => {
           estado: data.estado || 'pendiente',
           detalle: String(data.detalle || '').slice(0, 500),
           cliente: String(data.cliente || '').slice(0, 200) || null,
-          stripe_session_id: data.stripe_session_id || null
+          stripe_session_id: data.stripe_session_id || null,
+          items: Array.isArray(data.items) ? data.items.slice(0, 25) : []
         };
         if (!payload.producto || payload.precio <= 0) return res.status(200).json({ ok:false, motivo:'DATOS_INVALIDOS' });
         const r = await fetch(URL+'/rest/v1/pedidos', { method:'POST', headers:Object.assign({},H,{Prefer:'return=representation'}), body:JSON.stringify(payload) });
