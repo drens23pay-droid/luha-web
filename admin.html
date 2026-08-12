@@ -612,7 +612,7 @@
   }
 
   function iniciar(){
-    cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias(); cargarPedidos(); cargarBanners(); cargarPosters(); cargarPlantillas();
+    cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias(); cargarPedidos(); cargarBanners(); cargarPosters();
   }
 
   // ---------- PEDIDOS ----------
@@ -1032,6 +1032,7 @@
       document.getElementById('sv_default').value = (d.servicios_default_activo==='false') ? 'false' : 'true';
       calcPaquete();
       if(CATALOGO && CATALOGO.length){ renderServicios(); }
+      cargarPlantillas();
     });
   }
   function svGuardarDefault(){
@@ -1395,16 +1396,27 @@
   }
 
   // ---------- PLANTILLAS DE MENSAJE (para activación manual, ej. Canva Pro/Team) ----------
+  // Se guardan dentro de la misma tabla "config" (clave plantillas_mensajes, valor = JSON) para no
+  // gastar otra función serverless — Vercel Hobby limita a 12 por deploy y ya estamos en el tope.
   var PLANTILLAS = [];
+  function pintarSelectPlantillas(){
+    var sel=document.getElementById('prod_plantilla_sel');
+    var actual=sel.value;
+    sel.innerHTML='<option value="">-- Elegir plantilla --</option>' +
+      PLANTILLAS.map(function(p){ return '<option value="'+p.id+'">'+String(p.nombre).replace(/</g,'&lt;')+'</option>'; }).join('');
+    sel.value=actual;
+  }
   function cargarPlantillas(){
-    fetch('/api/plantillas',{headers:H()}).then(function(r){return r.json()}).then(function(d){
-      PLANTILLAS = Array.isArray(d) ? d : [];
-      var sel=document.getElementById('prod_plantilla_sel');
-      var actual=sel.value;
-      sel.innerHTML='<option value="">-- Elegir plantilla --</option>' +
-        PLANTILLAS.map(function(p){ return '<option value="'+p.id+'">'+p.nombre.replace(/</g,'&lt;')+'</option>'; }).join('');
-      sel.value=actual;
-    }).catch(function(){});
+    try{ PLANTILLAS = JSON.parse(CONFIG.plantillas_mensajes || '[]'); }catch(e){ PLANTILLAS=[]; }
+    if(!Array.isArray(PLANTILLAS)) PLANTILLAS=[];
+    pintarSelectPlantillas();
+  }
+  function guardarArrayPlantillas(nuevo){
+    return fetch('/api/config',{method:'POST',headers:H(),body:JSON.stringify({plantillas_mensajes:JSON.stringify(nuevo)})})
+      .then(function(r){return r.json()}).then(function(d){
+        if(d.ok){ PLANTILLAS=nuevo; CONFIG.plantillas_mensajes=JSON.stringify(nuevo); pintarSelectPlantillas(); }
+        return d;
+      });
   }
   function usarPlantilla(){
     var id=document.getElementById('prod_plantilla_sel').value;
@@ -1417,19 +1429,20 @@
     if(!msg){ toast('Escribe primero el mensaje que quieres guardar'); return; }
     var nombre=prompt('¿Cómo se llama esta plantilla? (ej. Canva Pro)');
     if(!nombre) return;
-    fetch('/api/plantillas',{method:'POST',headers:H(),body:JSON.stringify({action:'crear',data:{nombre:nombre.trim(),mensaje:msg}})})
-      .then(function(r){return r.json()}).then(function(d){
-        if(d.ok){ toast('✅ Plantilla guardada'); cargarPlantillas(); }
-        else { toast('❌ No se pudo guardar la plantilla'); }
-      });
+    var nuevo=PLANTILLAS.concat([{ id:String(Date.now()), nombre:nombre.trim(), mensaje:msg }]);
+    guardarArrayPlantillas(nuevo).then(function(d){
+      if(d.ok) toast('✅ Plantilla guardada'); else toast('❌ No se pudo guardar la plantilla');
+    });
   }
   function borrarPlantillaSel(){
     var id=document.getElementById('prod_plantilla_sel').value;
     if(!id){ toast('Elige una plantilla para borrar'); return; }
     var p=PLANTILLAS.find(function(x){ return String(x.id)===String(id); });
     if(!confirm('¿Borrar la plantilla "'+(p?p.nombre:'')+'"?')) return;
-    fetch('/api/plantillas',{method:'POST',headers:H(),body:JSON.stringify({action:'borrar',id:id})})
-      .then(function(){ toast('🗑️ Plantilla borrada'); cargarPlantillas(); });
+    var nuevo=PLANTILLAS.filter(function(x){ return String(x.id)!==String(id); });
+    guardarArrayPlantillas(nuevo).then(function(d){
+      if(d.ok) toast('🗑️ Plantilla borrada'); else toast('❌ No se pudo borrar');
+    });
   }
   function resetProducto(){
     document.getElementById('prod_titulo').textContent='Nuevo producto';
