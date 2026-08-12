@@ -85,7 +85,7 @@ module.exports = async (req, res) => {
               // producto, por nombre. Cada producto puede ser: automático (se manda el acceso ya),
               // manual (se pide un dato y se activa a mano) o genérico (sin entrega configurada). ---
               const esCarrito = Array.isArray(ped.items) && ped.items.length > 1;
-              const bloques = [], manualBloques = [], sinEntrega = [];
+              const bloques = [], manualBloques = [], sinEntrega = [], manualNombres = [];
               let total = 1;
               if (esCarrito) {
                 total = ped.items.length;
@@ -103,6 +103,7 @@ module.exports = async (req, res) => {
                     const msg = msgRaw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
                     manualBloques.push('<p style="margin:14px 0 4px"><b>' + nom + '</b></p>' +
                       '<div style="background:#fff4e0;border-radius:12px;padding:16px;font-size:15px">' + msg + '</div>');
+                    manualNombres.push(nom);
                   } else if (p && p.entrega) {
                     const htmlE = String(p.entrega).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
                     bloques.push('<p style="margin:14px 0 4px"><b>' + nom + '</b></p>' +
@@ -119,6 +120,7 @@ module.exports = async (req, res) => {
                   const msgRaw = p.mensaje_activacion ? String(p.mensaje_activacion).replace(/\{cantidad\}/g, '1') : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
                   const msg = msgRaw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
                   manualBloques.push('<div style="background:#fff4e0;border-radius:12px;padding:16px;font-size:15px">' + msg + '</div>');
+                  manualNombres.push(ped.producto);
                 } else if (p && p.entrega) {
                   bloques.push('<div style="background:#f4f2fb;border-radius:12px;padding:16px;font-size:15px">' + String(p.entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</div>');
                 } else {
@@ -143,15 +145,21 @@ module.exports = async (req, res) => {
                 b.data.estado = 'entregado';
                 emailEnviado = true;
               } else if (estadoDestino === 'entregado') {
-                // El admin lo marca como entregado a mano (ya activó las cuentas manuales, o ya envió
-                // seguidores/likes/servicio a mano): aviso de pedido completado.
+                // El admin lo marca como entregado a mano. Si había producto(s) de activación manual,
+                // este correo confirma SOLO esos (lo automático ya se mandó en el correo del pago, no
+                // hace falta repetirlo). Si no había ninguno manual (ej. seguidores/likes a mano), se
+                // manda la confirmación genérica de siempre.
+                const nombreActivado = manualNombres.length ? manualNombres.join(', ') : ped.producto;
+                const cuerpoActivado = manualNombres.length
+                  ? '<p>Ya activamos: <b>' + nombreActivado + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + '. ¡Ya puedes usarlo! El resto de tu pedido ya te lo enviamos antes por correo.</p>'
+                  : '<p>Tu pedido de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' ya ha sido activado/entregado. ¡Gracias por tu compra!</p>';
                 await t.sendMail({
                   from: 'LUHA <' + EMAIL_USER + '>',
                   to: email,
-                  subject: '✅ Ya está activado — ' + ped.producto + (ped.codigo ? ' (' + ped.codigo + ')' : ''),
+                  subject: '✅ Ya está activado — ' + nombreActivado + (ped.codigo ? ' (' + ped.codigo + ')' : ''),
                   html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
                     '<h2 style="color:#8B2FFF">¡Ya está listo!</h2>' +
-                    '<p>Tu pedido de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' ya ha sido activado/entregado. Revisa tu correo o WhatsApp por si te pedimos algún dato. ¡Gracias por tu compra!</p>' +
+                    cuerpoActivado +
                     '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
                     '<p style="color:#999;font-size:12px">LUHA · luhashop.es</p></div>'
                 });
