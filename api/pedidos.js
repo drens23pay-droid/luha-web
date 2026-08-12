@@ -98,7 +98,9 @@ module.exports = async (req, res) => {
                   const p = prodPorId[it.id];
                   const nom = it.nombre + (it.cantidad > 1 ? ' x' + it.cantidad : '');
                   if (p && p.tipo_entrega === 'manual') {
-                    const msg = p.mensaje_activacion ? String(p.mensaje_activacion).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>') : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
+                    const cant = it.cantidad || 1;
+                    const msgRaw = p.mensaje_activacion ? String(p.mensaje_activacion).replace(/\{cantidad\}/g, String(cant)) : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
+                    const msg = msgRaw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
                     manualBloques.push('<p style="margin:14px 0 4px"><b>' + nom + '</b></p>' +
                       '<div style="background:#fff4e0;border-radius:12px;padding:16px;font-size:15px">' + msg + '</div>');
                   } else if (p && p.entrega) {
@@ -114,7 +116,8 @@ module.exports = async (req, res) => {
                 const prows = await rprod.json();
                 const p = Array.isArray(prows) && prows[0];
                 if (p && p.tipo_entrega === 'manual') {
-                  const msg = p.mensaje_activacion ? String(p.mensaje_activacion).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>') : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
+                  const msgRaw = p.mensaje_activacion ? String(p.mensaje_activacion).replace(/\{cantidad\}/g, '1') : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
+                  const msg = msgRaw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
                   manualBloques.push('<div style="background:#fff4e0;border-radius:12px;padding:16px;font-size:15px">' + msg + '</div>');
                 } else if (p && p.entrega) {
                   bloques.push('<div style="background:#f4f2fb;border-radius:12px;padding:16px;font-size:15px">' + String(p.entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</div>');
