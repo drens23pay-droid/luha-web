@@ -50,7 +50,9 @@ module.exports = async (req, res) => {
               const p = prodPorId[it.id];
               const nom = it.nombre + (it.cantidad > 1 ? ' x' + it.cantidad : '');
               if (p && p.tipo_entrega === 'manual') {
-                const msg = p.mensaje_activacion ? String(p.mensaje_activacion).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>') : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
+                const cant = it.cantidad || 1;
+                const msgRaw = p.mensaje_activacion ? String(p.mensaje_activacion).replace(/\{cantidad\}/g, String(cant)) : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
+                const msg = msgRaw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
                 manualBloques.push('<p style="margin:14px 0 4px"><b>' + nom + '</b></p>' +
                   '<div style="background:#fff4e0;border-radius:12px;padding:16px;font-size:15px">' + msg + '</div>');
               } else if (p && p.entrega) {
@@ -94,7 +96,7 @@ module.exports = async (req, res) => {
           const nodemailer = require('nodemailer');
           const t = nodemailer.createTransport({ host:'smtp.dondominio.com', port:465, secure:true, auth: { user: EMAIL_USER, pass: String(EMAIL_PASS).replace(/\s/g, '') } });
           if (esManual) {
-            const msg = prodRow.mensaje_activacion ? String(prodRow.mensaje_activacion).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>') : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
+            const msg = prodRow.mensaje_activacion ? String(prodRow.mensaje_activacion).replace(/\{cantidad\}/g,'1').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>') : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
             await t.sendMail({
               from: 'LUHA <' + EMAIL_USER + '>',
               to: cd.email,
