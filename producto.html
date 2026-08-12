@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Netflix Premium — LUHA</title>
+<meta name="description" content="Streaming, seguidores, marketing y diseño en LUHA — sin agencias, sin contratos. Pago con Bizum o tarjeta, entrega rápida.">
 <link rel="icon" type="image/x-icon" href="logo/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="logo/icon-192.png">
 <link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
@@ -480,6 +481,11 @@
     document.getElementById('descBox').style.display='block';
 
     document.title = p.nombre+' — LUHA';
+    (function(){
+      var base = p.descripcion ? String(p.descripcion).slice(0,140) : (p.nombre+' en LUHA');
+      var m = document.querySelector('meta[name="description"]');
+      if(m) m.setAttribute('content', base+' · Sin agencias ni contratos, pago con Bizum o tarjeta, entrega rápida.');
+    })();
     document.getElementById('crumbNombre').textContent = p.nombre;
     var catHref = 'categoria.html?cat='+encodeURIComponent(p.categoria||'');
     document.getElementById('crumbCat').textContent = p.categoria||'Tienda';
