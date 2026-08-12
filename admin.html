@@ -367,6 +367,18 @@
         </div>
         <div id="bloque_prod_msg" style="display:none">
           <label>✉️ Mensaje al pagar (pidiendo el dato que necesites) — se manda apenas paga, el pedido se queda "pagado" hasta que tú lo actives y lo marques "entregado"</label>
+          <div class="two" style="align-items:end;margin-bottom:6px">
+            <div>
+              <label style="font-size:12px">📋 Plantilla guardada</label>
+              <select id="prod_plantilla_sel" onchange="usarPlantilla()">
+                <option value="">-- Elegir plantilla --</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn btn-ghost" style="padding:8px 12px" onclick="guardarPlantillaActual()">💾 Guardar como plantilla</button>
+              <button type="button" class="btn btn-ghost" style="padding:8px 12px" onclick="borrarPlantillaSel()">🗑️ Borrar</button>
+            </div>
+          </div>
           <textarea id="prod_msg_activacion" rows="3" placeholder="Ej. Para activar tu cuenta de Canva, respóndenos a este correo o escríbenos por WhatsApp con el/los correos que quieres activar (según la cantidad que compraste)."></textarea>
         </div>
         <div class="two">
@@ -600,7 +612,7 @@
   }
 
   function iniciar(){
-    cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias(); cargarPedidos(); cargarBanners(); cargarPosters();
+    cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias(); cargarPedidos(); cargarBanners(); cargarPosters(); cargarPlantillas();
   }
 
   // ---------- PEDIDOS ----------
@@ -1381,12 +1393,51 @@
     document.getElementById('bloque_prod_entrega').style.display = (t==='auto') ? 'block' : 'none';
     document.getElementById('bloque_prod_msg').style.display = (t==='manual') ? 'block' : 'none';
   }
+
+  // ---------- PLANTILLAS DE MENSAJE (para activación manual, ej. Canva Pro/Team) ----------
+  var PLANTILLAS = [];
+  function cargarPlantillas(){
+    fetch('/api/plantillas',{headers:H()}).then(function(r){return r.json()}).then(function(d){
+      PLANTILLAS = Array.isArray(d) ? d : [];
+      var sel=document.getElementById('prod_plantilla_sel');
+      var actual=sel.value;
+      sel.innerHTML='<option value="">-- Elegir plantilla --</option>' +
+        PLANTILLAS.map(function(p){ return '<option value="'+p.id+'">'+p.nombre.replace(/</g,'&lt;')+'</option>'; }).join('');
+      sel.value=actual;
+    }).catch(function(){});
+  }
+  function usarPlantilla(){
+    var id=document.getElementById('prod_plantilla_sel').value;
+    if(!id) return;
+    var p=PLANTILLAS.find(function(x){ return String(x.id)===String(id); });
+    if(p) document.getElementById('prod_msg_activacion').value=p.mensaje;
+  }
+  function guardarPlantillaActual(){
+    var msg=document.getElementById('prod_msg_activacion').value.trim();
+    if(!msg){ toast('Escribe primero el mensaje que quieres guardar'); return; }
+    var nombre=prompt('¿Cómo se llama esta plantilla? (ej. Canva Pro)');
+    if(!nombre) return;
+    fetch('/api/plantillas',{method:'POST',headers:H(),body:JSON.stringify({action:'crear',data:{nombre:nombre.trim(),mensaje:msg}})})
+      .then(function(r){return r.json()}).then(function(d){
+        if(d.ok){ toast('✅ Plantilla guardada'); cargarPlantillas(); }
+        else { toast('❌ No se pudo guardar la plantilla'); }
+      });
+  }
+  function borrarPlantillaSel(){
+    var id=document.getElementById('prod_plantilla_sel').value;
+    if(!id){ toast('Elige una plantilla para borrar'); return; }
+    var p=PLANTILLAS.find(function(x){ return String(x.id)===String(id); });
+    if(!confirm('¿Borrar la plantilla "'+(p?p.nombre:'')+'"?')) return;
+    fetch('/api/plantillas',{method:'POST',headers:H(),body:JSON.stringify({action:'borrar',id:id})})
+      .then(function(){ toast('🗑️ Plantilla borrada'); cargarPlantillas(); });
+  }
   function resetProducto(){
     document.getElementById('prod_titulo').textContent='Nuevo producto';
     ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_entrega','prod_stripe','prod_msg_activacion'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('prod_dest').checked=false;
     document.getElementById('prod_cotizacion').checked=false;
     document.getElementById('prod_tipo_entrega').value='generica';
+    document.getElementById('prod_plantilla_sel').value='';
     cambiarTipoEntrega();
     mostrarPreview('');
     document.getElementById('prod_file').value='';
