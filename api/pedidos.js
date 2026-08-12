@@ -80,14 +80,42 @@ module.exports = async (req, res) => {
               });
               emailEnviado = true;
             } else if (ped && email && EMAIL_USER && EMAIL_PASS && !yaAvisado) {
-              const rprod = await fetch(URL+'/rest/v1/productos?nombre=eq.'+encodeURIComponent(ped.producto)+'&select=entrega', { headers:H });
-              const prows = await rprod.json();
-              const entrega = Array.isArray(prows) && prows[0] && prows[0].entrega;
+              // --- CARRITO: varios productos en el mismo pedido. Buscamos la entrega de cada uno
+              // por separado (buscar por ped.producto, que es un resumen tipo "nike, prueba 2",
+              // nunca encuentra nada porque no es el nombre real de ningún producto). ---
+              const esCarrito = Array.isArray(ped.items) && ped.items.length > 1;
+              let entrega = null, entregaHTML = '';
+              if (esCarrito) {
+                const ids = ped.items.map(function (i) { return parseInt(i.id, 10); }).filter(function (n) { return n > 0; });
+                const rprod = await fetch(URL + '/rest/v1/productos?id=in.(' + ids.join(',') + ')&select=id,entrega', { headers: H });
+                const prows = await rprod.json();
+                const entregaPorId = {};
+                (Array.isArray(prows) ? prows : []).forEach(function (p) { if (p.entrega) entregaPorId[p.id] = p.entrega; });
+                const bloques = [], sinEntrega = [];
+                ped.items.forEach(function (it) {
+                  const e = entregaPorId[it.id];
+                  if (e) {
+                    const htmlE = String(e).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+                    bloques.push('<p style="margin:14px 0 4px"><b>' + it.nombre + (it.cantidad > 1 ? ' x' + it.cantidad : '') + '</b></p>' +
+                      '<div style="background:#f4f2fb;border-radius:12px;padding:16px;font-size:15px">' + htmlE + '</div>');
+                  } else {
+                    sinEntrega.push(it.nombre + (it.cantidad > 1 ? ' x' + it.cantidad : ''));
+                  }
+                });
+                if (bloques.length) {
+                  entrega = true;
+                  entregaHTML = bloques.join('') + (sinEntrega.length ? '<p style="margin-top:14px">También compraste: <b>' + sinEntrega.join(', ') + '</b> — lo estamos preparando y te contactamos en breve.</p>' : '');
+                }
+              } else {
+                const rprod = await fetch(URL+'/rest/v1/productos?nombre=eq.'+encodeURIComponent(ped.producto)+'&select=entrega', { headers:H });
+                const prows = await rprod.json();
+                entrega = Array.isArray(prows) && prows[0] && prows[0].entrega;
+                if (entrega) entregaHTML = '<div style="background:#f4f2fb;border-radius:12px;padding:16px;font-size:15px">' + String(entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</div>';
+              }
               const nodemailer = require('nodemailer');
               const t = nodemailer.createTransport({ host:'smtp.dondominio.com', port:465, secure:true, auth:{ user:EMAIL_USER, pass:String(EMAIL_PASS).replace(/\s/g,'') } });
               if (entrega) {
-                // Producto con acceso automático (usuario/contraseña, link, curso...)
-                const htmlEntrega = String(entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+                // Producto(s) con acceso automático (usuario/contraseña, link, curso...)
                 await t.sendMail({
                   from: 'LUHA <' + EMAIL_USER + '>',
                   to: email,
@@ -95,7 +123,7 @@ module.exports = async (req, res) => {
                   html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
                     '<h2 style="color:#8B2FFF">¡Pago confirmado!</h2>' +
                     '<p>Tu pago de <b>' + ped.producto + '</b>' + (ped.codigo ? ' (pedido ' + ped.codigo + ')' : '') + ' se ha confirmado. Aquí tienes tu acceso:</p>' +
-                    '<div style="background:#f4f2fb;border-radius:12px;padding:16px;font-size:15px">' + htmlEntrega + '</div>' +
+                    entregaHTML +
                     '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
                     '<p style="color:#999;font-size:12px">LUHA · luhashop.es</p></div>'
                 });
