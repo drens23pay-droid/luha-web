@@ -28,6 +28,41 @@
   .navMkt{background:linear-gradient(90deg,#FF3DAE,#8B2FFF 60%,#22E1D6);color:#fff!important;
     padding:7px 15px;border-radius:999px;font-weight:800;box-shadow:0 0 16px rgba(216,55,205,.4)}
   .navMkt:hover{color:#fff!important;filter:brightness(1.12)}
+
+  /* CARRITO */
+  .cartToggle{position:relative;background:transparent;border:1px solid var(--line);color:#fff;width:36px;height:36px;
+    border-radius:10px;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+  .cartToggle:hover{border-color:var(--cyan)}
+  .cartBadge{position:absolute;top:-6px;right:-6px;background:linear-gradient(90deg,var(--pink),var(--neon2));color:#fff;
+    font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+  .cartOverlay{position:fixed;inset:0;background:rgba(5,5,9,.6);z-index:85;display:none}
+  .cartOverlay.open{display:block}
+  .cartPanel{position:fixed;top:0;right:0;height:100vh;width:380px;max-width:92vw;background:var(--card);
+    border-left:1px solid var(--neon);z-index:90;transform:translateX(100%);transition:.3s ease;
+    display:flex;flex-direction:column;box-shadow:-10px 0 40px rgba(0,0,0,.5)}
+  .cartPanel.open{transform:translateX(0)}
+  .cartHead{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}
+  .cartHead h3{font-size:17px}
+  .cartHead button{background:transparent;border:1px solid var(--line);color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer}
+  .cartItems{flex:1;overflow-y:auto;padding:14px 20px}
+  .cartEmpty{color:var(--txt-mut);font-size:14px;text-align:center;padding:40px 0}
+  .cartRow{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .cartRow img,.cartRow .ph{width:52px;height:52px;border-radius:10px;object-fit:cover;background:var(--bg2);flex:none;display:flex;align-items:center;justify-content:center;font-size:20px}
+  .cartRow .info{flex:1;min-width:0}
+  .cartRow .info b{display:block;font-size:13px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cartRow .info .pu{color:var(--txt-mut);font-size:12px}
+  .cartQty{display:flex;align-items:center;gap:8px;margin-top:6px}
+  .cartQty button{width:22px;height:22px;border-radius:6px;background:var(--bg2);border:1px solid var(--line);color:#fff;cursor:pointer;font-size:13px;line-height:1}
+  .cartQty span{font-size:13px;min-width:16px;text-align:center}
+  .cartRow .rm{background:transparent;border:none;color:var(--txt-mut);cursor:pointer;font-size:14px;align-self:flex-start}
+  .cartRow .rm:hover{color:#ff5c7a}
+  .cartFoot{padding:16px 20px 20px;border-top:1px solid var(--line)}
+  .cartTotalRow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;font-size:15px}
+  .cartTotalRow b{font-size:22px;color:#fff}
+  .buyAdd{flex:none;width:52px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .buyAdd:hover{border-color:var(--cyan)}
+  .buyRow{display:flex;gap:10px;align-items:stretch}
+  .buyRow .buy{flex:1}
   .wa{margin-left:auto;background:#1f2a1f;border:1px solid #2b5c33;color:#7ee59a;padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px}
   .navToggle{display:none;background:transparent;border:1px solid var(--line);color:#fff;width:40px;height:40px;
     border-radius:10px;font-size:18px;align-items:center;justify-content:center;cursor:pointer}
@@ -134,9 +169,20 @@
     <a href="index.html" aria-label="LUHA — Inicio"><img class="logo-img" src="logo/luha-logo.png" alt="LUHA"></a>
     <nav><a href="index.html">Inicio</a><a href="categoria.html?cat=Todos">Productos</a><a class="navMkt" href="categoria.html?cat=Marketing">🎯 Marketing</a><a href="seguidores.html">Seguidores</a></nav>
     <a class="wa" href="#">&#9993; +34 641 564 952</a>
+    <button class="cartToggle" id="cartToggle" aria-label="Carrito" type="button">🛒<span class="cartBadge" id="cartBadge" style="display:none">0</span></button>
     <button class="navToggle" id="navToggle" aria-label="Menú" type="button">☰</button>
   </div>
 </header>
+
+<div class="cartOverlay" id="cartOverlay"></div>
+<aside class="cartPanel" id="cartPanel">
+  <div class="cartHead"><h3>🛒 Tu carrito</h3><button id="cartClose" type="button" aria-label="Cerrar">✕</button></div>
+  <div class="cartItems" id="cartItems"></div>
+  <div class="cartFoot" id="cartFoot">
+    <div class="cartTotalRow"><span>Total</span><b id="cartTotalTxt">0,00 €</b></div>
+    <button class="buy" id="cartCheckoutBtn" style="width:100%">Finalizar compra</button>
+  </div>
+</aside>
 
 <div class="mobileNav" id="mobileNav">
   <a href="index.html">Inicio</a>
@@ -171,7 +217,10 @@
         <span class="pill">Entrega rápida</span>
         <span class="pill">Garantía incluida</span>
       </div>
-      <button class="buy">Comprar ahora · Bizum o tarjeta</button>
+      <div class="buyRow">
+        <button class="buy">Comprar ahora · Bizum o tarjeta</button>
+        <button class="buyAdd" id="btnAddCarrito" title="Añadir al carrito" style="display:none">🛒</button>
+      </div>
       <button class="wa-btn">&#9993; Consultar por WhatsApp</button>
     </div>
   </div>
@@ -255,11 +304,12 @@
   })();
 
   var ov=document.getElementById('ov');
-  var cur={nombre:'',total:0};
+  var cur={nombre:'',total:0,items:null};
   var FEECFG=null;
   fetch('/api/config').then(function(r){return r.json()}).then(function(d){ FEECFG=d||{}; }).catch(function(){ FEECFG={}; });
-  function abrirCheckout(nombre,total){
-    cur={nombre:nombre,total:total};
+  function abrirCheckout(nombre,total,items){
+    cur={nombre:nombre,total:total,items:items||null};
+    if(typeof carritoCerrar==='function') carritoCerrar();
     document.getElementById('mSvc').textContent=nombre;
     document.getElementById('mTot').textContent=eur(total);
     [document.getElementById('cardFeeNote'), document.getElementById('bizumAutoFeeNote')].forEach(function(nota){
@@ -302,6 +352,78 @@
     }
     return true;
   }
+  // ---- CARRITO (solo Productos) ----
+  var CART_KEY='luha_carrito';
+  function carritoGet(){ try{ var a=JSON.parse(localStorage.getItem(CART_KEY)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+  function carritoGuardar(items){ localStorage.setItem(CART_KEY, JSON.stringify(items)); carritoPintar(); }
+  function carritoVaciar(){ localStorage.removeItem(CART_KEY); carritoPintar(); }
+  function carritoTotal(){ return carritoGet().reduce(function(s,i){return s+(parseFloat(i.precio)||0)*(i.cantidad||1);},0); }
+  function carritoCantidadTotal(){ return carritoGet().reduce(function(s,i){return s+(i.cantidad||1);},0); }
+  function carritoAdd(p){
+    var items=carritoGet();
+    var ex=items.find(function(i){return i.id===p.id;});
+    if(ex){ ex.cantidad=Math.min(99,(ex.cantidad||1)+1); }
+    else { items.push({id:p.id,nombre:p.nombre,precio:p.precio,imagen_url:p.imagen_url||'',cantidad:1}); }
+    carritoGuardar(items);
+    carritoAbrir();
+  }
+  function carritoQuitar(id){ carritoGuardar(carritoGet().filter(function(i){return i.id!==id;})); }
+  function carritoCambiar(id,delta){
+    var items=carritoGet(); var it=items.find(function(i){return i.id===id;});
+    if(!it) return;
+    it.cantidad=Math.max(1,Math.min(99,(it.cantidad||1)+delta));
+    carritoGuardar(items);
+  }
+  function carritoPintar(){
+    var items=carritoGet();
+    var badge=document.getElementById('cartBadge');
+    var n=carritoCantidadTotal();
+    if(badge){ badge.textContent=n; badge.style.display = n>0 ? 'flex' : 'none'; }
+    var box=document.getElementById('cartItems'), foot=document.getElementById('cartFoot');
+    if(!box) return;
+    if(!items.length){
+      box.innerHTML='<div class="cartEmpty">Tu carrito está vacío.<br>Añade productos desde la tienda.</div>';
+      if(foot) foot.style.display='none';
+      return;
+    }
+    if(foot) foot.style.display='block';
+    box.innerHTML=items.map(function(i){
+      var img=i.imagen_url ? '<img src="'+i.imagen_url+'" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'ph\',textContent:\'🛍️\'}))">' : '<span class="ph">🛍️</span>';
+      return '<div class="cartRow">'+img+
+        '<div class="info"><b>'+i.nombre+'</b><span class="pu">'+eur(i.precio)+' c/u</span>'+
+        '<div class="cartQty"><button onclick="carritoCambiar(\''+i.id+'\',-1)">−</button><span>'+i.cantidad+'</span><button onclick="carritoCambiar(\''+i.id+'\',1)">+</button></div>'+
+        '</div><button class="rm" onclick="carritoQuitar(\''+i.id+'\')">✕</button></div>';
+    }).join('');
+    var totTxt=document.getElementById('cartTotalTxt'); if(totTxt) totTxt.textContent=eur(carritoTotal());
+  }
+  function carritoAbrir(){
+    var p=document.getElementById('cartPanel'), o=document.getElementById('cartOverlay');
+    if(!p) return;
+    carritoPintar();
+    p.classList.add('open'); if(o) o.classList.add('open');
+    document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden';
+  }
+  function carritoCerrar(){
+    var p=document.getElementById('cartPanel'), o=document.getElementById('cartOverlay');
+    if(p) p.classList.remove('open'); if(o) o.classList.remove('open');
+    document.documentElement.style.overflow=''; document.body.style.overflow='';
+  }
+  var cartToggleBtn=document.getElementById('cartToggle');
+  if(cartToggleBtn) cartToggleBtn.addEventListener('click',function(){
+    var p=document.getElementById('cartPanel');
+    if(p && p.classList.contains('open')) carritoCerrar(); else carritoAbrir();
+  });
+  var cartCloseBtn=document.getElementById('cartClose'); if(cartCloseBtn) cartCloseBtn.addEventListener('click',carritoCerrar);
+  var cartOv=document.getElementById('cartOverlay'); if(cartOv) cartOv.addEventListener('click',carritoCerrar);
+  var cartCheckoutBtn=document.getElementById('cartCheckoutBtn');
+  if(cartCheckoutBtn) cartCheckoutBtn.addEventListener('click',function(){
+    var items=carritoGet();
+    if(!items.length) return;
+    var nombre=items.map(function(i){return i.nombre+(i.cantidad>1?' x'+i.cantidad:'');}).join(', ').slice(0,120);
+    abrirCheckout(nombre, carritoTotal(), items);
+  });
+  carritoPintar();
+
   document.getElementById('mClose').addEventListener('click',cerrarModal);
   ov.addEventListener('click',function(e){if(e.target===ov)cerrarModal();});
   document.getElementById('payBizum').addEventListener('click',function(){
@@ -314,16 +436,18 @@
       if(codigo){ location.href='gracias.html?codigo='+encodeURIComponent(codigo); }
     }
     fetch('/api/pedidos',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'crear',data:{producto:cur.nombre,precio:cur.total,metodo:'bizum',estado:'pendiente',detalle:cur.nombre,cliente:email}})
-    }).then(function(r){return r.json()}).then(function(d){ ir(d&&d.codigo); }).catch(function(){ ir(null); });
+      body:JSON.stringify({action:'crear',data:{producto:cur.nombre,precio:cur.total,metodo:'bizum',estado:'pendiente',detalle:cur.nombre,cliente:email,
+        items:cur.items?cur.items.map(function(i){return{id:i.id,nombre:i.nombre,cantidad:i.cantidad,precio_unit:i.precio};}):[]}})
+    }).then(function(r){return r.json()}).then(function(d){ if(cur.items) carritoVaciar(); ir(d&&d.codigo); }).catch(function(){ if(cur.items) carritoVaciar(); ir(null); });
   });
   document.getElementById('payCard').addEventListener('click',function(){
     if(!confirmado()) return;
     var btn=this; btn.style.opacity=.6; btn.querySelector('.pt b').textContent='Redirigiendo…';
     fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({nombre:cur.nombre, total:cur.total, detalle:cur.nombre})
+      body:JSON.stringify({nombre:cur.nombre, total:cur.total, detalle:cur.nombre,
+        items:cur.items?cur.items.map(function(i){return{id:i.id,cantidad:i.cantidad};}):undefined})
     }).then(function(r){return r.json()}).then(function(d){
-      if(d && d.ok && d.url){ location.href=d.url; }
+      if(d && d.ok && d.url){ if(cur.items) carritoVaciar(); location.href=d.url; }
       else {
         var msg = (d && d.motivo==='IMPORTE_INVALIDO') ? 'El importe mínimo para pago automático es 0,50€. Usa Bizum manual para importes menores.' : 'El pago con tarjeta aún no está activo. Usa Bizum o inténtalo más tarde.';
         alert(msg); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Pagar con tarjeta';
@@ -334,9 +458,10 @@
     if(!confirmado()) return;
     var btn=this; btn.style.opacity=.6; btn.querySelector('.pt b').textContent='Redirigiendo…';
     fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({nombre:cur.nombre, total:cur.total, detalle:cur.nombre, metodo:'bizum'})
+      body:JSON.stringify({nombre:cur.nombre, total:cur.total, detalle:cur.nombre, metodo:'bizum',
+        items:cur.items?cur.items.map(function(i){return{id:i.id,cantidad:i.cantidad};}):undefined})
     }).then(function(r){return r.json()}).then(function(d){
-      if(d && d.ok && d.url){ location.href=d.url; }
+      if(d && d.ok && d.url){ if(cur.items) carritoVaciar(); location.href=d.url; }
       else {
         var msg = (d && d.motivo==='IMPORTE_INVALIDO') ? 'El importe mínimo para Bizum automático es 0,50€. Usa Bizum manual para importes menores.' : 'El Bizum automático aún no está activo. Usa el Bizum manual o inténtalo más tarde.';
         alert(msg); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Bizum automático';
@@ -382,16 +507,22 @@
 
     if(p.descripcion){ document.getElementById('descTexto').textContent = p.descripcion; }
 
-    cur={nombre:p.nombre,total:p.precio};
+    cur={nombre:p.nombre,total:p.precio,items:null};
+    var addC=document.getElementById('btnAddCarrito');
     if(buy){
       if(p.cotizacion){
         buy.textContent='Pedir cotización';
         buy.classList.add('cot');
         buy.onclick=function(){ window.open(wa('Hola LUHA 👋 quiero pedir una cotización para: '+p.nombre+'. ¿Me pasas precio y detalles?'),'_blank'); };
+        if(addC) addC.style.display='none';
       } else {
         buy.textContent='Comprar ahora · Bizum o tarjeta';
         buy.classList.remove('cot');
         buy.onclick=function(){ abrirCheckout(p.nombre, p.precio); };
+        if(addC){
+          addC.style.display='flex';
+          addC.onclick=function(){ carritoAdd({id:p.id,nombre:p.nombre,precio:p.precio,imagen_url:p.imagen_url}); };
+        }
       }
     }
     if(waBtn) waBtn.onclick=function(){ location.href=wa('Hola LUHA 👋 tengo una consulta sobre: '+p.nombre); };
@@ -403,9 +534,17 @@
       var relGrid=document.getElementById('relGrid');
       relGrid.innerHTML = relacionados.map(function(r){
         var rimg = r.imagen_url ? '<img src="'+r.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:14px 14px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : '✨';
-        return '<a class="card" href="producto.html?id='+encodeURIComponent(r.id)+'" style="display:block">'+
-          '<div class="th">'+rimg+'</div><div class="b"><div class="p">'+(r.categoria||'')+'</div><h3>'+r.nombre+'</h3><div class="pr">'+eur(r.precio)+'</div></div></a>';
+        return '<div class="card" data-id="'+r.id+'" data-nombre="'+r.nombre.replace(/"/g,'')+'" data-precio="'+r.precio+'" data-img="'+(r.imagen_url||'').replace(/"/g,'')+'">'+
+          '<a href="producto.html?id='+encodeURIComponent(r.id)+'" style="display:block"><div class="th">'+rimg+'</div><div class="b"><div class="p">'+(r.categoria||'')+'</div><h3>'+r.nombre+'</h3><div class="pr">'+eur(r.precio)+'</div></div></a>'+
+          (r.cotizacion?'':'<div class="b" style="padding-top:0"><button class="buyAdd relAdd" style="width:100%" title="Añadir al carrito">🛒 Añadir</button></div>')+
+          '</div>';
       }).join('');
+      relGrid.querySelectorAll('.relAdd').forEach(function(b){
+        b.addEventListener('click',function(){
+          var card=b.closest('.card');
+          carritoAdd({id:card.dataset.id, nombre:card.dataset.nombre, precio:parseFloat(card.dataset.precio), imagen_url:card.dataset.img});
+        });
+      });
     }
   }
 
