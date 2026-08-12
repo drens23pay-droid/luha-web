@@ -355,8 +355,20 @@
         </label>
         <label>Descripción</label>
         <textarea id="prod_desc" rows="2"></textarea>
-        <label>🚀 Entrega automática (opcional) — esto se envía por email al cliente en cuanto paga con tarjeta</label>
-        <textarea id="prod_entrega" rows="3" placeholder="Ej.&#10;Usuario: cliente@luha.com&#10;Contraseña: abc123&#10;O un enlace de Drive / acceso al curso: https://..."></textarea>
+        <label style="margin-top:10px">📦 Tipo de entrega — cada producto se entrega distinto, elige cuál le toca</label>
+        <select id="prod_tipo_entrega" onchange="cambiarTipoEntrega()">
+          <option value="generica">Genérica — sin instrucciones especiales (seguidores, servicios manuales, etc.)</option>
+          <option value="auto">Automática — mando el acceso ya escrito abajo, apenas paga (ej. Netflix, cuentas con usuario/contraseña)</option>
+          <option value="manual">Activación manual — le pido un dato (ej. correo) y yo activo la cuenta después (ej. Canva, cuentas compartidas)</option>
+        </select>
+        <div id="bloque_prod_entrega">
+          <label>🚀 Entrega automática — esto se envía por email al cliente en cuanto paga con tarjeta</label>
+          <textarea id="prod_entrega" rows="3" placeholder="Ej.&#10;Usuario: cliente@luha.com&#10;Contraseña: abc123&#10;O un enlace de Drive / acceso al curso: https://..."></textarea>
+        </div>
+        <div id="bloque_prod_msg" style="display:none">
+          <label>✉️ Mensaje al pagar (pidiendo el dato que necesites) — se manda apenas paga, el pedido se queda "pagado" hasta que tú lo actives y lo marques "entregado"</label>
+          <textarea id="prod_msg_activacion" rows="3" placeholder="Ej. Para activar tu cuenta de Canva, respóndenos a este correo o escríbenos por WhatsApp con el/los correos que quieres activar (según la cantidad que compraste)."></textarea>
+        </div>
         <div class="two">
           <div>
             <label>Foto del producto</label>
@@ -1355,17 +1367,27 @@
     document.getElementById('prod_stock').value=p.stock||'En stock';
     document.getElementById('prod_desc').value=p.descripcion||'';
     document.getElementById('prod_entrega').value=p.entrega||'';
+    document.getElementById('prod_tipo_entrega').value=p.tipo_entrega||(p.entrega?'auto':'generica');
+    document.getElementById('prod_msg_activacion').value=p.mensaje_activacion||'';
+    cambiarTipoEntrega();
     mostrarPreview(p.imagen_url||'');
     document.getElementById('prod_stripe').value=p.stripe_link||'';
     document.getElementById('prod_dest').checked=!!p.destacado;
     document.getElementById('prod_cotizacion').checked=!!p.cotizacion;
     window.scrollTo(0,0);
   }
+  function cambiarTipoEntrega(){
+    var t=document.getElementById('prod_tipo_entrega').value;
+    document.getElementById('bloque_prod_entrega').style.display = (t==='auto') ? 'block' : 'none';
+    document.getElementById('bloque_prod_msg').style.display = (t==='manual') ? 'block' : 'none';
+  }
   function resetProducto(){
     document.getElementById('prod_titulo').textContent='Nuevo producto';
-    ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_entrega','prod_stripe'].forEach(function(id){document.getElementById(id).value='';});
+    ['prod_id','prod_nombre','prod_precio','prod_old','prod_desc','prod_entrega','prod_stripe','prod_msg_activacion'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('prod_dest').checked=false;
     document.getElementById('prod_cotizacion').checked=false;
+    document.getElementById('prod_tipo_entrega').value='generica';
+    cambiarTipoEntrega();
     mostrarPreview('');
     document.getElementById('prod_file').value='';
   }
@@ -1418,6 +1440,8 @@
       precio:precio, precio_anterior:parseFloat(document.getElementById('prod_old').value)||null,
       stock:document.getElementById('prod_stock').value, descripcion:document.getElementById('prod_desc').value,
       entrega:document.getElementById('prod_entrega').value,
+      tipo_entrega:document.getElementById('prod_tipo_entrega').value,
+      mensaje_activacion:document.getElementById('prod_msg_activacion').value,
       imagen_url:document.getElementById('prod_img').value, stripe_link:document.getElementById('prod_stripe').value,
       destacado:document.getElementById('prod_dest').checked, cotizacion:esCotizacion, activo:true };
     var id=document.getElementById('prod_id').value;
