@@ -622,7 +622,11 @@
     lista.forEach(function(p){
       var tr=document.createElement('tr');
       var extra='';
-      if(p.detalle && p.detalle!==p.producto) extra+='<br><span class="muted">📝 '+p.detalle+'</span>';
+      if(Array.isArray(p.items) && p.items.length>1){
+        extra+='<br><span class="muted">🛒 '+p.items.map(function(it){return it.nombre+' x'+it.cantidad;}).join(', ')+'</span>';
+      } else if(p.detalle && p.detalle!==p.producto){
+        extra+='<br><span class="muted">📝 '+p.detalle+'</span>';
+      }
       if(p.cliente) extra+='<br><span class="muted">👤 '+p.cliente+'</span>';
       tr.innerHTML='<td data-label="Código"><b style="color:var(--cyan)">'+(p.codigo||'—')+'</b></td>'+
         '<td data-label="Fecha">'+fechaCorta(p.creado)+'</td>'+
