@@ -41,19 +41,24 @@ module.exports = async (req, res) => {
           try { itemsC = JSON.parse(session.metadata.items || '[]'); } catch (e) { itemsC = []; }
           if (SUPABASE_URL && SUPABASE_KEY && itemsC.length && cd.email && EMAIL_USER && EMAIL_PASS) {
             const ids = itemsC.map(function (i) { return parseInt(i.id, 10); }).filter(function (n) { return n > 0; });
-            const rp = await fetch(SUPABASE_URL + '/rest/v1/productos?id=in.(' + ids.join(',') + ')&select=id,entrega', { headers: SH0 });
+            const rp = await fetch(SUPABASE_URL + '/rest/v1/productos?id=in.(' + ids.join(',') + ')&select=id,entrega,tipo_entrega,mensaje_activacion', { headers: SH0 });
             const prows = await rp.json();
-            const entregaPorId = {};
-            (Array.isArray(prows) ? prows : []).forEach(function (p) { if (p.entrega) entregaPorId[p.id] = p.entrega; });
-            const bloques = [], sinEntrega = [];
+            const prodPorId = {};
+            (Array.isArray(prows) ? prows : []).forEach(function (p) { prodPorId[p.id] = p; });
+            const bloques = [], manualBloques = [], sinEntrega = [];
             itemsC.forEach(function (it) {
-              const e = entregaPorId[it.id];
-              if (e) {
-                const htmlEntrega = String(e).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
-                bloques.push('<p style="margin:14px 0 4px"><b>' + it.nombre + (it.cantidad > 1 ? ' x' + it.cantidad : '') + '</b></p>' +
+              const p = prodPorId[it.id];
+              const nom = it.nombre + (it.cantidad > 1 ? ' x' + it.cantidad : '');
+              if (p && p.tipo_entrega === 'manual') {
+                const msg = p.mensaje_activacion ? String(p.mensaje_activacion).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>') : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
+                manualBloques.push('<p style="margin:14px 0 4px"><b>' + nom + '</b></p>' +
+                  '<div style="background:#fff4e0;border-radius:12px;padding:16px;font-size:15px">' + msg + '</div>');
+              } else if (p && p.entrega) {
+                const htmlEntrega = String(p.entrega).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+                bloques.push('<p style="margin:14px 0 4px"><b>' + nom + '</b></p>' +
                   '<div style="background:#f4f2fb;border-radius:12px;padding:16px;font-size:15px">' + htmlEntrega + '</div>');
               } else {
-                sinEntrega.push(it.nombre + (it.cantidad > 1 ? ' x' + it.cantidad : ''));
+                sinEntrega.push(nom);
               }
             });
             const nodemailer = require('nodemailer');
@@ -68,7 +73,7 @@ module.exports = async (req, res) => {
               html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
                 '<h2 style="color:#8B2FFF">¡Gracias por tu compra!</h2>' +
                 '<p>Tu pago de <b>' + total + ' €</b> se ha confirmado. Aquí tienes tus accesos:</p>' +
-                bloques.join('') + extra +
+                bloques.join('') + manualBloques.join('') + extra +
                 '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
                 '<p style="color:#999;font-size:12px">LUHA · luhashop.es</p></div>'
             });
@@ -81,12 +86,28 @@ module.exports = async (req, res) => {
         const nombreProducto = (session.metadata && session.metadata.producto) || '';
         const EMAIL_USER = process.env.EMAIL_USER, EMAIL_PASS = process.env.EMAIL_PASS;
         if (SUPABASE_URL && SUPABASE_KEY && nombreProducto && cd.email && EMAIL_USER && EMAIL_PASS) {
-          const rp = await fetch(SUPABASE_URL + '/rest/v1/productos?nombre=eq.' + encodeURIComponent(nombreProducto) + '&select=entrega', { headers: SH });
+          const rp = await fetch(SUPABASE_URL + '/rest/v1/productos?nombre=eq.' + encodeURIComponent(nombreProducto) + '&select=entrega,tipo_entrega,mensaje_activacion', { headers: SH });
           const rows = await rp.json();
-          const entrega = Array.isArray(rows) && rows[0] && rows[0].entrega;
+          const prodRow = Array.isArray(rows) && rows[0];
+          const entrega = prodRow && prodRow.entrega;
+          const esManual = prodRow && prodRow.tipo_entrega === 'manual';
           const nodemailer = require('nodemailer');
           const t = nodemailer.createTransport({ host:'smtp.dondominio.com', port:465, secure:true, auth: { user: EMAIL_USER, pass: String(EMAIL_PASS).replace(/\s/g, '') } });
-          if (entrega) {
+          if (esManual) {
+            const msg = prodRow.mensaje_activacion ? String(prodRow.mensaje_activacion).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>') : 'Nos pondremos en contacto contigo por WhatsApp o correo para activar tu acceso.';
+            await t.sendMail({
+              from: 'LUHA <' + EMAIL_USER + '>',
+              to: cd.email,
+              subject: '🎉 Tu compra en LUHA — ' + nombreProducto,
+              html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto">' +
+                '<h2 style="color:#8B2FFF">¡Gracias por tu compra!</h2>' +
+                '<p>Tu pago de <b>' + nombreProducto + '</b> se ha confirmado. Un último paso para activar tu acceso:</p>' +
+                '<div style="background:#fff4e0;border-radius:12px;padding:16px;font-size:15px">' + msg + '</div>' +
+                '<p style="margin-top:18px">¿Dudas? Escríbenos por WhatsApp: <a href="https://wa.me/34641564952">+34 641 564 952</a></p>' +
+                '<p style="color:#999;font-size:12px">LUHA · luhashop.es</p></div>'
+            });
+            // Se queda "pagado" hasta que actives la cuenta a mano y lo marques "entregado" en el admin.
+          } else if (entrega) {
             const htmlEntrega = String(entrega).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
             await t.sendMail({
               from: 'LUHA <' + EMAIL_USER + '>',
