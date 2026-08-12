@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Streaming — LUHA</title>
+<meta name="description" content="Streaming, seguidores, marketing y diseño en LUHA — sin agencias, sin contratos. Pide lo que necesitas, cuando lo necesitas.">
 <link rel="icon" type="image/x-icon" href="logo/favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="logo/icon-192.png">
 <link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
@@ -311,6 +312,13 @@
   var ESBUSQUEDA = (CAT==='Todos' && Q0!=='');
   var VERTODOS = (CAT==='Todos' && Q0==='');
   document.title = (ESBUSQUEDA ? 'Buscar: '+Q0 : (VERTODOS ? 'Todos los productos' : CAT)) + ' — LUHA';
+  (function(){
+    var txt = ESBUSQUEDA ? ('Resultados de búsqueda para "'+Q0+'" en LUHA — sin agencias ni contratos.')
+      : (VERTODOS ? 'Todo el catálogo de LUHA: streaming, seguidores, marketing y diseño — sin agencias ni contratos.'
+      : ((DESCR[CAT] || 'Todo lo que necesitas, al mejor precio') + ' · LUHA, sin agencias ni contratos.'));
+    var m = document.querySelector('meta[name="description"]');
+    if(m) m.setAttribute('content', txt);
+  })();
   document.getElementById('catTitulo').textContent = ESBUSQUEDA ? 'Resultados de búsqueda' : (VERTODOS ? 'Todos los productos' : CAT);
   document.getElementById('catCrumb').textContent = ESBUSQUEDA ? ('"'+Q0+'"') : (VERTODOS ? 'Todos los productos' : CAT);
   document.getElementById('catSub').textContent = ESBUSQUEDA ? ('Mostrando resultados para "'+Q0+'" en todo el catálogo') : (VERTODOS ? 'Todo nuestro catálogo, en un solo lugar' : (DESCR[CAT] || 'Todo lo que necesitas, al mejor precio · entrega rápida'));
