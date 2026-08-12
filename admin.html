@@ -69,6 +69,17 @@
   .item .x{margin-left:auto;color:var(--danger);cursor:pointer;font-weight:800}
   .switch{cursor:pointer;font-size:20px}
   .toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--cyan);color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.4);display:none;z-index:99}
+  .pedOverlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:none}
+  .pedOverlay.on{display:block}
+  .pedModal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border:1px solid var(--card2);border-radius:16px;padding:26px;max-width:540px;width:92%;max-height:85vh;overflow:auto;z-index:201;display:none;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  .pedModal.on{display:block}
+  .pedClose{position:absolute;top:14px;right:18px;cursor:pointer;font-size:22px;color:var(--muted,#8a8398);line-height:1}
+  .pedRow{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px}
+  .pedRow b{color:#fff}
+  .pedItemsBox{margin-top:6px;background:var(--card2);border-radius:12px;padding:4px 14px}
+  .pedItemRow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px}
+  .pedItemRow:last-child{border-bottom:none}
+  .verDet{cursor:pointer;text-decoration:underline;text-decoration-style:dotted}
   .drop{border:2px dashed var(--line);border-radius:14px;padding:26px 14px;text-align:center;cursor:pointer;transition:.2s;background:var(--bg2)}
   .drop:hover,.drop.over{border-color:var(--cyan);background:rgba(34,225,214,.06)}
   .drop i{font-size:26px;display:block;margin-bottom:8px}
@@ -549,6 +560,12 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="pedOverlay" id="pedOverlay"></div>
+<div class="pedModal" id="pedModal">
+  <span class="pedClose" id="pedModalClose">✕</span>
+  <div id="pedModalBody"></div>
+</div>
+
 <script>
   var TOKEN = sessionStorage.getItem('luha_token') || '';
   var CATALOGO = [];        // servicios del API
@@ -652,7 +669,7 @@
         extra+='<br><span class="muted">📝 '+p.detalle+'</span>';
       }
       if(p.cliente) extra+='<br><span class="muted">👤 '+p.cliente+'</span>';
-      tr.innerHTML='<td data-label="Código"><b style="color:var(--cyan)">'+(p.codigo||'—')+'</b></td>'+
+      tr.innerHTML='<td data-label="Código"><b class="verDet" style="color:var(--cyan)" title="Ver detalle del pedido">'+(p.codigo||'—')+'</b></td>'+
         '<td data-label="Fecha">'+fechaCorta(p.creado)+'</td>'+
         '<td data-label="Producto" style="text-align:right"><span><b>'+(p.producto||'')+'</b>'+extra+'</span></td>'+
         '<td data-label="Método">'+(p.metodo==='tarjeta'?'💳 Tarjeta':'🟢 Bizum')+'</td>'+
@@ -679,9 +696,43 @@
           fetch('/api/pedidos',{method:'POST',headers:H(),body:JSON.stringify({action:'borrar',id:p.id})}).then(function(){cargarPedidos()});
         }
       };
+      tr.querySelector('.verDet').addEventListener('click',function(){ abrirPedidoDetalle(p); });
       body.appendChild(tr);
     });
   }
+
+  // ---------- DETALLE DE PEDIDO (modal con el carrito completo del cliente) ----------
+  function abrirPedidoDetalle(p){
+    var ICONO={pendiente:'🟡',pagado:'🟢',entregado:'✅',cancelado:'🔴'};
+    var itemsHTML='';
+    if(Array.isArray(p.items) && p.items.length){
+      itemsHTML='<div class="pedItemsBox">'+p.items.map(function(it){
+        var cant=it.cantidad||1;
+        var pu=(it.precio_unit!=null)?parseFloat(it.precio_unit):null;
+        var sub=(pu!=null)?(pu*cant):null;
+        return '<div class="pedItemRow"><span>'+it.nombre+' <span class="muted">x'+cant+'</span></span><span>'+(sub!=null?eur(sub):'')+'</span></div>';
+      }).join('')+'</div>';
+    } else {
+      itemsHTML='<div class="pedItemsBox"><div class="pedItemRow"><span>'+(p.producto||'—')+'</span><span>'+eur(p.precio)+'</span></div></div>';
+    }
+    var html='<h3 style="margin:0 0 2px">Pedido '+(p.codigo||'—')+'</h3>'+
+      '<div class="muted" style="margin-bottom:16px">'+fechaCorta(p.creado)+' · '+(ICONO[p.estado]||'')+' '+(p.estado||'')+'</div>'+
+      '<div class="pedRow"><span>Método</span><b>'+(p.metodo==='tarjeta'?'💳 Tarjeta':'🟢 Bizum')+'</b></div>'+
+      (p.cliente?('<div class="pedRow"><span>Cliente</span><b style="text-align:right">'+p.cliente+'</b></div>'):'')+
+      (p.detalle && p.detalle!==p.producto ? ('<div class="pedRow"><span>Nota</span><b style="text-align:right">'+p.detalle+'</b></div>') : '')+
+      '<div style="margin-top:14px;font-size:13px;color:var(--muted,#8a8398)">🛒 Carrito del cliente</div>'+
+      itemsHTML+
+      '<div class="pedRow" style="margin-top:10px;font-size:16px;border-bottom:none"><span>Total pagado</span><b>'+eur(p.precio)+'</b></div>';
+    document.getElementById('pedModalBody').innerHTML=html;
+    document.getElementById('pedOverlay').classList.add('on');
+    document.getElementById('pedModal').classList.add('on');
+  }
+  function cerrarPedidoDetalle(){
+    document.getElementById('pedOverlay').classList.remove('on');
+    document.getElementById('pedModal').classList.remove('on');
+  }
+  document.getElementById('pedOverlay').addEventListener('click',cerrarPedidoDetalle);
+  document.getElementById('pedModalClose').addEventListener('click',cerrarPedidoDetalle);
   document.querySelectorAll('.chipf').forEach(function(c){
     c.addEventListener('click',function(){
       document.querySelectorAll('.chipf').forEach(function(x){x.classList.remove('on')});
