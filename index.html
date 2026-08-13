@@ -621,31 +621,9 @@
 
 <main class="wrap">
 
-  <div class="bannerFrame">
+  <div class="bannerFrame" id="bannerFrame" style="display:none">
   <div class="banner reveal" id="banner">
-    <div class="bTrack" id="bTrack">
-      <div class="bSlide" style="background:linear-gradient(120deg,#2d0140,#5b0f8a 55%,#0b0b0f)">
-        <div class="bText"><span class="bKick">Oferta destacada</span>
-          <h3>Streaming al mejor precio</h3>
-          <p>Netflix, HBO Max, Disney+ y más — entrega verificada al instante.</p>
-          <a href="categoria.html?cat=Streaming" class="btn btn-neon" style="display:inline-flex;text-decoration:none">Ver ofertas</a>
-        </div>
-      </div>
-      <div class="bSlide" style="background:linear-gradient(120deg,#031a33,#0f4c75 55%,#0b0b0f)">
-        <div class="bText"><span class="bKick">Redes sociales</span>
-          <h3>Haz crecer tus redes hoy</h3>
-          <p>Seguidores y likes en Instagram, TikTok, YouTube y más.</p>
-          <a href="seguidores.html" class="btn btn-neon" style="display:inline-flex;text-decoration:none">Ver servicios</a>
-        </div>
-      </div>
-      <div class="bSlide" style="background:linear-gradient(120deg,#331500,#8a3f0f 55%,#0b0b0f)">
-        <div class="bText"><span class="bKick">Formación digital</span>
-          <h3>Aprende con cursos premium</h3>
-          <p>Cursos verificados a precio accesible, acceso inmediato.</p>
-          <a href="#cursos" class="btn btn-neon" style="display:inline-flex;text-decoration:none">Explorar cursos</a>
-        </div>
-      </div>
-    </div>
+    <div class="bTrack" id="bTrack"></div>
     <button class="bArrow bPrev" id="bPrev" aria-label="Anterior" type="button">&#10094;</button>
     <button class="bArrow bNext" id="bNext" aria-label="Siguiente" type="button">&#10095;</button>
     <div class="bDots" id="bDots"></div>
@@ -655,30 +633,8 @@
   <div class="shead reveal" style="margin-top:10px">
     <h2>Explora por <b>categoría</b></h2>
   </div>
-  <div class="posterWrap">
-    <div class="posterRow" id="posterRow">
-      <a class="poster" href="categoria.html?cat=Streaming" style="background:linear-gradient(160deg,#3a0417,#7a0930 55%,#120005)">
-        <span class="pBadge">🔥 Popular</span>
-        <div class="pInfo"><span class="pIcon">🎬</span><h4>Streaming</h4><p>Netflix, HBO, Disney+, Spotify</p></div>
-      </a>
-      <a class="poster" href="seguidores.html" style="background:linear-gradient(160deg,#3a0140,#7a0f8a 55%,#0b0b0f)">
-        <span class="pBadge">⚡ Al instante</span>
-        <div class="pInfo"><span class="pIcon">📈</span><h4>Seguidores &amp; Likes</h4><p>Instagram, TikTok, YouTube</p></div>
-      </a>
-      <a class="poster" href="#cursos" style="background:linear-gradient(160deg,#331500,#8a3f0f 55%,#0b0b0f)">
-        <div class="pInfo"><span class="pIcon">🎓</span><h4>Cursos</h4><p>Formación digital premium</p></div>
-      </a>
-      <a class="poster" href="categoria.html?cat=Creativos" style="background:linear-gradient(160deg,#012622,#0f8a75 55%,#0b0b0f)">
-        <span class="pBadge">✨ Nuevo</span>
-        <div class="pInfo"><span class="pIcon">🎨</span><h4>Creativos</h4><p>Logo, branding, webs y diseño</p></div>
-      </a>
-      <a class="poster" href="categoria.html?cat=Software" style="background:linear-gradient(160deg,#031a33,#0f4c75 55%,#0b0b0f)">
-        <div class="pInfo"><span class="pIcon">💻</span><h4>Software</h4><p>Canva, Office, diseño y edición</p></div>
-      </a>
-      <a class="poster" href="categoria.html?cat=Marketing" style="background:linear-gradient(160deg,#111a08,#3f5c0f 55%,#0b0b0f)">
-        <div class="pInfo"><span class="pIcon">🎯</span><h4>Marketing</h4><p>Estrategia y branding sin agencias</p></div>
-      </a>
-    </div>
+  <div class="posterWrap" style="display:none">
+    <div class="posterRow" id="posterRow"></div>
   </div>
 
   <div class="chips" id="chipsNav">
@@ -806,6 +762,7 @@
     var track=document.getElementById('bTrack');
     if(!track) return;
     var dotsBox=document.getElementById('bDots');
+    var frame=document.getElementById('bannerFrame');
 
     function iniciarCarrusel(){
       var slides=track.children;
@@ -831,8 +788,10 @@
       reiniciarAuto();
     }
 
+    // Ya no hay banners de ejemplo de respaldo: si tus banners reales no llegan (o tardan),
+    // la sección se queda oculta en vez de mostrar contenido genérico.
     fetch('/api/banners').then(function(r){return r.json()}).then(function(d){
-      if(!Array.isArray(d) || !d.length){ iniciarCarrusel(); return; } // sin banners propios: se quedan los 3 de ejemplo
+      if(!Array.isArray(d) || !d.length){ return; }
       track.innerHTML = d.map(function(bn){
         var overlay = '<div class="bText">'+
           (bn.kick?'<span class="bKick">'+bn.kick+'</span>':'')+
@@ -843,8 +802,9 @@
         var fondo = bn.imagen_url ? ("url('"+bn.imagen_url+"') center/cover no-repeat") : 'linear-gradient(120deg,#2d0140,#5b0f8a 55%,#0b0b0f)';
         return '<a class="bSlide img" href="'+(bn.enlace||'index.html')+'" style="background:'+fondo+';align-items:flex-end;text-decoration:none">'+overlay+'</a>';
       }).join('');
+      if(frame) frame.style.display='';
       iniciarCarrusel();
-    }).catch(function(){ iniciarCarrusel(); });
+    }).catch(function(){});
   })();
 
   // ---- Fila de portadas (categorías): usa tus portadas del admin si existen; si no, deja las 6 de ejemplo. Se desliza sola hacia la izquierda, sin parar, y se pausa al pasar el cursor. ----
@@ -941,6 +901,8 @@
       setWidth = row.scrollWidth/repes;
       iniciarAutoScroll(setWidth);
     }
+    // Ya no hay portadas de ejemplo de respaldo: si no llegan tus portadas reales, la fila
+    // se queda oculta en vez de mostrar contenido genérico.
     fetch('/api/banners?tabla=posters').then(function(r){return r.json()}).then(function(d){
       if(Array.isArray(d) && d.length){
         var html = d.map(function(p){
@@ -953,12 +915,9 @@
             '</div></a>';
         }).join('');
         armar(html);
-      } else {
-        armar(row.innerHTML); // sin portadas propias: repite las 6 de ejemplo que ya están en el HTML
+        wrap.style.display='';
       }
-    }).catch(function(){
-      armar(row.innerHTML);
-    });
+    }).catch(function(){});
   })();
 
   var obs=new IntersectionObserver(function(es){
