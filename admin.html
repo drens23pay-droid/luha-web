@@ -23,14 +23,12 @@
   .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
   .btn-ghost:hover{border-color:var(--lila)}
   .btn-danger{background:rgba(255,92,122,.15);color:var(--danger);border:1px solid rgba(255,92,122,.3)}
-
   /* LOGIN */
   #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
   .lbox{background:var(--card);border:1px solid var(--neon);border-radius:20px;padding:34px;max-width:360px;width:100%;text-align:center;box-shadow:0 0 40px rgba(139,47,255,.3)}
   .logo{font-weight:800;font-size:24px;letter-spacing:1px;margin-bottom:6px;
     background:linear-gradient(90deg,var(--pink),var(--lila),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
   .lbox p{color:var(--txt-mut);font-size:13px;margin-bottom:18px}
-
   /* LAYOUT */
   #app{display:none;grid-template-columns:220px 1fr;min-height:100vh}
   aside{background:var(--bg2);border-right:1px solid var(--line);padding:20px 12px}
@@ -90,12 +88,10 @@
   .preview .rm{position:absolute;top:-8px;right:-8px;background:var(--danger);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-weight:800}
   .panel{overflow-x:auto}
   .navToggle{display:none}
-
   @media(max-width:820px){
     html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
     body{font-size:15px}
     #app{grid-template-columns:1fr}
-
     /* topbar fija con logo + botón hamburguesa (nada de 8 pestañas apretadas) */
     aside{position:sticky;top:0;z-index:70;border-right:none;border-bottom:1px solid var(--line);
       padding:12px 14px;display:flex;align-items:center;gap:10px;background:var(--bg2)}
@@ -103,7 +99,6 @@
     .navToggle{display:flex;align-items:center;justify-content:center;margin-left:auto;
       background:var(--card);border:1px solid var(--line);color:#fff;font-size:20px;
       border-radius:10px;width:42px;height:42px;cursor:pointer}
-
     /* menú desplegable a pantalla completa, un link debajo del otro, dedos grandes */
     .nav{display:none;flex-direction:column;position:fixed;top:65px;left:0;right:0;bottom:0;
       background:var(--bg2);z-index:65;padding:10px 14px;overflow-y:auto;gap:0}
@@ -111,7 +106,6 @@
     .nav a{white-space:normal;margin-bottom:0;padding:17px 14px;font-size:17px;border-radius:12px;
       border-bottom:1px solid rgba(168,85,247,.1)}
     .nav a.on{border:1px solid var(--line);border-bottom:1px solid var(--line)}
-
     main{padding:16px 14px}
     h1{font-size:21px}
     h2{font-size:17px}
@@ -123,14 +117,12 @@
     .item .x, .item button, .item .switch{margin-left:0!important}
     .toast{left:14px;right:14px;bottom:14px;text-align:center;font-size:15px}
     .panel{padding:16px}
-
     /* tocables más grandes: nada de texto/botones diminutos tipo escritorio */
     .btn{font-size:15px;padding:13px 18px;min-height:44px}
     input,select,textarea{font-size:16px;padding:13px 14px}
     .estsel{font-size:14px;padding:10px 12px;width:100%}
     .chipf{font-size:13px;padding:9px 15px}
     .switch{font-size:24px}
-
     /* tablas -> tarjetas apiladas (nada de scroll horizontal tipo escritorio) */
     table.responsive{border:none}
     table.responsive thead{display:none}
@@ -147,7 +139,6 @@
 </style>
 </head>
 <body>
-
 <!-- LOGIN -->
 <div id="login">
   <div class="lbox">
@@ -159,7 +150,6 @@
     <p id="loginErr" style="color:var(--danger);display:none;margin-top:10px">Contraseña incorrecta</p>
   </div>
 </div>
-
 <!-- APP -->
 <div id="app">
   <aside>
@@ -179,7 +169,6 @@
     </div>
   </aside>
   <main>
-
     <!-- PEDIDOS -->
     <div class="section on" id="s-pedidos">
       <h1>Pedidos</h1>
@@ -203,7 +192,6 @@
         <div id="ped_vacio" class="muted" style="padding:14px 0"></div>
       </div>
     </div>
-
     <!-- PRECIOS -->
     <div class="section" id="s-precios">
       <h1>Precios y comisión</h1>
@@ -221,13 +209,11 @@
         <div style="margin-top:16px"><button class="btn btn-neon" onclick="guardarConfig()">Guardar cambios</button></div>
       </div>
     </div>
-
     <!-- PAQUETES -->
     <div class="section" id="s-paquetes">
       <h1>Paquetes / Combos</h1>
       <div class="sub">Crea combos (ej. 10.000 seguidores + 2.000 likes) con calculador para que los números cuadren.</div>
       <div style="margin-bottom:14px;padding:12px 16px;border-radius:10px;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.35);color:var(--danger);font-size:13px;display:block">⚠️ Esto es SOLO para combos de seguidores/likes (se compran desde seguidores.html). Para servicios de marketing, influencers, diseño, etc. usa la sección <b>Productos</b> — ahí cada uno tiene su propia página y botón de compra correcto.</div>
-
       <div class="panel">
         <h2 id="pkg_titulo">Nuevo paquete</h2>
         <input type="hidden" id="p_id">
@@ -239,23 +225,19 @@
         </div>
         <label>Descripción</label>
         <input id="p_desc" placeholder="10.000 seguidores + 2.000 likes reales">
-
         <label style="margin-top:14px">Buscar en el catálogo de la API (opcional)</label>
         <div class="row">
           <input id="p_busca" placeholder="Busca un servicio del catálogo..." oninput="buscarSvc()">
         </div>
         <div id="p_result" style="max-height:160px;overflow:auto;margin-top:6px"></div>
-
         <label style="margin-top:16px">O añade algo manual (cualquier proveedor, sin catálogo)</label>
         <div class="three">
           <input id="m_nombre" placeholder="Ej. 5.000 seguidores TikTok">
           <input id="m_coste" type="number" step="0.01" placeholder="Coste (€)">
           <button class="btn btn-ghost" onclick="addItemManual()">+ Añadir</button>
         </div>
-
         <label style="margin-top:12px">Servicios en el paquete</label>
         <div id="p_items"><div class="muted">Aún no has añadido servicios.</div></div>
-
         <label style="margin-top:16px">Foto del paquete (opcional)</label>
         <div class="drop" id="pkgDropZone">
           <i>📷</i>
@@ -268,7 +250,6 @@
           <button class="rm" id="pkg_preview_rm" type="button">✕</button>
         </div>
         <input type="hidden" id="p_img">
-
         <div class="two" style="margin-top:12px">
           <div><label>Precio de venta (€)</label><input id="p_precio" type="number" step="0.01" placeholder="40.00" oninput="calcPaquete()"></div>
           <div><label>&nbsp;</label>
@@ -276,26 +257,22 @@
             <label style="margin:0"><input type="checkbox" id="p_home" style="width:auto;margin-right:8px">Mostrar también en "Más vendidos" del home</label>
           </div>
         </div>
-
         <div class="calcbox" id="p_calc">
           <div class="r"><span class="k">Coste (proveedor)</span><span id="calc_coste">0,00 €</span></div>
           <div class="r"><span class="k">Precio sugerido (con margen + Stripe)</span><span id="calc_sug">0,00 €</span></div>
           <div class="r big"><span>Tu ganancia</span><span id="calc_gan">0,00 €</span></div>
           <div class="warn" id="calc_warn">⚠️ El precio es menor que el coste: perderías dinero.</div>
         </div>
-
         <div style="margin-top:16px" class="row">
           <button class="btn btn-neon" onclick="guardarPaquete()">Guardar paquete</button>
           <button class="btn btn-ghost" onclick="resetPaquete()">Limpiar</button>
         </div>
       </div>
-
       <div class="panel">
         <h2>Tus paquetes</h2>
         <div id="listaPaquetes"><div class="muted">Cargando…</div></div>
       </div>
     </div>
-
     <!-- SERVICIOS -->
     <div class="section" id="s-servicios">
       <h1>Servicios del catálogo (API)</h1>
@@ -341,7 +318,6 @@
           <tbody id="sv_body"></tbody></table>
       </div>
     </div>
-
     <!-- PRODUCTOS -->
     <div class="section" id="s-productos">
       <h1>Productos fijos</h1>
@@ -424,7 +400,6 @@
         <div id="listaProductos" style="margin-top:12px"><div class="muted">Cargando…</div></div>
       </div>
     </div>
-
     <!-- CATEGORÍAS -->
     <div class="section" id="s-categorias">
       <h1>Categorías</h1>
@@ -444,7 +419,6 @@
         <div id="listaCategorias" style="margin-top:12px"><div class="muted">Cargando…</div></div>
       </div>
     </div>
-
     <!-- BANNERS -->
     <div class="section" id="s-banners">
       <h1>Banners del home</h1>
@@ -464,7 +438,6 @@
           <button class="rm" id="ban_preview_rm" type="button">✕</button>
         </div>
         <input type="hidden" id="ban_img">
-
         <div class="two" style="margin-top:12px">
           <div><label>Etiqueta pequeña (opcional)</label><input id="ban_kick" placeholder="Ej. Oferta destacada"></div>
           <div><label>Título</label><input id="ban_titulo_txt" placeholder="Ej. Streaming al mejor precio"></div>
@@ -479,13 +452,11 @@
             <label style="margin:0 0 6px"><input type="checkbox" id="ban_activo" checked style="width:auto;margin-right:8px">Visible en la web</label>
           </div>
         </div>
-
         <div style="margin-top:16px" class="row">
           <button class="btn btn-neon" onclick="guardarBanner()">Guardar banner</button>
           <button class="btn btn-ghost" onclick="resetBanner()">Limpiar</button>
         </div>
       </div>
-
       <div class="panel">
         <div class="row" style="justify-content:space-between">
           <h2 style="margin-bottom:0">Tus banners (en este orden se muestran)</h2>
@@ -494,7 +465,6 @@
         <div id="listaBanners" style="margin-top:12px"><div class="muted">Cargando…</div></div>
       </div>
     </div>
-
     <!-- PORTADAS DE CATEGORÍAS -->
     <div class="section" id="s-posters">
       <h1>Portadas de categorías</h1>
@@ -514,7 +484,6 @@
           <button class="rm" id="pos_preview_rm" type="button">✕</button>
         </div>
         <input type="hidden" id="pos_img">
-
         <div class="two" style="margin-top:12px">
           <div><label>Título</label><input id="pos_titulo_txt" placeholder="Ej. Streaming"></div>
           <div><label>Descripción corta</label><input id="pos_sub" placeholder="Ej. Netflix, HBO, Disney+, Spotify"></div>
@@ -539,13 +508,11 @@
           </div>
         </div>
         <label style="margin:10px 0 0"><input type="checkbox" id="pos_activo" checked style="width:auto;margin-right:8px">Visible en la web</label>
-
         <div style="margin-top:16px" class="row">
           <button class="btn btn-neon" onclick="guardarPoster()">Guardar portada</button>
           <button class="btn btn-ghost" onclick="resetPoster()">Limpiar</button>
         </div>
       </div>
-
       <div class="panel">
         <div class="row" style="justify-content:space-between">
           <h2 style="margin-bottom:0">Tus portadas (en este orden se muestran)</h2>
@@ -554,18 +521,14 @@
         <div id="listaPosters" style="margin-top:12px"><div class="muted">Cargando…</div></div>
       </div>
     </div>
-
   </main>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <div class="pedOverlay" id="pedOverlay"></div>
 <div class="pedModal" id="pedModal">
   <span class="pedClose" id="pedModalClose">✕</span>
   <div id="pedModalBody"></div>
 </div>
-
 <script>
   var TOKEN = sessionStorage.getItem('luha_token') || '';
   var CATALOGO = [];        // servicios del API
@@ -573,11 +536,9 @@
   var SVCFG = {};           // overrides por service_id
   var CONFIG = {};
   var itemsPaquete = [];    // items del paquete en edición
-
   function H(){ return {'Content-Type':'application/json','x-admin-token':TOKEN}; }
   function toast(t){ var e=document.getElementById('toast'); e.textContent=t; e.style.display='block'; setTimeout(function(){e.style.display='none'},2500); }
   function eur(v){ return (Math.round((v||0)*100)/100).toFixed(2).replace('.',',')+' €'; }
-
   // Comprueba de verdad contra el servidor si el token es válido (no basta con que no esté vacío).
   function tokenValido(token){
     return fetch('/api/pedidos',{headers:{'x-admin-token':token}}).then(function(r){
@@ -608,7 +569,6 @@
     });
   }
   function salir(){ sessionStorage.removeItem('luha_token'); location.reload(); }
-
   // navegación
   document.querySelectorAll('.nav a[data-s]').forEach(function(a){
     a.addEventListener('click',function(){
@@ -627,11 +587,9 @@
       document.getElementById('navMenu').classList.toggle('open');
     });
   }
-
   function iniciar(){
     cargarConfig(); cargarCatalogo(); cargarPaquetes(); cargarProductos(); cargarCategorias(); cargarPedidos(); cargarBanners(); cargarPosters();
   }
-
   // ---------- PEDIDOS ----------
   var PEDIDOS=[]; var FILTRO_PED='todos';
   function fechaCorta(iso){
@@ -700,7 +658,6 @@
       body.appendChild(tr);
     });
   }
-
   // ---------- DETALLE DE PEDIDO (modal con el carrito completo del cliente) ----------
   function abrirPedidoDetalle(p){
     var ICONO={pendiente:'🟡',pagado:'🟢',entregado:'✅',cancelado:'🔴'};
@@ -739,7 +696,6 @@
       c.classList.add('on'); FILTRO_PED=c.dataset.f; pintarPedidos();
     });
   });
-
   // ---------- CATEGORÍAS ----------
   // Mantiene el <select> de categoría del formulario de "Productos fijos" sincronizado con
   // las categorías reales que administras — así lo que agregues/renombres ahí aparece solo aquí.
@@ -765,12 +721,28 @@
       d.forEach(function(c,i){
         var el=document.createElement('div'); el.className='item';
         el.innerHTML='<span class="switch" title="Mostrar/ocultar">'+(c.activa!==false?'✅':'⬜')+'</span>'+
+          '<span class="catIcon" title="Icono — clic o arrastra una imagen aquí" style="width:30px;height:30px;border-radius:8px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex:none;background:var(--card2)">'+
+            (c.icono_url?'<img src="'+c.icono_url+'" style="width:100%;height:100%;object-fit:cover">':'<span style="font-size:13px;opacity:.5">＋</span>')+
+          '</span>'+
           '<span class="catNombre">'+c.nombre+'</span>'+
           '<button class="btn btn-ghost" style="margin-left:auto;padding:4px 8px">↑</button>'+
           '<button class="btn btn-ghost" style="padding:4px 8px">↓</button>'+
           '<button class="btn btn-ghost" style="padding:4px 10px">Editar</button>'+
           '<button class="btn btn-danger" style="padding:4px 10px">Borrar</button>';
         var sw=el.querySelector('.switch'), btns=el.querySelectorAll('button'), nombreEl=el.querySelector('.catNombre');
+        var iconBox=el.querySelector('.catIcon');
+        (function(){
+          var input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.style.display='none';
+          iconBox.appendChild(input);
+          iconBox.addEventListener('click',function(){ input.click(); });
+          input.addEventListener('change',function(){ if(input.files[0]) subirIconoCategoria(input.files[0], c, iconBox); });
+          ['dragenter','dragover'].forEach(function(ev){ iconBox.addEventListener(ev,function(e){ e.preventDefault(); e.stopPropagation(); iconBox.style.borderColor='var(--cyan)'; }); });
+          ['dragleave','drop'].forEach(function(ev){ iconBox.addEventListener(ev,function(e){ e.preventDefault(); e.stopPropagation(); iconBox.style.borderColor='var(--line)'; }); });
+          iconBox.addEventListener('drop',function(e){
+            var f=e.dataTransfer.files && e.dataTransfer.files[0];
+            if(f) subirIconoCategoria(f, c, iconBox);
+          });
+        })();
         sw.onclick=function(){
           var nuevo = c.activa===false;
           fetch('/api/categorias',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:c.id,data:{activa:nuevo}})})
@@ -812,6 +784,28 @@
       box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo conectar con el servidor.</div>';
     });
   }
+  function subirIconoCategoria(file, c, box){
+    if(!file) return;
+    if(!/^image\//.test(file.type)){ toast('Solo se admiten imágenes'); return; }
+    if(file.size > 5*1024*1024){ toast('Máximo 5MB'); return; }
+    var reader=new FileReader();
+    reader.onload=function(){
+      var base64=reader.result.split(',')[1];
+      box.style.opacity=.5;
+      fetch('/api/upload',{method:'POST',headers:H(),body:JSON.stringify({filename:file.name,contentType:file.type,dataBase64:base64})})
+        .then(function(r){return r.json()}).then(function(d){
+          box.style.opacity=1;
+          if(d.ok){
+            fetch('/api/categorias',{method:'POST',headers:H(),body:JSON.stringify({action:'editar',id:c.id,data:{icono_url:d.url}})})
+              .then(function(r){return r.json()}).then(function(res){
+                if(res.ok){ c.icono_url=d.url; box.innerHTML='<img src="'+d.url+'" style="width:100%;height:100%;object-fit:cover">'; toast('✅ Icono actualizado'); }
+                else { toast('❌ '+(res.motivo||'error')); }
+              });
+          } else { toast('❌ '+(d.motivo||'error al subir')); }
+        }).catch(function(){ box.style.opacity=1; toast('❌ Error al subir'); });
+    };
+    reader.readAsDataURL(file);
+  }
   function moverCategoria(lista,i,dir){
     var j=i+dir; if(j<0||j>=lista.length) return;
     var a=lista[i], b=lista[j];
@@ -830,7 +824,6 @@
         else { toast('❌ '+(d.motivo||'error')); }
       });
   }
-
   // ---------- BANNERS DEL HOME ----------
   function cargarBanners(){
     var box=document.getElementById('listaBanners');
@@ -948,7 +941,6 @@
     });
     document.getElementById('ban_preview_rm').addEventListener('click',function(e){ e.stopPropagation(); mostrarPreviewBan(''); input.value=''; });
   })();
-
   // ---------- PORTADAS DE CATEGORÍAS ----------
   var POS_COLOR_LABEL = { rojo:'Rojo', morado:'Morado', naranja:'Naranja', verdeazul:'Verde azulado', azul:'Azul', verde:'Verde' };
   function cargarPosters(){
@@ -1071,7 +1063,6 @@
     });
     document.getElementById('pos_preview_rm').addEventListener('click',function(e){ e.stopPropagation(); mostrarPreviewPos(''); input.value=''; });
   })();
-
   // ---------- CONFIG ----------
   function cargarConfig(){
     fetch('/api/config').then(function(r){return r.json()}).then(function(d){
@@ -1102,7 +1093,6 @@
       if(d.ok){ CONFIG=body; toast('✅ Precios guardados'); } else { toast('❌ '+(d.motivo||'error')); }
     });
   }
-
   // ---------- CATÁLOGO API ----------
   function cargarCatalogo(){
     fetch('/api/servicios').then(function(r){return r.json()}).then(function(d){
@@ -1114,7 +1104,6 @@
       });
     });
   }
-
   // ---------- PAQUETES ----------
   function buscarSvc(){
     var q=(document.getElementById('p_busca').value||'').toLowerCase();
@@ -1257,7 +1246,6 @@
       });
     }).catch(function(){ box.innerHTML='<div class="muted" style="color:var(--danger)">⚠️ No se pudo conectar con el servidor.</div>'; });
   }
-
   // ---------- SUBIDA DE FOTO DEL PAQUETE ----------
   function mostrarPreviewPkg(url){
     document.getElementById('p_img').value=url||'';
@@ -1293,7 +1281,6 @@
     });
     document.getElementById('pkg_preview_rm').addEventListener('click',function(e){ e.stopPropagation(); mostrarPreviewPkg(''); input.value=''; });
   })();
-
   // ---------- SERVICIOS ----------
   var SV_FILAS = {};
   var SV_PAGE = 0;
@@ -1389,7 +1376,6 @@
       else { toast('❌ '+(d.motivo||'error')); }
     });
   }
-
   // ---------- PRODUCTOS ----------
   function cargarProductos(){
     var box=document.getElementById('listaProductos');
@@ -1445,7 +1431,6 @@
     document.getElementById('bloque_prod_entrega').style.display = (t==='auto') ? 'block' : 'none';
     document.getElementById('bloque_prod_msg').style.display = (t==='manual') ? 'block' : 'none';
   }
-
   // ---------- PLANTILLAS DE MENSAJE (para activación manual, ej. Canva Pro/Team) ----------
   // Se guardan dentro de la misma tabla "config" (clave plantillas_mensajes, valor = JSON) para no
   // gastar otra función serverless — Vercel Hobby limita a 12 por deploy y ya estamos en el tope.
@@ -1506,7 +1491,6 @@
     mostrarPreview('');
     document.getElementById('prod_file').value='';
   }
-
   // ---------- SUBIDA DE FOTO (drag & drop) ----------
   function mostrarPreview(url){
     document.getElementById('prod_img').value=url||'';
@@ -1566,7 +1550,6 @@
       else { var m='❌ No se pudo guardar: '+(d.motivo||'error desconocido'); errBox.textContent=m; errBox.style.display='block'; toast(m); }
     }).catch(function(){ var m='❌ No se pudo conectar con el servidor.'; errBox.textContent=m; errBox.style.display='block'; toast(m); });
   }
-
   // auto-login si ya hay token guardado — pero validándolo primero contra el servidor
   if(TOKEN){
     tokenValido(TOKEN).then(function(ok){
