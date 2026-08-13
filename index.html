@@ -1165,20 +1165,23 @@
   // solos con lo que tengas activo en el admin — así cualquier categoría que agregues
   // (o renombres) aparece automáticamente en toda la web, no solo en el sidebar. ----
   var ICONO_CAT = { 'Streaming':'🎬','Software':'💻','Creativos':'🎨','Cursos':'🎓','Marketing':'🎯','Seguidores':'📈' };
+  // Icono de categoría: si subiste una imagen propia en Admin (icono_url) se usa esa; si no, cae al emoji de ICONO_CAT.
+  function iconoCatHTML(c){
+    if(c.icono_url) return '<img src="'+c.icono_url+'" alt="" style="width:16px;height:16px;object-fit:cover;border-radius:4px;vertical-align:-3px;margin-right:3px">';
+    return (ICONO_CAT[c.nombre] || '🏷️') + ' ';
+  }
   function pintarMenuCategorias(cats){
     if(!Array.isArray(cats) || !cats.length) return;
     var drop=document.getElementById('dropMenu');
     if(drop){
       drop.innerHTML = cats.map(function(c){
-        var ic = ICONO_CAT[c.nombre] || '🏷️';
-        return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+ic+' '+c.nombre+'</a>';
+        return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+iconoCatHTML(c)+c.nombre+'</a>';
       }).join('');
     }
     var mob=document.getElementById('mobileCatLinks');
     if(mob){
       mob.innerHTML = cats.map(function(c){
-        var ic = ICONO_CAT[c.nombre] || '🏷️';
-        return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+ic+' '+c.nombre+'</a>';
+        return '<a href="categoria.html?cat='+encodeURIComponent(c.nombre)+'">'+iconoCatHTML(c)+c.nombre+'</a>';
       }).join('') + '<a href="categoria.html?cat=Todos">Ver todo el catálogo →</a>';
     }
     var foot=document.getElementById('footerCatLinks');
