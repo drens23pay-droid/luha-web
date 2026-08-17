@@ -440,7 +440,7 @@
         <input type="hidden" id="ban_img">
         <div class="two" style="margin-top:12px">
           <div><label>Etiqueta pequeña (opcional)</label><input id="ban_kick" placeholder="Ej. Oferta destacada"></div>
-          <div><label>Título</label><input id="ban_titulo_txt" placeholder="Ej. Streaming al mejor precio"></div>
+          <div><label>Título (opcional)</label><input id="ban_titulo_txt" placeholder="Ej. Streaming al mejor precio"></div>
         </div>
         <label>Texto corto (opcional)</label>
         <input id="ban_sub" placeholder="Ej. Netflix, HBO Max, Disney+ y más al mejor precio">
@@ -895,7 +895,6 @@
   function guardarBanner(){
     var titulo=document.getElementById('ban_titulo_txt').value.trim();
     var img=document.getElementById('ban_img').value;
-    if(!titulo){ toast('Escribe un título'); return; }
     if(!img){ toast('Sube una foto para el banner'); return; }
     var data={ kick:document.getElementById('ban_kick').value.trim(),
       titulo:titulo, subtitulo:document.getElementById('ban_sub').value.trim(),
