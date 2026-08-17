@@ -1394,6 +1394,90 @@
       }
     }).catch(function(){ alert('No se pudo iniciar el Bizum automático. Usa el Bizum manual por ahora.'); btn.style.opacity=1; btn.querySelector('.pt b').textContent='Bizum automático'; });
   });
+
+  // ---- Más vendidos: productos "Destacado en el home" + paquetes "Mostrar también en Más vendidos" ----
+  Promise.all([
+    fetch('/api/productos').then(function(r){return r.json()}).catch(function(){return [];}),
+    fetch('/api/paquetes').then(function(r){return r.json()}).catch(function(){return [];})
+  ]).then(function(res){
+    var productos = Array.isArray(res[0]) ? res[0] : [];
+    var paquetes = Array.isArray(res[1]) ? res[1] : [];
+    var grid=document.getElementById('masVendidosGrid');
+
+    var itemsProd = productos.filter(function(p){return p.destacado}).map(function(p){
+      return { tipo:'producto', id:p.id, nombre:p.nombre, categoria:p.categoria, precio:p.precio,
+        precio_anterior:p.precio_anterior, stock:p.stock, imagen_url:p.imagen_url, cotizacion:p.cotizacion };
+    });
+    var itemsPkg = paquetes.filter(function(p){return p.en_home}).map(function(p){
+      return { tipo:'paquete', id:p.id, nombre:p.nombre, categoria:'Combo', precio:p.precio,
+        precio_anterior:null, stock:'En stock', imagen_url:p.imagen_url };
+    });
+    var mostrar = itemsProd.concat(itemsPkg).slice(0,8);
+
+    if(!mostrar.length){
+      grid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">Aún no has destacado ningún producto o paquete. Ve al admin → Productos o Paquetes y activa esa opción.</div>';
+      return;
+    }
+    grid.innerHTML='';
+    mostrar.forEach(function(p,i){
+      var card=document.createElement('div'); card.className='card reveal';
+      card.style.transitionDelay=((i%4)*80)+'ms';
+      var img = p.imagen_url ? '<img src="'+p.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:16px 16px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : '✨';
+      var badge = p.cotizacion ? '<span class="badge">Cotización</span>' : (p.precio_anterior && p.precio_anterior>p.precio ? '<span class="badge">-'+Math.round((1-p.precio/p.precio_anterior)*100)+'%</span>' : '');
+      var old = (!p.cotizacion && p.precio_anterior) ? '<span class="old">'+eur(p.precio_anterior)+'</span>' : '';
+      var precioTxt = p.cotizacion ? (p.precio ? ('Desde '+eur(p.precio)) : 'A cotizar') : eur(p.precio);
+      var href = p.tipo==='producto' ? ('producto.html?id='+encodeURIComponent(p.id)) : 'seguidores.html';
+      var verMas = p.tipo==='producto' ? '<span class="verMas">Ver detalles &rarr;</span>' : '';
+      var btnTxt = p.cotizacion ? 'Pedir cotización' : 'Comprar ahora';
+      var btnCls = p.cotizacion ? 'buy cot' : 'buy';
+      var addBtn = (p.tipo==='producto' && !p.cotizacion) ? '<button class="buyAdd" title="Añadir al carrito">🛒</button>' : '';
+      card.innerHTML='<a href="'+href+'" style="display:block"><div class="thumb">'+img+badge+verMas+'<span class="stock">'+(p.stock||'En stock')+'</span></div>'+
+        '<div class="body"><div class="prov">'+(p.categoria||'')+'</div><h3>'+p.nombre+'</h3>'+
+        '<div class="price"><span class="now">'+precioTxt+'</span>'+old+'</div></a>'+
+        '<div class="body" style="padding-top:0;display:flex;gap:8px"><button class="'+btnCls+'" style="flex:1">'+btnTxt+'</button>'+addBtn+'</div>';
+      grid.appendChild(card);
+      obs.observe(card); wireTilt(card);
+      if(p.cotizacion){
+        card.querySelector('.buy').addEventListener('click',function(){
+          playClick();
+          window.open(wa('Hola LUHA 👋 quiero pedir una cotización para: '+p.nombre+'. ¿Me pasas precio y detalles?'),'_blank');
+        });
+      } else {
+        wireBuy(card.querySelector('.buy'), function(){return p.nombre;}, function(){return p.precio;});
+      }
+      var addB=card.querySelector('.buyAdd');
+      if(addB) addB.addEventListener('click',function(){ carritoAdd({id:p.id,nombre:p.nombre,precio:p.precio,imagen_url:p.imagen_url}); });
+    });
+  }).catch(function(){
+    document.getElementById('masVendidosGrid').innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">No se pudieron cargar los productos.</div>';
+  });
+
+  // ---- Cursos: 100% controlado desde el admin (Productos con categoría "Cursos") ----
+  fetch('/api/productos').then(function(r){return r.json()}).then(function(d){
+    var lista = Array.isArray(d) ? d : [];
+    var cursos = lista.filter(function(p){ return (p.categoria||'')==='Cursos'; });
+    var cgrid=document.getElementById('cgrid');
+    if(!cursos.length){
+      cgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:#8a8398;padding:20px 0">Aún no has creado ningún curso. Ve al admin → Productos, elige categoría "Cursos" y guarda.</div>';
+      return;
+    }
+    cgrid.innerHTML='';
+    cursos.forEach(function(p){
+      var card=document.createElement('div'); card.className='ccard reveal in';
+      var top = p.imagen_url
+        ? '<img src="'+p.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'🎓\'}))">'
+        : '🎓';
+      var href = 'producto.html?id='+encodeURIComponent(p.id);
+      card.innerHTML='<a href="'+href+'" style="display:block"><div class="top">'+top+'<span class="verMas">Ver detalles &rarr;</span></div>'+
+        '<div class="b"><h4>'+p.nombre+'</h4><p>'+(p.descripcion||'')+'</p></div></a>'+
+        '<div class="b" style="padding-top:0"><div class="row"><span class="cp">'+eur(p.precio)+'</span><button class="cbuy">Comprar</button></div></div>';
+      cgrid.appendChild(card);
+      var btn = card.querySelector('.cbuy');
+      wireBuy(btn, function(){return p.nombre;}, function(){return p.precio;});
+    });
+  }).catch(function(){
+    document.getElementById('cgrid').innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;color:#8a8398;padding:20px 0">No se pudieron cargar los cursos.</div>';
+  });
 </script>
 </body>
 </html>
