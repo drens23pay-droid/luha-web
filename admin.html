@@ -241,7 +241,7 @@
         <label style="margin-top:16px">Foto del paquete (opcional)</label>
         <div class="drop" id="pkgDropZone">
           <i>📷</i>
-          <p>Arrastra una imagen aquí o haz clic para elegirla</p>
+          <p>Arrastra una imagen aquí o haz clic para elegirla (recomendado 800×800px, formato cuadrado)</p>
           <input type="file" id="pkg_file" accept="image/*" style="display:none">
         </div>
         <div class="uploading" id="pkgUploadingMsg">Subiendo imagen…</div>
@@ -373,7 +373,7 @@
             <label>Foto del producto</label>
             <div class="drop" id="dropZone">
               <i>📷</i>
-              <p>Arrastra una imagen aquí o haz clic para elegirla</p>
+              <p>Arrastra una imagen aquí o haz clic para elegirla (recomendado 800×800px, formato cuadrado)</p>
               <input type="file" id="prod_file" accept="image/*" style="display:none">
             </div>
             <div class="uploading" id="uploadingMsg">Subiendo imagen…</div>
@@ -451,9 +451,17 @@
           <button class="rm" id="ban_preview_rm_m" type="button">✕</button>
         </div>
         <input type="hidden" id="ban_img_m">
+        <label style="margin-top:12px">Posición de la imagen</label>
+        <select id="ban_pos">
+          <option value="center">Automático (centrado)</option>
+          <option value="top">Manual — arriba</option>
+          <option value="bottom">Manual — abajo</option>
+          <option value="left">Manual — izquierda</option>
+          <option value="right">Manual — derecha</option>
+        </select>
         <div class="two" style="margin-top:12px">
           <div><label>Etiqueta pequeña (opcional)</label><input id="ban_kick" placeholder="Ej. Oferta destacada"></div>
-          <div><label>Título</label><input id="ban_titulo_txt" placeholder="Ej. Streaming al mejor precio"></div>
+          <div><label>Título (opcional)</label><input id="ban_titulo_txt" placeholder="Ej. Streaming al mejor precio"></div>
         </div>
         <label>Texto corto (opcional)</label>
         <input id="ban_sub" placeholder="Ej. Netflix, HBO Max, Disney+ y más al mejor precio">
@@ -514,6 +522,15 @@
               <option value="verdeazul">Verde azulado</option>
               <option value="azul">Azul</option>
               <option value="verde">Verde</option>
+            </select>
+          </div>
+          <div><label>Posición de la imagen</label>
+            <select id="pos_pos">
+              <option value="center">Automático (centrado)</option>
+              <option value="top">Manual — arriba</option>
+              <option value="bottom">Manual — abajo</option>
+              <option value="left">Manual — izquierda</option>
+              <option value="right">Manual — derecha</option>
             </select>
           </div>
           <div><label>Al hacer clic, lleva a...</label>
@@ -894,6 +911,7 @@
     document.getElementById('ban_sub').value=bn.subtitulo||'';
     document.getElementById('ban_link').value=bn.enlace||'';
     document.getElementById('ban_activo').checked=bn.activo!==false;
+    document.getElementById('ban_pos').value=bn.imagen_posicion||'center';
     mostrarPreviewBan(bn.imagen_url||'');
     mostrarPreviewBanM(bn.imagen_url_mobile||'');
     window.scrollTo(0,0);
@@ -904,18 +922,20 @@
     document.getElementById('ban_kick').value=''; document.getElementById('ban_titulo_txt').value='';
     document.getElementById('ban_sub').value=''; document.getElementById('ban_link').value='';
     document.getElementById('ban_activo').checked=true;
+    document.getElementById('ban_pos').value='center';
     mostrarPreviewBan(''); document.getElementById('ban_file').value='';
     mostrarPreviewBanM(''); document.getElementById('ban_file_m').value='';
   }
   function guardarBanner(){
     var titulo=document.getElementById('ban_titulo_txt').value.trim();
     var img=document.getElementById('ban_img').value;
-    if(!titulo){ toast('Escribe un título'); return; }
     if(!img){ toast('Sube una foto para el banner'); return; }
     var data={ kick:document.getElementById('ban_kick').value.trim(),
       titulo:titulo, subtitulo:document.getElementById('ban_sub').value.trim(),
       enlace:document.getElementById('ban_link').value.trim()||'index.html',
-      imagen_url:img, imagen_url_mobile:document.getElementById('ban_img_m').value||null, activo:document.getElementById('ban_activo').checked };
+      imagen_url:img, imagen_url_mobile:document.getElementById('ban_img_m').value||null,
+      imagen_posicion:document.getElementById('ban_pos').value||'center',
+      activo:document.getElementById('ban_activo').checked };
     var id=document.getElementById('ban_id').value;
     var payload = id ? {action:'editar',id:id,data:data} : {action:'crear',data:Object.assign({orden:999},data)};
     fetch('/api/banners',{method:'POST',headers:H(),body:JSON.stringify(payload)}).then(function(r){return r.json()}).then(function(d){
@@ -1050,6 +1070,7 @@
     document.getElementById('pos_color').value=p.color||'morado';
     document.getElementById('pos_link').value=p.enlace||'';
     document.getElementById('pos_activo').checked=p.activo!==false;
+    document.getElementById('pos_pos').value=p.imagen_posicion||'center';
     mostrarPreviewPos(p.imagen_url||'');
     window.scrollTo(0,0);
   }
@@ -1060,6 +1081,7 @@
     document.getElementById('pos_badge').value=''; document.getElementById('pos_icono').value='';
     document.getElementById('pos_color').value='morado'; document.getElementById('pos_link').value='';
     document.getElementById('pos_activo').checked=true;
+    document.getElementById('pos_pos').value='center';
     mostrarPreviewPos(''); document.getElementById('pos_file').value='';
   }
   function guardarPoster(){
@@ -1070,6 +1092,7 @@
       icono:document.getElementById('pos_icono').value.trim(),
       color:document.getElementById('pos_color').value,
       imagen_url:document.getElementById('pos_img').value,
+      imagen_posicion:document.getElementById('pos_pos').value||'center',
       enlace:document.getElementById('pos_link').value.trim()||'index.html',
       activo:document.getElementById('pos_activo').checked };
     var id=document.getElementById('pos_id').value;
