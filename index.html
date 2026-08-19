@@ -232,9 +232,16 @@
   .trustBar b{color:var(--cyan);font-weight:800}
   .trustBar .tSep{opacity:.35;align-self:center}
   @media(max-width:760px){
-    .trustBar{font-size:11.5px;padding:9px 10px;gap:6px 8px}
-    .trustBar span:not(.tSep){padding:5px 10px}
-    .trustBar .tSep{display:none}
+    .trustBar{display:none}
+  }
+  /* Versión flotante compacta de la trustBar, solo móvil, encima del botón "Ayuda" */
+  .trustFloat{display:none}
+  @media(max-width:760px){
+    .trustFloat{position:fixed;right:16px;bottom:80px;z-index:59;
+      background:rgba(20,16,30,.88);backdrop-filter:blur(8px);border:1px solid var(--neon);
+      color:#fff;font-size:11px;font-weight:700;padding:7px 13px;border-radius:30px;
+      box-shadow:0 6px 20px rgba(139,47,255,.35);display:flex;align-items:center;gap:5px;
+      white-space:nowrap}
   }
 
   /* BANNER CARRUSEL */
@@ -709,6 +716,7 @@
   </div>
 </footer>
 
+<div class="trustFloat">&#128179; Bizum · Tarjeta · Entrega rápida</div>
 <button class="fab" id="chatToggle" type="button">&#128172; Ayuda</button>
 
 <div class="chatbox" id="chatbox">
