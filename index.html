@@ -718,7 +718,7 @@
       <div class="r tt"><span>Total</span><span id="mTot">—</span></div>
     </div>
     <div style="background:rgba(34,225,214,.07);border:1px solid rgba(34,225,214,.35);border-radius:12px;padding:12px;margin-top:4px">
-      <div style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg> ¿Dónde te enviamos tu acceso?</div>
+      <div id="mEmailLabel" style="font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg> <span id="mEmailLabelTxt">¿Dónde te enviamos tu acceso?</span></div>
       <input id="mEmail" type="email" placeholder="tucorreo@ejemplo.com"
         style="width:100%;background:var(--bg2);border:1px solid var(--cyan);color:var(--txt);padding:11px 13px;border-radius:10px;font-size:14px;outline:none">
     </div>
@@ -1069,8 +1069,8 @@
     playWhoosh();
   }
 
-  function wireBuy(btn, getName, getTotal){
-    btn.addEventListener('click',function(){ playClick(); abrirCheckout(getName(), getTotal()); });
+  function wireBuy(btn, getName, getTotal, getCategoria){
+    btn.addEventListener('click',function(){ playClick(); abrirCheckout(getName(), getTotal(), null, getCategoria?getCategoria():''); });
   }
   document.querySelectorAll('.ccard').forEach(function(card){
     var b=card.querySelector('.cbuy'); if(!b) return;
@@ -1147,7 +1147,7 @@
     return '<div class="ccard">'
       + '<a class="top" href="producto.html?id='+encodeURIComponent(p.id)+'" style="'+img+'">'+icono+'<span class="verMas">Ver más →</span></a>'
       + '<div class="b"><h4>'+nombre+'</h4><p>'+desc+'</p>'
-      + '<div class="row"><span class="cp">'+precio+'</span><button class="cbuy" data-id="'+encodeURIComponent(p.id)+'">Comprar</button></div>'
+      + '<div class="row"><span class="cp">'+precio+'</span><button class="cbuy" data-id="'+encodeURIComponent(p.id)+'" data-cat="'+encodeURIComponent(p.categoria||'')+'">Comprar</button></div>'
       + '</div></div>';
   }
   function pintarMasVendidos(productos){
@@ -1163,7 +1163,8 @@
     grid.querySelectorAll('.ccard').forEach(function(card){
       var b = card.querySelector('.cbuy'); if(!b) return;
       wireBuy(b, function(){ return card.querySelector('h4').textContent; },
-        function(){ return parseEur(card.querySelector('.cp').textContent); });
+        function(){ return parseEur(card.querySelector('.cp').textContent); },
+        function(){ return decodeURIComponent(b.dataset.cat||''); });
     });
   }
   // ---- Menús de categorías (dropdown del header, menú móvil y pie de página) se arman
@@ -1275,11 +1276,17 @@
   var cur={nombre:'',total:0,items:null};
   var FEECFG=null;
   fetch('/api/config').then(function(r){return r.json()}).then(function(d){ FEECFG=d||{}; }).catch(function(){ FEECFG={}; });
-  function abrirCheckout(nombre,total,items){
+  function abrirCheckout(nombre,total,items,categoria){
     cur={nombre:nombre,total:total,items:items||null};
     if(typeof carritoCerrar==='function') carritoCerrar();
     document.getElementById('mSvc').textContent=nombre;
     document.getElementById('mTot').textContent=eur(total);
+    var mEmailTxt=document.getElementById('mEmailLabelTxt');
+    if(mEmailTxt){
+      mEmailTxt.textContent = (categoria==='Marketing')
+        ? '¿A qué correo te enviamos la info y coordinamos tu proyecto?'
+        : '¿Dónde te enviamos tu acceso?';
+    }
     [document.getElementById('cardFeeNote'), document.getElementById('bizumAutoFeeNote')].forEach(function(nota){
       if(!nota) return;
       if(FEECFG && FEECFG.cobrar_comision_cliente==='true'){
