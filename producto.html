@@ -108,6 +108,9 @@
   .desc h2{font-size:22px;font-weight:800;margin-bottom:12px}
   .desc h2 b{color:var(--lila)}
   .desc p{color:var(--txt-mut);margin-bottom:14px}
+  .descCard{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--lila);
+    border-radius:14px;padding:20px 22px;margin-bottom:18px;box-shadow:0 6px 20px rgba(139,47,255,.08)}
+  .descCard p{color:var(--txt);font-size:16px;line-height:1.65;margin-bottom:0}
   .feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}
   .feat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
   .feat i{color:var(--lila);font-size:20px}
@@ -228,7 +231,7 @@
 
   <div class="desc" id="descBox" style="display:none">
     <h2>Sobre este <b>producto</b></h2>
-    <p id="descTexto">Acceso inmediato tras la compra, con soporte y garantía durante todo el periodo.</p>
+    <div class="descCard"><p id="descTexto">Acceso inmediato tras la compra, con soporte y garantía durante todo el periodo.</p></div>
     <div class="feats">
       <div class="feat"><i>&#9889;</i><h4>Entrega rápida</h4><p>Recibe tu acceso en minutos por WhatsApp.</p></div>
       <div class="feat"><i>&#128737;</i><h4>Garantía</h4><p>Reposición sin coste durante el periodo.</p></div>
