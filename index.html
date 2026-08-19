@@ -367,8 +367,10 @@
   .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
   .ccard{background:#fff;border:1px solid #e7e1f5;border-radius:18px;position:relative;
     box-shadow:0 6px 20px rgba(90,50,160,.08);transition:.25s}
-  .ccard .top{height:190px;background:linear-gradient(135deg,#8B2FFF,#C77DFF);border-radius:18px 18px 0 0;
+  .ccard .top{aspect-ratio:1/1;background:linear-gradient(135deg,#8B2FFF,#C77DFF);border-radius:18px 18px 0 0;
     display:flex;align-items:center;justify-content:center;font-size:38px;color:#fff;position:relative;overflow:hidden}
+  .ccard .top.has-img{background:#08080d}
+  .ccard .top img{width:100%;height:100%;object-fit:contain;padding:10px;box-sizing:border-box}
   .ccard .top .verMas{position:absolute;inset:0;background:rgba(20,16,24,.55);display:flex;align-items:center;justify-content:center;
     color:#fff;font-weight:700;font-size:14px;opacity:0;transition:opacity .2s}
   @media(hover:hover) and (pointer:fine){
@@ -1140,12 +1142,11 @@
   // ---- "Más vendidos" (home): pinta los productos destacados usando lo que ya trajo el fetch de arriba ----
   function ccardHTML(p){
     var precio = eur(p.precio||0);
-    var img = p.imagen_url ? 'background-image:url(\''+String(p.imagen_url).replace(/'/g,"\\'")+'\');background-size:cover;background-position:center' : '';
-    var icono = p.imagen_url ? '' : '🛒';
+    var imgHTML = p.imagen_url ? '<img src="'+String(p.imagen_url).replace(/"/g,'')+'" onerror="this.remove()">' : '🛒';
     var desc = p.descripcion ? String(p.descripcion).slice(0,70) : '';
     var nombre = String(p.nombre||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     return '<div class="ccard">'
-      + '<a class="top" href="producto.html?id='+encodeURIComponent(p.id)+'" style="'+img+'">'+icono+'<span class="verMas">Ver más →</span></a>'
+      + '<a class="top'+(p.imagen_url?' has-img':'')+'" href="producto.html?id='+encodeURIComponent(p.id)+'">'+imgHTML+'<span class="verMas">Ver más →</span></a>'
       + '<div class="b"><h4>'+nombre+'</h4><p>'+desc+'</p>'
       + '<div class="row"><span class="cp">'+precio+'</span><button class="cbuy" data-id="'+encodeURIComponent(p.id)+'" data-cat="'+encodeURIComponent(p.categoria||'')+'">Comprar</button></div>'
       + '</div></div>';
