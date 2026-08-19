@@ -234,15 +234,7 @@
   @media(max-width:760px){
     .trustBar{display:none}
   }
-  /* Versión flotante compacta de la trustBar, solo móvil, encima del botón "Ayuda" */
-  .trustFloat{display:none}
-  @media(max-width:760px){
-    .trustFloat{position:fixed;right:16px;bottom:80px;z-index:59;
-      background:rgba(20,16,30,.88);backdrop-filter:blur(8px);border:1px solid var(--neon);
-      color:#fff;font-size:11px;font-weight:700;padding:7px 13px;border-radius:30px;
-      box-shadow:0 6px 20px rgba(139,47,255,.35);display:flex;align-items:center;gap:5px;
-      white-space:nowrap}
-  }
+  .trustFloat{display:none !important}
 
   /* BANNER CARRUSEL */
   .bannerFrame{position:relative;margin:28px 0 30px}
@@ -286,10 +278,10 @@
     .bSlide{height:230px;padding:0 26px}
     .bText h3{font-size:22px}
     .bText p{font-size:13px;margin-bottom:14px}
-    .bArrow{width:30px;height:30px;font-size:12px;top:16px;transform:none}
+    .bArrow{width:30px;height:30px;font-size:12px}
     .bPrev{left:8px}
     .bNext{right:8px}
-    .bCta{font-size:11px;padding:6px 13px;display:flex;width:fit-content;margin:0 auto}
+    .bCta{font-size:11px;padding:6px 13px}
   }
 
   /* POSTER ROW (estilo Netflix: hover que agranda y acerca la portada) */
@@ -716,7 +708,6 @@
   </div>
 </footer>
 
-<div class="trustFloat">&#128179; Bizum · Tarjeta · Entrega rápida</div>
 <button class="fab" id="chatToggle" type="button">&#128172; Ayuda</button>
 
 <div class="chatbox" id="chatbox">
