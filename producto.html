@@ -81,8 +81,10 @@
     background:conic-gradient(from var(--ang),transparent 0deg,var(--cyan) 45deg,var(--neon) 110deg,var(--pink) 175deg,transparent 235deg);
     -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
     -webkit-mask-composite:xor;mask-composite:exclude;animation:spin 4s linear infinite;pointer-events:none}
-  .hero-img{height:360px;border-radius:20px;background:linear-gradient(135deg,#1c1430,#2a1a45);
+  .hero-img{aspect-ratio:1/1;border-radius:20px;background:#08080d;
     display:flex;align-items:center;justify-content:center;font-size:120px}
+  .hero-img.has-img{background:#08080d}
+  .hero-img:not(.has-img){background:linear-gradient(135deg,#1c1430,#2a1a45)}
   .badge{position:absolute;top:16px;left:16px;background:linear-gradient(90deg,var(--pink),var(--neon2),var(--cyan));
     color:#fff;font-size:13px;font-weight:700;padding:6px 12px;border-radius:20px;box-shadow:0 0 14px rgba(168,85,247,.6)}
   .info .prov{font-size:12px;color:var(--txt-mut);text-transform:uppercase;letter-spacing:1px}
@@ -123,8 +125,9 @@
   @media(hover:hover) and (pointer:fine){
     .card:hover{transform:translateY(-4px);border-color:var(--neon);box-shadow:0 10px 30px rgba(139,47,255,.25)}
   }
-  .card .th{height:120px;border-radius:14px 14px 0 0;background:linear-gradient(135deg,#1c1430,#241a3d);
+  .card .th{aspect-ratio:1/1;border-radius:14px 14px 0 0;background:linear-gradient(135deg,#1c1430,#241a3d);
     display:flex;align-items:center;justify-content:center;font-size:38px}
+  .card .th.has-img{background:#08080d}
   .card .b{padding:12px 14px 14px}
   .card .b .p{font-size:12px;color:var(--txt-mut)}
   .card .b h3{font-size:14px;margin:4px 0 8px}
@@ -505,7 +508,8 @@
 
     var img = document.getElementById('heroImg');
     if(p.imagen_url){
-      img.innerHTML='<img src="'+p.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:20px" onerror="this.parentElement.innerHTML=\'&#10024;\'">';
+      img.classList.add('has-img');
+      img.innerHTML='<img src="'+p.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:contain;object-position:center;border-radius:20px;padding:16px;box-sizing:border-box" onerror="this.parentElement.innerHTML=\'&#10024;\';this.parentElement.classList.remove(\'has-img\')">';
     }
 
     var oferta = p.precio_anterior && p.precio_anterior > p.precio;
@@ -549,9 +553,9 @@
       document.getElementById('relBox').style.display='block';
       var relGrid=document.getElementById('relGrid');
       relGrid.innerHTML = relacionados.map(function(r){
-        var rimg = r.imagen_url ? '<img src="'+r.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:14px 14px 0 0" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}))">' : '✨';
+        var rimg = r.imagen_url ? '<img src="'+r.imagen_url+'" style="display:block;width:100%;height:100%;object-fit:contain;object-position:center;padding:8px;box-sizing:border-box" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'✨\'}));this.closest(\'.th\')&&this.closest(\'.th\').classList.remove(\'has-img\')">' : '✨';
         return '<div class="card" data-id="'+r.id+'" data-nombre="'+r.nombre.replace(/"/g,'')+'" data-precio="'+r.precio+'" data-img="'+(r.imagen_url||'').replace(/"/g,'')+'">'+
-          '<a href="producto.html?id='+encodeURIComponent(r.id)+'" style="display:block"><div class="th">'+rimg+'</div><div class="b"><div class="p">'+(r.categoria||'')+'</div><h3>'+r.nombre+'</h3><div class="pr">'+eur(r.precio)+'</div></div></a>'+
+          '<a href="producto.html?id='+encodeURIComponent(r.id)+'" style="display:block"><div class="th'+(r.imagen_url?' has-img':'')+'">'+rimg+'</div><div class="b"><div class="p">'+(r.categoria||'')+'</div><h3>'+r.nombre+'</h3><div class="pr">'+eur(r.precio)+'</div></div></a>'+
           (r.cotizacion?'':'<div class="b" style="padding-top:0"><button class="buyAdd relAdd" style="width:100%" title="Añadir al carrito">🛒 Añadir</button></div>')+
           '</div>';
       }).join('');
