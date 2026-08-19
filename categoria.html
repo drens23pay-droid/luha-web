@@ -99,8 +99,9 @@
     .card:hover::after{opacity:1}
     .card:hover{transform:translateY(-4px)}
   }
-  .th{height:130px;border-radius:16px 16px 0 0;background:linear-gradient(135deg,#1c1430,#241a3d);display:flex;align-items:center;justify-content:center;font-size:42px;position:relative;overflow:hidden}
-  .th img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+  .th{aspect-ratio:1/1;border-radius:16px 16px 0 0;background:linear-gradient(135deg,#1c1430,#241a3d);display:flex;align-items:center;justify-content:center;font-size:42px;position:relative;overflow:hidden}
+  .th.has-img{background:#08080d}
+  .th img{width:100%;height:100%;object-fit:contain;object-position:center;display:block;padding:10px;box-sizing:border-box}
   .badge{position:absolute;top:10px;left:10px;background:linear-gradient(90deg,var(--pink),var(--neon2));color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px}
   .stock{position:absolute;top:10px;right:10px;font-size:11px;color:var(--ok);background:rgba(61,230,160,.12);border:1px solid rgba(61,230,160,.3);padding:3px 8px;border-radius:20px}
   .stock.off{color:#ff5c7a;background:rgba(255,92,122,.12);border-color:rgba(255,92,122,.3)}
@@ -340,7 +341,7 @@
       : '<div class="price"><span class="now">'+eur(p.precio)+'</span>'+(oferta?'<span class="old">'+eur(p.precio_anterior)+'</span>':'')+'</div>';
     var btnHTML = cot ? '<button class="buy cot">Pedir cotización</button>' : ('<button class="buy" style="flex:1">Comprar</button>'+(p.id?'<button class="buyAdd" title="Añadir al carrito">🛒</button>':''));
     return '<div class="card" data-id="'+(p.id||'')+'" data-img="'+(p.imagen_url||'').replace(/"/g,'')+'" data-precio="'+p.precio+'" data-nombre="'+p.nombre.replace(/"/g,'')+'" data-oferta="'+(oferta?1:0)+'" data-stock="'+(enStock?1:0)+'" data-dest="'+(p.destacado?1:0)+'" data-cot="'+(cot?1:0)+'" data-cat="'+(p.categoria||'').replace(/"/g,'')+'">'+
-      open+'<div class="th">'+img+(oferta&&!cot?'<span class="badge">-'+pct+'%</span>':'')+(cot?'<span class="badge">Cotización</span>':'')+'<span class="stock'+(enStock?'':' off')+'">'+(p.stock||'En stock')+'</span></div>'+
+      open+'<div class="th'+(p.imagen_url?' has-img':'')+'">'+img+(oferta&&!cot?'<span class="badge">-'+pct+'%</span>':'')+(cot?'<span class="badge">Cotización</span>':'')+'<span class="stock'+(enStock?'':' off')+'">'+(p.stock||'En stock')+'</span></div>'+
       '<div class="b"><div class="p">'+(p.categoria||'')+'</div><h3>'+p.nombre+'</h3>'+
       precioHTML+'</div>'+close+
       '<div class="b" style="padding-top:0;display:flex;gap:8px">'+btnHTML+'</div></div>';
