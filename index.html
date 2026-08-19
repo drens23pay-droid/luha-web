@@ -280,7 +280,6 @@
     .bText h3{font-size:22px}
     .bText p{font-size:13px;margin-bottom:14px}
     .bArrow{width:34px;height:34px;font-size:13px}
-    .bSlide.img{background-size:contain !important;background-color:#07070B}
   }
 
   /* POSTER ROW (estilo Netflix: hover que agranda y acerca la portada) */
@@ -800,12 +799,32 @@
           (bn.subtitulo?'<p>'+bn.subtitulo+'</p>':'')+
           '<span class="bCta">Ver más &rarr;</span>'+
           '</div>';
-        var fondo = bn.imagen_url ? ("url('"+bn.imagen_url+"') center/cover no-repeat") : 'linear-gradient(120deg,#2d0140,#5b0f8a 55%,#0b0b0f)';
-        return '<a class="bSlide img" href="'+(bn.enlace||'index.html')+'" style="background:'+fondo+';align-items:flex-end;text-decoration:none">'+overlay+'</a>';
+        var dataAttrs = bn.imagen_url ? (' data-bg-desktop="'+bn.imagen_url+'" data-bg-mobile="'+(bn.imagen_url_mobile||'')+'"') : '';
+        return '<a class="bSlide img" href="'+(bn.enlace||'index.html')+'"'+dataAttrs+' style="align-items:flex-end;text-decoration:none">'+overlay+'</a>';
       }).join('');
       if(frame) frame.style.display='';
+      aplicarFondosBanner();
       iniciarCarrusel();
     }).catch(function(){});
+    // Elige la imagen de escritorio o móvil según el ancho de pantalla, y usa "contain" en
+    // móvil solo cuando NO hay una foto específica para móvil (para no cortar el texto).
+    function aplicarFondosBanner(){
+      var esMovil = window.innerWidth <= 820;
+      var slides = document.querySelectorAll('.bSlide.img[data-bg-desktop]');
+      Array.prototype.forEach.call(slides, function(el){
+        var desktop = el.getAttribute('data-bg-desktop');
+        var mobile = el.getAttribute('data-bg-mobile');
+        if(!desktop){ el.style.background = 'linear-gradient(120deg,#2d0140,#5b0f8a 55%,#0b0b0f)'; return; }
+        var usar = (esMovil && mobile) ? mobile : desktop;
+        el.style.backgroundImage = "url('"+usar+"')";
+        el.style.backgroundPosition = 'center';
+        el.style.backgroundRepeat = 'no-repeat';
+        el.style.backgroundSize = (esMovil && !mobile) ? 'contain' : 'cover';
+        el.style.backgroundColor = (esMovil && !mobile) ? '#07070B' : '';
+      });
+    }
+    var _bTimer;
+    window.addEventListener('resize', function(){ clearTimeout(_bTimer); _bTimer = setTimeout(aplicarFondosBanner, 150); });
   })();
 
   // ---- Fila de portadas (categorías): usa tus portadas del admin si existen; si no, deja las 6 de ejemplo. Se desliza sola hacia la izquierda, sin parar, y se pausa al pasar el cursor. ----
