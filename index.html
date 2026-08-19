@@ -279,7 +279,10 @@
     .bSlide{height:230px;padding:0 26px}
     .bText h3{font-size:22px}
     .bText p{font-size:13px;margin-bottom:14px}
-    .bArrow{width:34px;height:34px;font-size:13px}
+    .bArrow{width:30px;height:30px;font-size:12px;top:16px;transform:none}
+    .bPrev{left:8px}
+    .bNext{right:8px}
+    .bCta{font-size:11px;padding:6px 13px;display:flex;width:fit-content;margin:0 auto}
   }
 
   /* POSTER ROW (estilo Netflix: hover que agranda y acerca la portada) */
@@ -799,13 +802,15 @@
           (bn.subtitulo?'<p>'+bn.subtitulo+'</p>':'')+
           '<span class="bCta">Ver más &rarr;</span>'+
           '</div>';
-        var dataAttrs = bn.imagen_url ? (' data-bg-desktop="'+bn.imagen_url+'" data-bg-mobile="'+(bn.imagen_url_mobile||'')+'"') : '';
+        var dataAttrs = bn.imagen_url ? (' data-bg-desktop="'+bn.imagen_url+'" data-bg-mobile="'+(bn.imagen_url_mobile||'')+'" data-bg-pos="'+(bn.imagen_posicion||'center')+'"') : '';
         return '<a class="bSlide img" href="'+(bn.enlace||'index.html')+'"'+dataAttrs+' style="align-items:flex-end;text-decoration:none">'+overlay+'</a>';
       }).join('');
       if(frame) frame.style.display='';
       aplicarFondosBanner();
       iniciarCarrusel();
     }).catch(function(){});
+    // Convierte el valor guardado (center/top/bottom/left/right) en un background-position real.
+    var POS_CSS = { center:'center', top:'center top', bottom:'center bottom', left:'left center', right:'right center' };
     // Elige la imagen de escritorio o móvil según el ancho de pantalla, y usa "contain" en
     // móvil solo cuando NO hay una foto específica para móvil (para no cortar el texto).
     function aplicarFondosBanner(){
@@ -814,10 +819,11 @@
       Array.prototype.forEach.call(slides, function(el){
         var desktop = el.getAttribute('data-bg-desktop');
         var mobile = el.getAttribute('data-bg-mobile');
+        var pos = POS_CSS[el.getAttribute('data-bg-pos')] || 'center';
         if(!desktop){ el.style.background = 'linear-gradient(120deg,#2d0140,#5b0f8a 55%,#0b0b0f)'; return; }
         var usar = (esMovil && mobile) ? mobile : desktop;
         el.style.backgroundImage = "url('"+usar+"')";
-        el.style.backgroundPosition = 'center';
+        el.style.backgroundPosition = pos;
         el.style.backgroundRepeat = 'no-repeat';
         el.style.backgroundSize = (esMovil && !mobile) ? 'contain' : 'cover';
         el.style.backgroundColor = (esMovil && !mobile) ? '#07070B' : '';
@@ -925,8 +931,10 @@
     // se queda oculta en vez de mostrar contenido genérico.
     fetch('/api/banners?tabla=posters').then(function(r){return r.json()}).then(function(d){
       if(Array.isArray(d) && d.length){
+        var POS_CSS_P = { center:'center', top:'center top', bottom:'center bottom', left:'left center', right:'right center' };
         var html = d.map(function(p){
-          var fondo = p.imagen_url ? ("url('"+p.imagen_url+"') center/cover no-repeat") : (COLORES[p.color]||COLORES.morado);
+          var posP = POS_CSS_P[p.imagen_posicion] || 'center';
+          var fondo = p.imagen_url ? ("url('"+p.imagen_url+"') "+posP+"/cover no-repeat") : (COLORES[p.color]||COLORES.morado);
           return '<a class="poster" href="'+(p.enlace||'index.html')+'" style="background:'+fondo+'">'+
             (p.badge?'<span class="pBadge">'+p.badge+'</span>':'')+
             '<div class="pInfo">'+((p.icono&&!p.imagen_url)?'<span class="pIcon">'+p.icono+'</span>':'')+
@@ -1139,7 +1147,38 @@
       .concat(paquetes.map(function(p){ return {nombre:p.nombre, precio:p.precio, href:'seguidores.html', categoria:'Seguidores'}; }));
     CATS_DATA = categorias.map(function(c){ return {nombre:c.nombre, href:'categoria.html?cat='+encodeURIComponent(c.nombre)}; });
     pintarMenuCategorias(categorias);
+    pintarMasVendidos(productos);
   });
+
+  // ---- "Más vendidos" (home): pinta los productos destacados usando lo que ya trajo el fetch de arriba ----
+  function ccardHTML(p){
+    var precio = eur(p.precio||0);
+    var img = p.imagen_url ? 'background-image:url(\''+String(p.imagen_url).replace(/'/g,"\\'")+'\');background-size:cover;background-position:center' : '';
+    var icono = p.imagen_url ? '' : '🛒';
+    var desc = p.descripcion ? String(p.descripcion).slice(0,70) : '';
+    var nombre = String(p.nombre||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<div class="ccard">'
+      + '<a class="top" href="producto.html?id='+encodeURIComponent(p.id)+'" style="'+img+'">'+icono+'<span class="verMas">Ver más →</span></a>'
+      + '<div class="b"><h4>'+nombre+'</h4><p>'+desc+'</p>'
+      + '<div class="row"><span class="cp">'+precio+'</span><button class="cbuy" data-id="'+encodeURIComponent(p.id)+'">Comprar</button></div>'
+      + '</div></div>';
+  }
+  function pintarMasVendidos(productos){
+    var grid = document.getElementById('masVendidosGrid');
+    if(!grid) return;
+    var destacados = (productos||[]).filter(function(p){ return p.destacado===true; });
+    if(!destacados.length) destacados = (productos||[]).slice(0,12);
+    if(!destacados.length){
+      grid.innerHTML = '<div class="muted" style="grid-column:1/-1;text-align:center;color:var(--txt-mut);padding:30px 0">Todavía no hay productos disponibles.</div>';
+      return;
+    }
+    grid.innerHTML = destacados.map(ccardHTML).join('');
+    grid.querySelectorAll('.ccard').forEach(function(card){
+      var b = card.querySelector('.cbuy'); if(!b) return;
+      wireBuy(b, function(){ return card.querySelector('h4').textContent; },
+        function(){ return parseEur(card.querySelector('.cp').textContent); });
+    });
+  }
   // ---- Menús de categorías (dropdown del header, menú móvil y pie de página) se arman
   // solos con lo que tengas activo en el admin — así cualquier categoría que agregues
   // (o renombres) aparece automáticamente en toda la web, no solo en el sidebar. ----
